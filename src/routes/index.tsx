@@ -225,17 +225,9 @@ function Index() {
     }
   };
 
-  const exportHeaders = exportRows.length ? Object.keys(exportRows[0]) :
-    target === "shopify" ? Object.keys(buildShopifyRows([])[0] || {}) :
-    target === "woocommerce" ? Object.keys(buildWooCommerceRows([])[0] || {}) :
-    Object.keys(buildGenericRows([])[0] || {});
-
-  // For empty preview headers (when no products), reference a placeholder
   const previewHeaders = previewExportRows.length
     ? Object.keys(previewExportRows[0].row)
-    : (target === "shopify" ? buildShopifyRows([{} as any]).length ? Object.keys(buildShopifyRows([{} as any])[0]) : []
-       : target === "woocommerce" ? Object.keys(buildWooCommerceRows([{} as any])[0] || {})
-       : Object.keys(buildGenericRows([{} as any])[0] || {}));
+    : [];
 
   return (
     <div className="min-h-screen bg-muted/30">
