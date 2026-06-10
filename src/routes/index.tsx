@@ -729,13 +729,9 @@ function Index() {
               <StepHeader number={4} title="Validate & export" active />
 
               {/* Validation */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Validation</CardTitle>
-                  <CardDescription>Check for missing required fields, invalid prices, duplicate SKUs, and image URL issues.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {blockingIssues.length === 0 && warningIssues.length === 0 ? (
+              {blockingIssues.length === 0 && warningIssues.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
                     <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
                       <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                       <div className="text-sm">
@@ -743,28 +739,95 @@ function Index() {
                         <p className="text-emerald-700">Your CSV is ready to export.</p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {blockingIssues.length > 0 && (
-                        <IssueGroup
-                          title="Blocking errors"
-                          description="These rows will be excluded from export."
-                          tone="error"
-                          issues={blockingIssues}
-                        />
-                      )}
-                      {warningIssues.length > 0 && (
-                        <IssueGroup
-                          title="Warnings"
-                          description="These rows will still be exported. Review for accuracy."
-                          tone="warning"
-                          issues={warningIssues}
-                        />
-                      )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <CardTitle className="text-base">Validation found issues</CardTitle>
+                        <CardDescription>
+                          {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
+                        </CardDescription>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {summary.blockedRows > 0
+                            ? "Blocked rows are excluded from export. Warning rows are included."
+                            : "All rows are exportable. Warning rows are included."}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* How to fix helper */}
+                    <Collapsible open={howToFixOpen} onOpenChange={setHowToFixOpen}>
+                      <div className="rounded-md border bg-muted/30">
+                        <CollapsibleTrigger className="w-full">
+                          <div className="flex items-center justify-between gap-2 p-3 text-left">
+                            <div className="flex items-center gap-2">
+                              <Wrench className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">How to fix issues</span>
+                            </div>
+                            {howToFixOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
+                            <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
+                            <li>Find the row number shown in each issue below.</li>
+                            <li>Update the field using the suggested fix.</li>
+                            <li>Save the CSV and re-upload it here.</li>
+                          </ol>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+
+                    {/* Filters */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <ListFilter className="h-3.5 w-3.5 text-muted-foreground" />
+                      {([
+                        ["all", `All issues (${blockingIssues.length + warningIssues.length})`],
+                        ["blocking", `Blocking only (${blockingIssues.length})`],
+                        ["warnings", `Warnings only (${warningIssues.length})`],
+                      ] as const).map(([id, label]) => (
+                        <button
+                          key={id}
+                          onClick={() => setIssueFilter(id)}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${issueFilter === id ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground/40"}`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
+                      <IssueGroup
+                        title="Blocking errors"
+                        description="Rows with these issues will be excluded from export until fixed."
+                        tone="error"
+                        issues={blockingIssues}
+                        mappings={mappings}
+                      />
+                    )}
+                    {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
+                      <IssueGroup
+                        title="Warnings"
+                        description="Rows with these issues can still be exported, but may import incorrectly."
+                        tone="warning"
+                        issues={warningIssues}
+                        mappings={mappings}
+                      />
+                    )}
+                    {issueFilter === "blocking" && blockingIssues.length === 0 && (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking errors.</p>
+                    )}
+                    {issueFilter === "warnings" && warningIssues.length === 0 && (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No warnings.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Export readiness */}
               <Card className="mt-4">
