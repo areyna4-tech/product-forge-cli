@@ -61,6 +61,7 @@ function Index() {
   const [target, setTarget] = useState<ExportTemplate>("generic");
   const [error, setError] = useState<string>("");
   const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
+  const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning" | "duplicate" | "missing" | "price" | "image">("all");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -215,13 +216,35 @@ function Index() {
     downloadCsv(rows, "validation-report.csv");
   };
 
+  const buildMappingJson = () => JSON.stringify({
+    target,
+    sourceHeaders: headers,
+    mappings: mappings.map((m) => ({
+      destinationField: m.destinationField,
+      sourceColumn: m.sourceColumn,
+      transform: m.transform,
+    })),
+    settings,
+  }, null, 2);
+
+  const downloadMappingJson = () => {
+    const data = buildMappingJson();
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "product-csv-mapping.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCopyMapping = async () => {
-    const data = JSON.stringify({ mappings, settings, target }, null, 2);
+    const data = buildMappingJson();
     try {
+      if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(data);
-      toast.success("Mapping JSON copied to clipboard");
+      toast.success("Mapping JSON copied.");
     } catch {
-      toast.error("Failed to copy");
+      downloadMappingJson();
+      toast.message("Clipboard unavailable. Downloading mapping JSON instead.");
     }
   };
 
@@ -251,7 +274,7 @@ function Index() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-32">
+      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-40">
         {/* Upload Panel */}
         <Card>
           <CardHeader>
@@ -334,7 +357,10 @@ function Index() {
             {sourceRows.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">No file uploaded yet.</p>
             ) : (
-              <div className="overflow-auto rounded-md border max-h-96">
+              <>
+              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+              <div className="overflow-x-auto rounded-md border max-h-96">
+
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 sticky top-0">
                     <tr>
@@ -361,6 +387,7 @@ function Index() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -404,7 +431,9 @@ function Index() {
             {headers.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">Upload a CSV to begin mapping.</p>
             ) : (
-              <div className="overflow-auto">
+              <div className="overflow-x-auto">
+                <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-xs text-muted-foreground">
@@ -554,16 +583,102 @@ function Index() {
           <CardContent>
             <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
               <StatCard label="Total rows" value={summary.totalRows} />
-              <StatCard label="Valid rows" value={summary.validRows} tone="good" icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
-              <StatCard label="Warnings" value={summary.warningRows} tone={summary.warningRows ? "warn" : "neutral"} icon={<AlertTriangle className="h-3.5 w-3.5" />} />
-              <StatCard label="Errors" value={summary.errorRows} tone={summary.errorRows ? "bad" : "neutral"} icon={<AlertCircle className="h-3.5 w-3.5" />} />
-              <StatCard label="Duplicate SKUs" value={summary.duplicateSkuCount} tone={summary.duplicateSkuCount ? "warn" : "neutral"} />
-              <StatCard label="Missing required" value={summary.missingRequiredFieldCount} tone={summary.missingRequiredFieldCount ? "bad" : "neutral"} />
-              <StatCard label="Invalid prices" value={summary.invalidPriceCount} tone={summary.invalidPriceCount ? "bad" : "neutral"} />
-              <StatCard label="Invalid image URLs" value={summary.invalidImageUrlCount} tone={summary.invalidImageUrlCount ? "warn" : "neutral"} />
+              <StatCard label="Exportable rows" value={summary.exportableRows} tone={summary.exportableRows ? "good" : "neutral"} icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
+              <StatCard label="Blocked rows" value={summary.blockedRows} tone={summary.blockedRows ? "bad" : "neutral"} icon={<AlertCircle className="h-3.5 w-3.5" />} />
+              <StatCard label="Rows with warnings" value={summary.warningRows} tone={summary.warningRows ? "warn" : "neutral"} icon={<AlertTriangle className="h-3.5 w-3.5" />} />
+              <StatCard label="Duplicate SKU issues" value={summary.duplicateSkuIssues} tone={summary.duplicateSkuIssues ? "warn" : "neutral"} />
+              <StatCard label="Missing required fields" value={summary.missingRequiredIssues} tone={summary.missingRequiredIssues ? "bad" : "neutral"} />
+              <StatCard label="Invalid price fields" value={summary.invalidPriceIssues} tone={summary.invalidPriceIssues ? "bad" : "neutral"} />
+              <StatCard label="Invalid image URL fields" value={summary.invalidImageUrlIssues} tone={summary.invalidImageUrlIssues ? "warn" : "neutral"} />
             </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Exportable rows have no error-level issues. Warning-only rows are exportable. Field issue cards count individual issue instances.
+            </p>
           </CardContent>
         </Card>
+
+        {/* Issue Details */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <CardTitle className="text-base">Issue Details</CardTitle>
+                <CardDescription>Every validation issue found in your data.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground">Filter</Label>
+                <Select value={issueFilter} onValueChange={(v) => setIssueFilter(v as any)}>
+                  <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="error">Errors</SelectItem>
+                    <SelectItem value="warning">Warnings</SelectItem>
+                    <SelectItem value="duplicate">Duplicate SKU</SelectItem>
+                    <SelectItem value="missing">Missing Required</SelectItem>
+                    <SelectItem value="price">Invalid Price</SelectItem>
+                    <SelectItem value="image">Invalid Image URL</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const issues: { p: ProductRecord; e: typeof products[number]["validationErrors"][number] }[] = [];
+              for (const p of products) for (const e of p.validationErrors) issues.push({ p, e });
+              const filtered = issues.filter(({ e }) => {
+                switch (issueFilter) {
+                  case "all": return true;
+                  case "error": return e.severity === "error";
+                  case "warning": return e.severity === "warning";
+                  case "duplicate": return e.message === "Duplicate SKU";
+                  case "missing": return e.severity === "error" && (e.field === "title" || e.field === "sku" || e.field === "price");
+                  case "price": return e.severity === "error" && e.field === "price";
+                  case "image": return e.severity === "warning" && e.field === "imageUrl";
+                }
+              });
+              if (!products.length) return <p className="text-sm text-muted-foreground py-8 text-center">Upload and map data to see issues.</p>;
+              if (!filtered.length) return <p className="text-sm text-muted-foreground py-8 text-center">No issues match this filter.</p>;
+              return (
+                <>
+                  <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+                  <div className="overflow-x-auto rounded-md border max-h-[400px]">
+                    <table className="w-full text-xs">
+                      <thead className="bg-muted/50 sticky top-0">
+                        <tr>
+                          <th className="px-2 py-2 text-left font-medium border-b w-14">Row</th>
+                          <th className="px-2 py-2 text-left font-medium border-b w-24">Severity</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Field</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">SKU</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Title</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(({ p, e }, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="px-2 py-1.5 text-muted-foreground">{p.sourceRowId}</td>
+                            <td className="px-2 py-1.5">
+                              {e.severity === "error"
+                                ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
+                                : <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warning</Badge>}
+                            </td>
+                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{e.field}</td>
+                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{p.sku || <span className="text-muted-foreground italic">—</span>}</td>
+                            <td className="px-2 py-1.5 whitespace-nowrap max-w-[240px] truncate">{p.title || <span className="text-muted-foreground italic">—</span>}</td>
+                            <td className="px-2 py-1.5 whitespace-nowrap">{e.message}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+
 
         {/* Output Preview */}
         <Card>
@@ -593,14 +708,16 @@ function Index() {
                 {products.length === 0 ? "Upload data and map fields to preview output." : "No rows match this filter."}
               </p>
             ) : (
-              <div className="overflow-auto rounded-md border max-h-[500px]">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/50 sticky top-0">
+              <>
+              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns. Row and Status stay pinned.</p>
+              <div className="overflow-x-auto rounded-md border max-h-[500px]">
+                <table className="w-full text-xs border-separate border-spacing-0">
+                  <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
-                      <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-16 sticky left-0 z-20 bg-muted/95 top-0">Row</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-24 sticky left-16 z-20 bg-muted/95 top-0">Status</th>
                       {previewHeaders.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap sticky top-0 bg-muted/95 z-10">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -610,14 +727,14 @@ function Index() {
                       const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
                       return (
                         <tr key={i} className="border-b last:border-0">
-                          <td className="px-2 py-1.5 text-muted-foreground">{product.sourceRowId}</td>
-                          <td className="px-2 py-1.5">
+                          <td className="px-2 py-1.5 text-muted-foreground border-b sticky left-0 z-10 bg-background">{product.sourceRowId}</td>
+                          <td className="px-2 py-1.5 border-b sticky left-16 z-10 bg-background">
                             {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                              : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500">warn</Badge>
+                              : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
                               : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
                           </td>
                           {previewHeaders.map((h) => (
-                            <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate">
+                            <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
                               {String(row[h] ?? "")}
                             </td>
                           ))}
@@ -627,6 +744,7 @@ function Index() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -635,10 +753,18 @@ function Index() {
       {/* Sticky Export Actions */}
       <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-10">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <div className="text-xs text-muted-foreground">
-            {exportRows.length > 0
-              ? <>Ready to export <span className="font-medium text-foreground">{exportRows.length}</span> rows as <span className="font-medium text-foreground">{target}</span> CSV</>
-              : "Map required fields and upload data to enable export."}
+          <div className="text-xs text-muted-foreground space-y-0.5">
+            {products.length > 0 ? (
+              <>
+                <div>
+                  Ready to export <span className="font-medium text-foreground">{summary.exportableRows} {summary.exportableRows === 1 ? "exportable row" : "exportable rows"}</span>.{" "}
+                  <span className="font-medium text-foreground">{summary.blockedRows} {summary.blockedRows === 1 ? "row" : "rows"}</span> blocked by errors.
+                </div>
+                <div>Exports exclude error rows and include warning rows.</div>
+              </>
+            ) : (
+              "Map required fields and upload data to enable export."
+            )}
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={reset}>

@@ -76,14 +76,19 @@ export type MapperSettings = {
 
 export type ValidationSummary = {
   totalRows: number;
-  validRows: number;
+  exportableRows: number;
+  blockedRows: number;
   warningRows: number;
-  errorRows: number;
-  duplicateSkuCount: number;
-  missingRequiredFieldCount: number;
-  invalidPriceCount: number;
-  invalidImageUrlCount: number;
+  duplicateSkuIssues: number;
+  missingRequiredIssues: number;
+  invalidPriceIssues: number;
+  invalidImageUrlIssues: number;
 };
+
+export function formatMoney(n: number | null | undefined): string {
+  if (n == null || typeof n !== "number" || isNaN(n)) return "";
+  return (Math.round(n * 100) / 100).toFixed(2);
+}
 
 export const defaultSettings: MapperSettings = {
   defaultCurrency: "USD",
@@ -380,33 +385,32 @@ export function validateProducts(products: ProductRecord[], settings: MapperSett
 }
 
 export function summarize(products: ProductRecord[]): ValidationSummary {
-  let valid = 0, warn = 0, err = 0, dupSku = 0, missingReq = 0, badPrice = 0, badImg = 0;
-  const skuSeen = new Map<string, number>();
+  let exportable = 0, blocked = 0, warn = 0;
+  let dupSku = 0, missingReq = 0, badPrice = 0, badImg = 0;
   for (const p of products) {
     const hasErr = p.validationErrors.some((e) => e.severity === "error");
     const hasWarn = p.validationErrors.some((e) => e.severity === "warning");
-    if (hasErr) err++;
-    else if (hasWarn) warn++;
-    else valid++;
+    if (hasErr) blocked++; else exportable++;
+    if (hasWarn) warn++;
     for (const e of p.validationErrors) {
       if (e.severity === "error" && (e.field === "title" || e.field === "sku" || e.field === "price")) missingReq++;
-      if (e.field === "price") badPrice++;
-      if (e.field === "imageUrl") badImg++;
+      if (e.severity === "error" && e.field === "price") badPrice++;
+      if (e.severity === "warning" && e.field === "imageUrl") badImg++;
+      if (e.severity === "warning" && e.message === "Duplicate SKU") dupSku++;
     }
-    if (p.sku) skuSeen.set(p.sku, (skuSeen.get(p.sku) || 0) + 1);
   }
-  skuSeen.forEach((c) => { if (c > 1) dupSku += c; });
   return {
     totalRows: products.length,
-    validRows: valid,
+    exportableRows: exportable,
+    blockedRows: blocked,
     warningRows: warn,
-    errorRows: err,
-    duplicateSkuCount: dupSku,
-    missingRequiredFieldCount: missingReq,
-    invalidPriceCount: badPrice,
-    invalidImageUrlCount: badImg,
+    duplicateSkuIssues: dupSku,
+    missingRequiredIssues: missingReq,
+    invalidPriceIssues: badPrice,
+    invalidImageUrlIssues: badImg,
   };
 }
+
 
 export function buildGenericRows(products: ProductRecord[]): Record<string, any>[] {
   return products.map((p) => ({
@@ -418,9 +422,9 @@ export function buildGenericRows(products: ProductRecord[]): Record<string, any>
     "Brand": p.brand,
     "Category": p.category,
     "Tags": p.tags.join(", "),
-    "Price": p.price ?? "",
-    "Compare At Price": p.compareAtPrice ?? "",
-    "Cost": p.cost ?? "",
+    "Price": formatMoney(p.price),
+    "Compare At Price": formatMoney(p.compareAtPrice),
+    "Cost": formatMoney(p.cost),
     "Quantity": p.quantity ?? "",
     "Stock Status": p.stockStatus,
     "Weight": p.weight ?? "",
@@ -462,8 +466,8 @@ export function buildShopifyRows(products: ProductRecord[]): Record<string, any>
     "Variant Inventory Qty": p.quantity ?? 0,
     "Variant Inventory Policy": "deny",
     "Variant Fulfillment Service": "manual",
-    "Variant Price": p.price ?? "",
-    "Variant Compare At Price": p.compareAtPrice ?? "",
+    "Variant Price": formatMoney(p.price),
+    "Variant Compare At Price": formatMoney(p.compareAtPrice),
     "Variant Requires Shipping": "TRUE",
     "Variant Taxable": "TRUE",
     "Variant Barcode": p.barcode || p.upc,
@@ -502,7 +506,7 @@ export function buildWooCommerceRows(products: ProductRecord[]): Record<string, 
     "Allow customer reviews?": "1",
     "Purchase note": "",
     "Sale price": "",
-    "Regular price": p.price ?? "",
+    "Regular price": formatMoney(p.price),
     "Categories": p.category,
     "Tags": p.tags.join(", "),
     "Shipping class": "",
