@@ -244,7 +244,7 @@ function Index() {
       toast.success("Mapping JSON copied.");
     } catch {
       downloadMappingJson();
-      toast.message("Clipboard unavailable. Downloading mapping JSON instead.");
+      toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
     }
   };
 
@@ -254,7 +254,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Toaster />
+      <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
       {/* Header */}
       <header className="border-b bg-background">
         <div className="mx-auto max-w-7xl px-6 py-6">
@@ -274,7 +274,7 @@ function Index() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-40">
+      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-56">
         {/* Upload Panel */}
         <Card>
           <CardHeader>
@@ -709,15 +709,15 @@ function Index() {
               </p>
             ) : (
               <>
-              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns. Row and Status stay pinned.</p>
+              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
               <div className="overflow-x-auto rounded-md border max-h-[500px]">
-                <table className="w-full text-xs border-separate border-spacing-0">
-                  <thead className="bg-muted/50">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-2 py-2 text-left font-medium border-b w-16 sticky left-0 z-20 bg-muted/95 top-0">Row</th>
-                      <th className="px-2 py-2 text-left font-medium border-b w-24 sticky left-16 z-20 bg-muted/95 top-0">Status</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
                       {previewHeaders.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap sticky top-0 bg-muted/95 z-10">{h}</th>
+                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -727,8 +727,8 @@ function Index() {
                       const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
                       return (
                         <tr key={i} className="border-b last:border-0">
-                          <td className="px-2 py-1.5 text-muted-foreground border-b sticky left-0 z-10 bg-background">{product.sourceRowId}</td>
-                          <td className="px-2 py-1.5 border-b sticky left-16 z-10 bg-background">
+                          <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
+                          <td className="px-2 py-1.5 border-b">
                             {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
                               : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
                               : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
@@ -751,7 +751,7 @@ function Index() {
       </main>
 
       {/* Sticky Export Actions */}
-      <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-10">
+      <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-40 shadow-lg">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-xs text-muted-foreground space-y-0.5">
             {products.length > 0 ? (
