@@ -76,6 +76,61 @@ const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabe
 
 const NO_SOURCE = "__none__";
 
+type DestField = keyof ProductRecord;
+
+const OPTIONAL_GROUPS: { title: string; fields: DestField[] }[] = [
+  { title: "Product details", fields: ["description", "vendor", "brand", "category", "productType", "tags"] },
+  { title: "Pricing & inventory", fields: ["compareAtPrice", "cost", "quantity", "weight", "barcode", "isActive"] },
+  { title: "Images", fields: ["imageUrl", "additionalImageUrls"] },
+  { title: "Variants", fields: ["option1Name", "option1Value", "option2Name", "option2Value", "option3Name", "option3Value"] },
+  { title: "SEO", fields: ["seoTitle", "seoDescription"] },
+];
+
+type IssueInfo = { problem: string; current: string; expected: string; fix: string };
+
+function describeIssue(
+  p: ProductRecord,
+  e: ProductRecord["validationErrors"][number],
+  mappings: ColumnMapping[],
+): IssueInfo {
+  const m = mappings.find((x) => x.destinationField === e.field);
+  const raw = m ? (p.rawSource[m.sourceColumn] ?? "") : "";
+  const fieldVal = (p as any)[e.field];
+  const currentRaw = raw !== "" ? raw : (fieldVal == null || fieldVal === "" ? "" : String(fieldVal));
+
+  if (e.field === "title" && e.message === "Title is required") {
+    return { problem: "Required field is missing.", current: currentRaw, expected: "Product title", fix: "Add a product title in the source CSV." };
+  }
+  if (e.field === "sku" && e.message === "SKU is required") {
+    return { problem: "Required field is missing.", current: currentRaw, expected: "A unique product code like ABC-123", fix: "Add a SKU in the source CSV." };
+  }
+  if (e.field === "sku" && e.message === "Duplicate SKU") {
+    return { problem: "SKU is used by more than one row.", current: currentRaw, expected: "A unique SKU per row", fix: "Change one of the duplicate SKUs so each row is unique." };
+  }
+  if (e.field === "price" && e.message === "Price is invalid or missing") {
+    return { problem: "Price is not a valid number.", current: currentRaw, expected: "A number like 29.99", fix: "Replace with a numeric price, then re-upload the CSV." };
+  }
+  if (e.field === "price" && e.message === "Price is zero or negative") {
+    return { problem: "Price is zero or negative.", current: currentRaw, expected: "A positive number like 29.99", fix: "Set a positive price greater than zero." };
+  }
+  if (e.field === "compareAtPrice") {
+    return { problem: "Compare-at price is lower than price.", current: currentRaw, expected: "A value higher than the price, or leave it blank", fix: "Increase the compare-at price or remove it." };
+  }
+  if (e.field === "cost") {
+    return { problem: "Cost is higher than the price.", current: currentRaw, expected: "A cost lower than the price", fix: "Lower the cost or raise the price." };
+  }
+  if (e.field === "quantity") {
+    return { problem: "Quantity is negative.", current: currentRaw, expected: "Zero or a positive whole number", fix: "Set quantity to 0 or higher." };
+  }
+  if (e.field === "imageUrl") {
+    return { problem: "Image URL may not be valid.", current: currentRaw, expected: "A full URL starting with https://", fix: "Use a complete image URL such as https://example.com/blue-shirt.jpg." };
+  }
+  if (e.field === "barcode") {
+    return { problem: "Barcode contains letters.", current: currentRaw, expected: "Digits only (UPC, EAN, or GTIN)", fix: "Remove letters so only digits remain." };
+  }
+  return { problem: e.message, current: currentRaw, expected: "Valid value for this field", fix: "Update the value in the source CSV and re-upload." };
+}
+
 function Index() {
   const [filename, setFilename] = useState<string>("");
   const [headers, setHeaders] = useState<string[]>([]);
