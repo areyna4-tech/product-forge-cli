@@ -274,7 +274,7 @@ function Index() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-32">
+      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-40">
         {/* Upload Panel */}
         <Card>
           <CardHeader>
