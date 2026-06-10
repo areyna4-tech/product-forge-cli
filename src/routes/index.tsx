@@ -307,9 +307,17 @@ function Index() {
     const rows: Record<string, any>[] = [];
     for (const p of products) {
       for (const e of p.validationErrors) {
+        const d = describeIssue(p, e, mappings);
         rows.push({
-          sourceRowId: p.sourceRowId, sku: p.sku, title: p.title,
-          field: e.field, severity: e.severity, message: e.message,
+          row: p.sourceRowId,
+          sku: p.sku,
+          title: p.title,
+          field: FIELD_LABELS[e.field] || e.field,
+          severity: e.severity === "error" ? "Blocked" : "Warning",
+          problem: d.problem,
+          currentValue: d.current,
+          expectedFormat: d.expected,
+          suggestedFix: d.fix,
         });
       }
     }
