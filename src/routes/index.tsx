@@ -868,28 +868,32 @@ function Index() {
               {/* Output Preview */}
               <Card className="mt-4">
                 <CardHeader>
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div>
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="min-w-0">
                       <CardTitle className="text-base">Output preview</CardTitle>
                       <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
+                      <Label className="text-xs text-muted-foreground">Show</Label>
+                      <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
+                        <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="exportable">Exportable rows</SelectItem>
+                          <SelectItem value="all">All rows</SelectItem>
+                          <SelectItem value="warning">With warnings</SelectItem>
+                          <SelectItem value="error">Blocked rows</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                         <Switch checked={hideEmptyCols} onCheckedChange={setHideEmptyCols} />
                         Hide empty columns
                       </label>
-                      <Label className="text-xs text-muted-foreground">Filter</Label>
-                      <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
-                        <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All rows</SelectItem>
-                          <SelectItem value="valid">Valid only</SelectItem>
-                          <SelectItem value="warning">With warnings</SelectItem>
-                          <SelectItem value="error">With errors</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Showing mapped and non-empty columns by default.
+                    {summary.blockedRows > 0 && " Blocked rows are excluded from the downloaded CSV."}
+                  </p>
                 </CardHeader>
                 <CardContent>
                   {previewExportRows.length === 0 ? (
