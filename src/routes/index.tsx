@@ -4,6 +4,7 @@ import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
   AlertTriangle, FileSpreadsheet, X, Sparkles, Settings as SettingsIcon,
+  ChevronDown, ChevronRight, Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -28,10 +30,10 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Product CSV Mapper" },
-      { name: "description", content: "Clean, map, validate, and export product CSV files for Shopify, WooCommerce, or generic import. Runs entirely in your browser." },
-      { property: "og:title", content: "Product CSV Mapper" },
-      { property: "og:description", content: "Clean, map, validate, and export product CSV files for Shopify, WooCommerce, or generic import." },
+      { title: "Product CSV Cleaner & Exporter" },
+      { name: "description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs. Runs entirely in your browser." },
+      { property: "og:title", content: "Product CSV Cleaner & Exporter" },
+      { property: "og:description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs." },
     ],
   }),
   component: Index,
@@ -50,6 +52,27 @@ const FIELD_LABELS: Record<string, string> = {
   isActive: "Active", seoTitle: "SEO Title", seoDescription: "SEO Description",
 };
 
+const TRANSFORM_LABELS: Record<TransformRule, string> = {
+  none: "No change",
+  trim: "Trim whitespace",
+  lowercase: "Lowercase",
+  uppercase: "Uppercase",
+  title_case: "Title case",
+  slugify: "Generate URL handle",
+  currency_to_number: "Convert currency to number",
+  integer: "Convert to whole number",
+  decimal_2: "Format to 2 decimals",
+  split_comma: "Split comma-separated values",
+  url_clean: "Clean image URL",
+  boolean_active: "Convert to active/inactive",
+};
+
+const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabel: string; filename: string }> = {
+  generic: { title: "Generic Clean CSV", desc: "Clean normalized product file for general imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
+  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
+  woocommerce: { title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure.", ctaLabel: "Download WooCommerce CSV", filename: "woocommerce-products.csv" },
+};
+
 const NO_SOURCE = "__none__";
 
 function Index() {
@@ -61,14 +84,17 @@ function Index() {
   const [target, setTarget] = useState<ExportTemplate>("generic");
   const [error, setError] = useState<string>("");
   const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
-  const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning" | "duplicate" | "missing" | "price" | "image">("all");
   const [dragOver, setDragOver] = useState(false);
+  const [optionalOpen, setOptionalOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [copyStatus, setCopyStatus] = useState<{
     type: "success" | "warning";
     message: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
+
+  const hasFile = sourceRows.length > 0;
 
   const products = useMemo(() => {
     if (!sourceRows.length) return [];
@@ -96,7 +122,6 @@ function Index() {
   }, [products, target, previewFilter]);
 
   const parseCsvText = useCallback((text: string, name: string) => {
-    // Strip BOM if present
     const cleaned = text.replace(/^\uFEFF/, "");
     Papa.parse<Record<string, string>>(cleaned, {
       header: true,
@@ -108,7 +133,6 @@ function Index() {
           setError("CSV has no headers. Make sure the first row contains column names.");
           return;
         }
-        // Keep rows that have at least one non-empty cell across any header
         const rows = (results.data || []).filter((r) =>
           hdrs.some((h) => {
             const v = r?.[h];
@@ -148,9 +172,13 @@ function Index() {
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
     setSettings(defaultSettings); setTarget("generic"); setError("");
-    setPreviewFilter("all");
+    setPreviewFilter("all"); setOptionalOpen(false); setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     toast.info("Reset complete");
+  };
+
+  const replaceFile = () => {
+    fileInputRef.current?.click();
   };
 
   const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
@@ -211,8 +239,7 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    const targetName = target === "shopify" ? "shopify-products" : target === "woocommerce" ? "woocommerce-products" : "products";
-    downloadCsv(exportRows, `${targetName}.csv`);
+    downloadCsv(exportRows, TARGET_META[target].filename);
     toast.success(`Exported ${exportRows.length} rows`);
   };
 
@@ -273,19 +300,14 @@ function Index() {
       window.clearTimeout(copyStatusTimeoutRef.current);
       copyStatusTimeoutRef.current = null;
     }
-
     let copied = false;
     if (navigator.clipboard?.writeText) {
-      // Race against a short timeout so the UI always gets feedback quickly,
-      // even if the clipboard promise never settles (sandboxed iframes).
       copied = await Promise.race<boolean>([
         navigator.clipboard.writeText(data).then(() => true, () => false),
         new Promise<boolean>((resolve) => window.setTimeout(() => resolve(false), 300)),
       ]);
     }
-    if (!copied) {
-      copied = legacyCopy(data);
-    }
+    if (!copied) copied = legacyCopy(data);
 
     if (copied) {
       setCopyStatus({ type: "success", message: "Mapping JSON copied." });
@@ -305,520 +327,455 @@ function Index() {
     ? Object.keys(previewExportRows[0].row)
     : [];
 
+  const requiredFields = ALL_DEST_FIELDS.filter((f) => REQUIRED_FIELDS.includes(f));
+  const optionalFields = ALL_DEST_FIELDS.filter((f) => !REQUIRED_FIELDS.includes(f));
+  const requiredMappedCount = REQUIRED_FIELDS.filter((f) => mappings.some((m) => m.destinationField === f)).length;
+  const allRequiredMapped = requiredMappedCount === REQUIRED_FIELDS.length;
+
+  const blockingIssues = useMemo(
+    () => products.flatMap((p) => p.validationErrors.filter((e) => e.severity === "error").map((e) => ({ p, e }))),
+    [products],
+  );
+  const warningIssues = useMemo(
+    () => products.flatMap((p) => p.validationErrors.filter((e) => e.severity === "warning").map((e) => ({ p, e }))),
+    [products],
+  );
+
   return (
     <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
+
       {/* Header */}
       <header className="border-b bg-background">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Product CSV Mapper</h1>
-              <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-                Clean, map, validate, and export product CSV files for Shopify, WooCommerce, or generic import.
-              </p>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <Badge variant="secondary">No account required</Badge>
-              <Badge variant="secondary">Runs in browser</Badge>
-              <Badge variant="secondary">Export-ready CSV</Badge>
-            </div>
-          </div>
+        <div className="mx-auto max-w-6xl px-6 py-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Product CSV Cleaner &amp; Exporter</h1>
+          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
+            Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs.
+          </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6 space-y-6 pb-12">
-        {/* Upload Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4" />Upload CSV</CardTitle>
-            <CardDescription>Drag and drop a CSV file or browse to select one.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!filename ? (
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault(); setDragOver(false);
-                  const f = e.dataTransfer.files?.[0];
-                  if (f) handleFile(f);
-                }}
-                className={`rounded-lg border-2 border-dashed p-10 text-center transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border"}`}
-              >
-                <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium">Drop your CSV here</p>
-                <p className="text-xs text-muted-foreground">or</p>
-                <div className="mt-3 flex justify-center gap-2">
-                  <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                    Browse file
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={loadSample}>
-                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />Load Sample CSV
-                  </Button>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-4 rounded-md border bg-card p-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{filename}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {sourceRows.length} rows · {headers.length} columns
-                    </p>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" onClick={reset}>
-                  <X className="h-3.5 w-3.5 mr-1.5" />Reset upload
-                </Button>
-              </div>
-            )}
-            {error && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            {headers.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs text-muted-foreground mb-2">Detected headers</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {headers.map((h) => (
-                    <Badge key={h} variant="outline" className="font-mono text-xs">{h}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Source Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Source CSV Preview</CardTitle>
-            <CardDescription>First 10 rows of your uploaded file.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {sourceRows.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No file uploaded yet.</p>
-            ) : (
-              <>
-              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
-              <div className="overflow-x-auto rounded-md border max-h-96">
-
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/50 sticky top-0">
-                    <tr>
-                      <th className="px-2 py-2 text-left font-medium text-muted-foreground border-b w-12">#</th>
-                      {headers.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sourceRows.slice(0, 10).map((row, i) => (
-                      <tr key={i} className="border-b last:border-0">
-                        <td className="px-2 py-1.5 text-muted-foreground">{i + 1}</td>
-                        {headers.map((h) => {
-                          const v = row[h] ?? "";
-                          return (
-                            <td key={h} className={`px-3 py-1.5 whitespace-nowrap ${!v ? "bg-amber-50" : ""}`}>
-                              {v || <span className="text-muted-foreground italic">empty</span>}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Export Target */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Export Target</CardTitle>
-            <CardDescription>Choose the destination platform format.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
-              {([
-                { id: "generic", title: "Generic Clean CSV", desc: "Clean normalized product file for general imports." },
-                { id: "shopify", title: "Shopify Product CSV", desc: "Shopify-compatible product import structure." },
-                { id: "woocommerce", title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure." },
-              ] as const).map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTarget(t.id)}
-                  className={`text-left rounded-lg border p-4 transition-all ${target === t.id ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "hover:border-foreground/30"}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4" />
-                    <span className="font-medium text-sm">{t.title}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1.5">{t.desc}</p>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mapping Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Column Mapping</CardTitle>
-            <CardDescription>Map each destination field to a source column. Required fields must be mapped to export.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {headers.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">Upload a CSV to begin mapping.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
-
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-xs text-muted-foreground">
-                      <th className="text-left font-medium py-2 pr-3">Destination Field</th>
-                      <th className="text-left font-medium py-2 pr-3">Source Column</th>
-                      <th className="text-left font-medium py-2 pr-3">Transform</th>
-                      <th className="text-left font-medium py-2 pr-3">Sample Output</th>
-                      <th className="w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ALL_DEST_FIELDS.map((field) => {
-                      const m = mappings.find((x) => x.destinationField === field);
-                      const required = REQUIRED_FIELDS.includes(field);
-                      const sample = sampleTransformed(field);
-                      const notMapped = required && !m;
-                      return (
-                        <tr key={field} className="border-b last:border-0">
-                          <td className="py-2 pr-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{FIELD_LABELS[field] || field}</span>
-                              <Badge variant={required ? "default" : "secondary"} className="text-[10px] py-0 h-4">
-                                {required ? "Required" : "Optional"}
-                              </Badge>
-                              {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
-                            </div>
-                          </td>
-                          <td className="py-2 pr-3 min-w-[180px]">
-                            <Select
-                              value={m?.sourceColumn || NO_SOURCE}
-                              onValueChange={(v) => updateMapping(field, v)}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue placeholder="— not mapped —" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={NO_SOURCE}>— not mapped —</SelectItem>
-                                {headers.map((h) => (
-                                  <SelectItem key={h} value={h}>{h}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="py-2 pr-3 min-w-[150px]">
-                            <Select
-                              value={m?.transform || defaultTransformFor(field)}
-                              onValueChange={(v) => updateTransform(field, v as TransformRule)}
-                              disabled={!m}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {TRANSFORM_OPTIONS.map((t) => (
-                                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="py-2 pr-3 text-xs text-muted-foreground font-mono max-w-[200px] truncate">
-                            {sample || <span className="italic">—</span>}
-                          </td>
-                          <td className="py-2">
-                            {m && (
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => clearMapping(field)}>
-                                <X className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Global Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><SettingsIcon className="h-4 w-4" />Global Transform Settings</CardTitle>
-            <CardDescription>Defaults applied during transformation.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Default currency</Label>
-                <Input
-                  value={settings.defaultCurrency}
-                  onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
-                  className="h-8"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Default vendor</Label>
-                <Input
-                  value={settings.defaultVendor}
-                  onChange={(e) => setSettings({ ...settings, defaultVendor: e.target.value })}
-                  className="h-8"
-                  placeholder="Leave blank if none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Default weight unit</Label>
-                <Select
-                  value={settings.defaultWeightUnit}
-                  onValueChange={(v) => setSettings({ ...settings, defaultWeightUnit: v as any })}
-                >
-                  <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(["g", "kg", "lb", "oz"] as const).map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {[
-                ["titleCaseTitles", "Convert product titles to title case"],
-                ["uppercaseSkus", "Convert SKUs to uppercase"],
-                ["generateHandles", "Generate missing handles from title"],
-                ["fallbackDescriptionFromTitle", "Use title as fallback description"],
-                ["removeBlankRows", "Remove duplicate blank rows"],
-                ["warnDuplicateSkus", "Warn on duplicate SKUs"],
-              ].map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <Checkbox
-                    checked={(settings as any)[key]}
-                    onCheckedChange={(v) => setSettings({ ...settings, [key]: !!v } as MapperSettings)}
-                  />
-                  <span>{label}</span>
-                </label>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Validation Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Validation Summary</CardTitle>
-            <CardDescription>Quality overview of transformed product records.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-              <StatCard label="Total rows" value={summary.totalRows} />
-              <StatCard label="Exportable rows" value={summary.exportableRows} tone={summary.exportableRows ? "good" : "neutral"} icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
-              <StatCard label="Blocked rows" value={summary.blockedRows} tone={summary.blockedRows ? "bad" : "neutral"} icon={<AlertCircle className="h-3.5 w-3.5" />} />
-              <StatCard label="Rows with warnings" value={summary.warningRows} tone={summary.warningRows ? "warn" : "neutral"} icon={<AlertTriangle className="h-3.5 w-3.5" />} />
-              <StatCard label="Duplicate SKU issues" value={summary.duplicateSkuIssues} tone={summary.duplicateSkuIssues ? "warn" : "neutral"} />
-              <StatCard label="Missing required fields" value={summary.missingRequiredIssues} tone={summary.missingRequiredIssues ? "bad" : "neutral"} />
-              <StatCard label="Invalid price fields" value={summary.invalidPriceIssues} tone={summary.invalidPriceIssues ? "bad" : "neutral"} />
-              <StatCard label="Invalid image URL fields" value={summary.invalidImageUrlIssues} tone={summary.invalidImageUrlIssues ? "warn" : "neutral"} />
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Exportable rows have no error-level issues. Warning-only rows are exportable. Field issue cards count individual issue instances.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Issue Details */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <CardTitle className="text-base">Issue Details</CardTitle>
-                <CardDescription>Every validation issue found in your data.</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Filter</Label>
-                <Select value={issueFilter} onValueChange={(v) => setIssueFilter(v as any)}>
-                  <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="error">Errors</SelectItem>
-                    <SelectItem value="warning">Warnings</SelectItem>
-                    <SelectItem value="duplicate">Duplicate SKU</SelectItem>
-                    <SelectItem value="missing">Missing Required</SelectItem>
-                    <SelectItem value="price">Invalid Price</SelectItem>
-                    <SelectItem value="image">Invalid Image URL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const issues: { p: ProductRecord; e: typeof products[number]["validationErrors"][number] }[] = [];
-              for (const p of products) for (const e of p.validationErrors) issues.push({ p, e });
-              const filtered = issues.filter(({ e }) => {
-                switch (issueFilter) {
-                  case "all": return true;
-                  case "error": return e.severity === "error";
-                  case "warning": return e.severity === "warning";
-                  case "duplicate": return e.message === "Duplicate SKU";
-                  case "missing": return e.severity === "error" && (e.field === "title" || e.field === "sku" || e.field === "price");
-                  case "price": return e.severity === "error" && e.field === "price";
-                  case "image": return e.severity === "warning" && e.field === "imageUrl";
-                }
-              });
-              if (!products.length) return <p className="text-sm text-muted-foreground py-8 text-center">Upload and map data to see issues.</p>;
-              if (!filtered.length) return <p className="text-sm text-muted-foreground py-8 text-center">No issues match this filter.</p>;
-              return (
+      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-28" : "pb-12"}`}>
+        {/* Step 1 — Upload */}
+        <section>
+          <StepHeader number={1} title="Upload CSV" active />
+          <Card>
+            <CardContent className="pt-6">
+              {!hasFile ? (
                 <>
-                  <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
-                  <div className="overflow-x-auto rounded-md border max-h-[400px]">
-                    <table className="w-full text-xs">
-                      <thead className="bg-muted/50 sticky top-0">
-                        <tr>
-                          <th className="px-2 py-2 text-left font-medium border-b w-14">Row</th>
-                          <th className="px-2 py-2 text-left font-medium border-b w-24">Severity</th>
-                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Field</th>
-                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">SKU</th>
-                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Title</th>
-                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Message</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filtered.map(({ p, e }, i) => (
-                          <tr key={i} className="border-b last:border-0">
-                            <td className="px-2 py-1.5 text-muted-foreground">{p.sourceRowId}</td>
-                            <td className="px-2 py-1.5">
-                              {e.severity === "error"
-                                ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                                : <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warning</Badge>}
-                            </td>
-                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{e.field}</td>
-                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{p.sku || <span className="text-muted-foreground italic">—</span>}</td>
-                            <td className="px-2 py-1.5 whitespace-nowrap max-w-[240px] truncate">{p.title || <span className="text-muted-foreground italic">—</span>}</td>
-                            <td className="px-2 py-1.5 whitespace-nowrap">{e.message}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault(); setDragOver(false);
+                      const f = e.dataTransfer.files?.[0];
+                      if (f) handleFile(f);
+                    }}
+                    className={`rounded-lg border-2 border-dashed p-10 text-center transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border"}`}
+                  >
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                    <p className="mt-3 text-sm font-medium">Drop your CSV here</p>
+                    <p className="text-xs text-muted-foreground">or</p>
+                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
+                      <Button size="sm" onClick={() => fileInputRef.current?.click()}>
+                        Browse CSV file
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={loadSample}>
+                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />Try sample file
+                      </Button>
+                    </div>
                   </div>
-                </>
-              );
-            })()}
-          </CardContent>
-        </Card>
 
-
-
-        {/* Output Preview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <CardTitle className="text-base">Output Preview</CardTitle>
-                <CardDescription>First 25 transformed rows for {target}.</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Filter</Label>
-                <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
-                  <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All rows</SelectItem>
-                    <SelectItem value="valid">Valid only</SelectItem>
-                    <SelectItem value="warning">With warnings</SelectItem>
-                    <SelectItem value="error">With errors</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {previewExportRows.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                {products.length === 0 ? "Upload data and map fields to preview output." : "No rows match this filter."}
-              </p>
-            ) : (
-              <>
-              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
-              <div className="overflow-x-auto rounded-md border max-h-[500px]">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/50 sticky top-0 z-10">
-                    <tr>
-                      <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
-                      <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
-                      {previewHeaders.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                  {/* How it works */}
+                  <div className="mt-6 rounded-md border bg-card p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">How it works</p>
+                    <ol className="grid gap-3 sm:grid-cols-4 text-sm">
+                      {["Upload", "Auto-map", "Validate", "Export"].map((step, i) => (
+                        <li key={step} className="flex items-center gap-2">
+                          <span className="grid place-items-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="font-medium">{step}</span>
+                        </li>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewExportRows.map(({ row, product }, i) => {
-                      const hasErr = product.validationErrors.some((e) => e.severity === "error");
-                      const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
-                      return (
-                        <tr key={i} className="border-b last:border-0">
-                          <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
-                          <td className="px-2 py-1.5 border-b">
-                            {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                              : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
-                              : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
-                          </td>
-                          {previewHeaders.map((h) => (
-                            <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
-                              {String(row[h] ?? "")}
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Export Actions (in normal document flow, never overlays content) */}
-        <div className="mt-8 -mx-6 px-6 border-t bg-background">
-          <div className="py-3 flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-xs text-muted-foreground space-y-0.5">
-              {products.length > 0 ? (
-                <>
-                  <div>
-                    Ready to export <span className="font-medium text-foreground">{summary.exportableRows} {summary.exportableRows === 1 ? "exportable row" : "exportable rows"}</span>.{" "}
-                    <span className="font-medium text-foreground">{summary.blockedRows} {summary.blockedRows === 1 ? "row" : "rows"}</span> blocked by errors.
+                    </ol>
                   </div>
-                  <div>Exports exclude error rows and include warning rows.</div>
+
+                  {/* Trust note */}
+                  <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                    <Shield className="h-3.5 w-3.5" />
+                    Your file stays in your browser.
+                  </p>
                 </>
               ) : (
-                "Map required fields and upload data to enable export."
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{filename}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sourceRows.length} rows · {headers.length} columns
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {headers.slice(0, 8).map((h) => (
+                          <Badge key={h} variant="outline" className="font-mono text-[10px] py-0">{h}</Badge>
+                        ))}
+                        {headers.length > 8 && (
+                          <Badge variant="outline" className="text-[10px] py-0">+{headers.length - 8} more</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={replaceFile} className="shrink-0">
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
+                  </Button>
+                </div>
               )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+              />
+
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {hasFile && (
+          <>
+            {/* Step 2 — Choose export format */}
+            <section>
+              <StepHeader number={2} title="Choose export format" active />
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {(["generic", "shopify", "woocommerce"] as const).map((id) => {
+                      const t = TARGET_META[id];
+                      const selected = target === id;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setTarget(id)}
+                          className={`text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "hover:border-foreground/30"}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="h-4 w-4" />
+                            <span className="font-medium text-sm">{t.title}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1.5">{t.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Step 3 — Review field mapping */}
+            <section>
+              <StepHeader number={3} title="Review field mapping" active />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Required fields</CardTitle>
+                  <CardDescription>
+                    {allRequiredMapped
+                      ? "All required fields are mapped."
+                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {requiredFields.map((field) => (
+                    <MappingRow
+                      key={field}
+                      field={field}
+                      required
+                      headers={headers}
+                      mapping={mappings.find((m) => m.destinationField === field)}
+                      sample={sampleTransformed(field)}
+                      onUpdate={updateMapping}
+                      onTransform={updateTransform}
+                      onClear={clearMapping}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Collapsible open={optionalOpen} onOpenChange={setOptionalOpen} className="mt-4">
+                <Card>
+                  <CollapsibleTrigger className="w-full text-left">
+                    <CardHeader className="cursor-pointer">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-base flex items-center gap-2">
+                            {optionalOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            Optional fields
+                          </CardTitle>
+                          <CardDescription>
+                            Optional fields · {optionalFields.length} fields available
+                          </CardDescription>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length} mapped
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-3">
+                      {optionalFields.map((field) => (
+                        <MappingRow
+                          key={field}
+                          field={field}
+                          headers={headers}
+                          mapping={mappings.find((m) => m.destinationField === field)}
+                          sample={sampleTransformed(field)}
+                          onUpdate={updateMapping}
+                          onTransform={updateTransform}
+                          onClear={clearMapping}
+                        />
+                      ))}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+
+              {/* Advanced settings */}
+              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="mt-4">
+                <Card>
+                  <CollapsibleTrigger className="w-full text-left">
+                    <CardHeader className="cursor-pointer">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        {advancedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        <SettingsIcon className="h-4 w-4" />
+                        Advanced settings
+                      </CardTitle>
+                      <CardDescription>Defaults and global transformations.</CardDescription>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Default currency</Label>
+                          <Input
+                            value={settings.defaultCurrency}
+                            onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Default vendor</Label>
+                          <Input
+                            value={settings.defaultVendor}
+                            onChange={(e) => setSettings({ ...settings, defaultVendor: e.target.value })}
+                            className="h-8"
+                            placeholder="Leave blank if none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Default weight unit</Label>
+                          <Select
+                            value={settings.defaultWeightUnit}
+                            onValueChange={(v) => setSettings({ ...settings, defaultWeightUnit: v as any })}
+                          >
+                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {(["g", "kg", "lb", "oz"] as const).map((u) => (
+                                <SelectItem key={u} value={u}>{u}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="mt-5 grid gap-3 md:grid-cols-2">
+                        {[
+                          ["titleCaseTitles", "Convert product titles to title case"],
+                          ["uppercaseSkus", "Convert SKUs to uppercase"],
+                          ["generateHandles", "Generate missing handles from title"],
+                          ["fallbackDescriptionFromTitle", "Use title as fallback description"],
+                          ["removeBlankRows", "Remove duplicate blank rows"],
+                          ["warnDuplicateSkus", "Warn on duplicate SKUs"],
+                        ].map(([key, label]) => (
+                          <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <Checkbox
+                              checked={(settings as any)[key]}
+                              onCheckedChange={(v) => setSettings({ ...settings, [key]: !!v } as MapperSettings)}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            </section>
+
+            {/* Step 4 — Validate & export */}
+            <section>
+              <StepHeader number={4} title="Validate & export" active />
+
+              {/* Validation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Validation</CardTitle>
+                  <CardDescription>Issues found in your transformed data.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {blockingIssues.length === 0 && warningIssues.length === 0 ? (
+                    <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-emerald-800">No validation issues found.</p>
+                        <p className="text-emerald-700">Your CSV is ready to export.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {blockingIssues.length > 0 && (
+                        <IssueGroup
+                          title="Blocking errors"
+                          description="These rows will be excluded from export."
+                          tone="error"
+                          issues={blockingIssues}
+                        />
+                      )}
+                      {warningIssues.length > 0 && (
+                        <IssueGroup
+                          title="Warnings"
+                          description="These rows will still be exported. Review for accuracy."
+                          tone="warning"
+                          issues={warningIssues}
+                        />
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Export readiness */}
+              <Card className="mt-4">
+                <CardContent className="pt-6">
+                  {allRequiredMapped && summary.exportableRows > 0 ? (
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          <p className="font-medium">Ready to export</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {summary.exportableRows} of {summary.totalRows} rows are exportable.{" "}
+                          {summary.blockedRows === 0 ? "No blocking errors found." : `${summary.blockedRows} blocked by errors.`}
+                        </p>
+                      </div>
+                      <Button onClick={handleDownload} className="shrink-0">
+                        <Download className="h-4 w-4 mr-1.5" />
+                        {TARGET_META[target].ctaLabel}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium">Not ready to export</p>
+                        <p className="text-muted-foreground">
+                          {!allRequiredMapped
+                            ? "Map all required fields (Title, SKU, Price) to enable export."
+                            : "No exportable rows yet — every row has a blocking error."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Output Preview */}
+              <Card className="mt-4">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <CardTitle className="text-base">Output preview</CardTitle>
+                      <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Filter</Label>
+                      <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
+                        <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All rows</SelectItem>
+                          <SelectItem value="valid">Valid only</SelectItem>
+                          <SelectItem value="warning">With warnings</SelectItem>
+                          <SelectItem value="error">With errors</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {previewExportRows.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">No rows match this filter.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-md border max-h-[500px]">
+                      <table className="w-full text-xs">
+                        <thead className="bg-muted/50 sticky top-0 z-10">
+                          <tr>
+                            <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
+                            <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
+                            {previewHeaders.map((h) => (
+                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {previewExportRows.map(({ row, product }, i) => {
+                            const hasErr = product.validationErrors.some((e) => e.severity === "error");
+                            const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
+                            return (
+                              <tr key={i} className="border-b last:border-0">
+                                <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
+                                <td className="px-2 py-1.5 border-b">
+                                  {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
+                                    : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
+                                    : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
+                                </td>
+                                {previewHeaders.map((h) => (
+                                  <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
+                                    {String(row[h] ?? "")}
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          </>
+        )}
+      </main>
+
+      {/* Sticky footer — only after upload */}
+      {hasFile && (
+        <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
+          <div className="mx-auto max-w-6xl px-6 py-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+            <div className="text-xs text-muted-foreground min-w-0 truncate">
+              <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
+              <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
+              Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
             </div>
-            <div className="flex gap-2 flex-wrap items-center">
+            <div className="flex gap-2 flex-wrap items-center justify-end">
               <div
                 role="status"
                 aria-live="polite"
@@ -826,8 +783,8 @@ function Index() {
                 className={
                   copyStatus
                     ? copyStatus.type === "success"
-                      ? "inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-sm font-medium text-green-700"
-                      : "inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"
+                      ? "inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
+                      : "inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
                     : "hidden"
                 }
               >
@@ -838,7 +795,7 @@ function Index() {
                   </>
                 )}
               </div>
-              <Button variant="outline" size="sm" onClick={reset}>
+              <Button variant="ghost" size="sm" onClick={reset}>
                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
               </Button>
               <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
@@ -848,31 +805,152 @@ function Index() {
                 <Download className="h-3.5 w-3.5 mr-1.5" />Validation Report
               </Button>
               <Button size="sm" onClick={handleDownload} disabled={!exportRows.length}>
-                <Download className="h-3.5 w-3.5 mr-1.5" />Download CSV
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                {TARGET_META[target].ctaLabel}
               </Button>
             </div>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }
 
-function StatCard({
-  label, value, tone = "neutral", icon,
-}: { label: string; value: number; tone?: "good" | "warn" | "bad" | "neutral"; icon?: React.ReactNode }) {
-  const toneClass =
-    tone === "good" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-    : tone === "warn" ? "bg-amber-50 text-amber-700 border-amber-200"
-    : tone === "bad" ? "bg-red-50 text-red-700 border-red-200"
-    : "bg-card";
+function StepHeader({ number, title, active }: { number: number; title: string; active?: boolean }) {
   return (
-    <div className={`rounded-md border p-3 ${toneClass}`}>
-      <div className="flex items-center gap-1.5 text-xs opacity-80">
-        {icon}
-        <span>{label}</span>
+    <div className="flex items-center gap-3 mb-3">
+      <span className={`grid place-items-center h-7 w-7 rounded-full text-xs font-semibold shrink-0 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+        {number}
+      </span>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+    </div>
+  );
+}
+
+function MappingRow({
+  field, required, headers, mapping, sample, onUpdate, onTransform, onClear,
+}: {
+  field: keyof ProductRecord;
+  required?: boolean;
+  headers: string[];
+  mapping: ColumnMapping | undefined;
+  sample: string;
+  onUpdate: (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => void;
+  onTransform: (field: keyof ProductRecord, transform: TransformRule) => void;
+  onClear: (field: keyof ProductRecord) => void;
+}) {
+  const notMapped = required && !mapping;
+  return (
+    <div className={`rounded-md border p-3 ${notMapped ? "border-red-200 bg-red-50/40" : "bg-card"}`}>
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm">{FIELD_LABELS[field] || field}</span>
+            {required && (
+              <Badge variant={notMapped ? "destructive" : "default"} className="text-[10px] py-0 h-4">Required</Badge>
+            )}
+            {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+          </div>
+          {sample && (
+            <p className="mt-1 text-[11px] text-muted-foreground font-mono truncate">
+              → {sample}
+            </p>
+          )}
+        </div>
+        <div>
+          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Source column</Label>
+          <Select
+            value={mapping?.sourceColumn || NO_SOURCE}
+            onValueChange={(v) => onUpdate(field, v)}
+          >
+            <SelectTrigger className="h-8 text-xs mt-1">
+              <SelectValue placeholder="— not mapped —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_SOURCE}>— not mapped —</SelectItem>
+              {headers.map((h) => (
+                <SelectItem key={h} value={h}>{h}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Transform</Label>
+          <Select
+            value={mapping?.transform || defaultTransformFor(field)}
+            onValueChange={(v) => onTransform(field, v as TransformRule)}
+            disabled={!mapping}
+          >
+            <SelectTrigger className="h-8 text-xs mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TRANSFORM_OPTIONS.map((t) => (
+                <SelectItem key={t} value={t}>{TRANSFORM_LABELS[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex md:justify-end">
+          {mapping && (
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onClear(field)} aria-label="Clear mapping">
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function IssueGroup({
+  title, description, tone, issues,
+}: {
+  title: string;
+  description: string;
+  tone: "error" | "warning";
+  issues: { p: ProductRecord; e: ProductRecord["validationErrors"][number] }[];
+}) {
+  const toneClass = tone === "error"
+    ? "border-red-200 bg-red-50/40"
+    : "border-amber-200 bg-amber-50/40";
+  const Icon = tone === "error" ? AlertCircle : AlertTriangle;
+  const iconColor = tone === "error" ? "text-destructive" : "text-amber-600";
+  return (
+    <div className={`rounded-md border ${toneClass}`}>
+      <div className="flex items-center justify-between gap-3 p-3 border-b">
+        <div className="flex items-center gap-2">
+          <Icon className={`h-4 w-4 ${iconColor}`} />
+          <p className="font-medium text-sm">{title}</p>
+          <Badge variant="secondary" className="text-[10px] h-4">{issues.length}</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground hidden sm:block">{description}</p>
+      </div>
+      <div className="max-h-[280px] overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-background/60 sticky top-0">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium border-b w-14">Row</th>
+              <th className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">Field</th>
+              <th className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">SKU</th>
+              <th className="px-3 py-2 text-left font-medium border-b">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            {issues.slice(0, 100).map(({ p, e }, i) => (
+              <tr key={i} className="border-b last:border-0">
+                <td className="px-3 py-1.5 text-muted-foreground">{p.sourceRowId}</td>
+                <td className="px-3 py-1.5 font-mono whitespace-nowrap">{e.field}</td>
+                <td className="px-3 py-1.5 font-mono whitespace-nowrap">{p.sku || <span className="text-muted-foreground italic">—</span>}</td>
+                <td className="px-3 py-1.5">{e.message}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {issues.length > 100 && (
+          <p className="px-3 py-2 text-xs text-muted-foreground">Showing 100 of {issues.length} issues. Download the validation report to see all.</p>
+        )}
+      </div>
     </div>
   );
 }
