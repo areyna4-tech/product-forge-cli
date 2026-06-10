@@ -653,7 +653,7 @@ function Index() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Validation</CardTitle>
-                  <CardDescription>Issues found in your transformed data.</CardDescription>
+                  <CardDescription>Check for missing required fields, invalid prices, duplicate SKUs, and image URL issues.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {blockingIssues.length === 0 && warningIssues.length === 0 ? (
