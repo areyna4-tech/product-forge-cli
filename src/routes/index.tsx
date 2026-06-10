@@ -216,13 +216,35 @@ function Index() {
     downloadCsv(rows, "validation-report.csv");
   };
 
+  const buildMappingJson = () => JSON.stringify({
+    target,
+    sourceHeaders: headers,
+    mappings: mappings.map((m) => ({
+      destinationField: m.destinationField,
+      sourceColumn: m.sourceColumn,
+      transform: m.transform,
+    })),
+    settings,
+  }, null, 2);
+
+  const downloadMappingJson = () => {
+    const data = buildMappingJson();
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "product-csv-mapping.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCopyMapping = async () => {
-    const data = JSON.stringify({ mappings, settings, target }, null, 2);
+    const data = buildMappingJson();
     try {
+      if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(data);
-      toast.success("Mapping JSON copied to clipboard");
+      toast.success("Mapping JSON copied.");
     } catch {
-      toast.error("Failed to copy");
+      downloadMappingJson();
+      toast.message("Clipboard unavailable. Downloading mapping JSON instead.");
     }
   };
 
