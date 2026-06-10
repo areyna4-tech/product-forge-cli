@@ -244,7 +244,7 @@ function Index() {
       toast.success("Mapping JSON copied.");
     } catch {
       downloadMappingJson();
-      toast.message("Clipboard unavailable. Downloading mapping JSON instead.");
+      toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
     }
   };
 
