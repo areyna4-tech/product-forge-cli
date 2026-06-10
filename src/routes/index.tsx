@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
   AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield, Check,
+  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
