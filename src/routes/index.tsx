@@ -669,6 +669,10 @@ function Index() {
                 </>
               );
             })()}
+          </CardContent>
+        </Card>
+
+
 
         {/* Output Preview */}
         <Card>
