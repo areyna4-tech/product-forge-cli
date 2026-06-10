@@ -139,7 +139,9 @@ function Index() {
   const [settings, setSettings] = useState<MapperSettings>(defaultSettings);
   const [target, setTarget] = useState<ExportTemplate>("generic");
   const [error, setError] = useState<string>("");
-  const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
+  const [previewFilter, setPreviewFilter] = useState<"all" | "exportable" | "warning" | "error">("exportable");
+  const [issueFilter, setIssueFilter] = useState<"all" | "blocking" | "warnings">("all");
+  const [howToFixOpen, setHowToFixOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [optionalOpen, setOptionalOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
