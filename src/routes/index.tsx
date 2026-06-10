@@ -731,7 +731,11 @@ function Index() {
                       <CardTitle className="text-base">Output preview</CardTitle>
                       <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                        <Switch checked={hideEmptyCols} onCheckedChange={setHideEmptyCols} />
+                        Hide empty columns
+                      </label>
                       <Label className="text-xs text-muted-foreground">Filter</Label>
                       <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
                         <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
