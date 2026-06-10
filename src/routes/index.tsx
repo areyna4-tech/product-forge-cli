@@ -708,14 +708,16 @@ function Index() {
                 {products.length === 0 ? "Upload data and map fields to preview output." : "No rows match this filter."}
               </p>
             ) : (
-              <div className="overflow-auto rounded-md border max-h-[500px]">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/50 sticky top-0">
+              <>
+              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns. Row and Status stay pinned.</p>
+              <div className="overflow-x-auto rounded-md border max-h-[500px]">
+                <table className="w-full text-xs border-separate border-spacing-0">
+                  <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
-                      <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-16 sticky left-0 z-20 bg-muted/95 top-0">Row</th>
+                      <th className="px-2 py-2 text-left font-medium border-b w-24 sticky left-16 z-20 bg-muted/95 top-0">Status</th>
                       {previewHeaders.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap sticky top-0 bg-muted/95 z-10">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -725,14 +727,14 @@ function Index() {
                       const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
                       return (
                         <tr key={i} className="border-b last:border-0">
-                          <td className="px-2 py-1.5 text-muted-foreground">{product.sourceRowId}</td>
-                          <td className="px-2 py-1.5">
+                          <td className="px-2 py-1.5 text-muted-foreground border-b sticky left-0 z-10 bg-background">{product.sourceRowId}</td>
+                          <td className="px-2 py-1.5 border-b sticky left-16 z-10 bg-background">
                             {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                              : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500">warn</Badge>
+                              : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
                               : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
                           </td>
                           {previewHeaders.map((h) => (
-                            <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate">
+                            <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
                               {String(row[h] ?? "")}
                             </td>
                           ))}
@@ -742,6 +744,7 @@ function Index() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </CardContent>
         </Card>
