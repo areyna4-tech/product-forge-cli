@@ -923,8 +923,14 @@ function MappingRow({
         </div>
         <div className="flex md:justify-end">
           {mapping && (
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onClear(field)} aria-label="Clear mapping">
-              <X className="h-3.5 w-3.5" />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => onClear(field)}
+              aria-label={`Clear mapping for ${FIELD_LABELS[field] || field}`}
+            >
+              Clear
             </Button>
           )}
         </div>
