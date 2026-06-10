@@ -171,7 +171,7 @@ function Index() {
 
   const previewExportRows = useMemo(() => {
     let filtered = products;
-    if (previewFilter === "valid") filtered = products.filter((p) => p.validationErrors.length === 0);
+    if (previewFilter === "exportable") filtered = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
     else if (previewFilter === "warning") filtered = products.filter((p) => p.validationErrors.some((e) => e.severity === "warning") && !p.validationErrors.some((e) => e.severity === "error"));
     else if (previewFilter === "error") filtered = products.filter((p) => p.validationErrors.some((e) => e.severity === "error"));
     const rows = target === "shopify" ? buildShopifyRows(filtered)
