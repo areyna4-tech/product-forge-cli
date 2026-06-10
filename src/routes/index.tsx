@@ -3,9 +3,10 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
-  AlertTriangle, FileSpreadsheet, X, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield,
+  AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
+  ChevronDown, ChevronRight, Shield, Check,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
