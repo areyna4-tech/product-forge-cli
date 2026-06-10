@@ -744,10 +744,18 @@ function Index() {
       {/* Sticky Export Actions */}
       <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-10">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <div className="text-xs text-muted-foreground">
-            {exportRows.length > 0
-              ? <>Ready to export <span className="font-medium text-foreground">{exportRows.length}</span> rows as <span className="font-medium text-foreground">{target}</span> CSV</>
-              : "Map required fields and upload data to enable export."}
+          <div className="text-xs text-muted-foreground space-y-0.5">
+            {products.length > 0 ? (
+              <>
+                <div>
+                  Ready to export <span className="font-medium text-foreground">{summary.exportableRows} {summary.exportableRows === 1 ? "exportable row" : "exportable rows"}</span>.{" "}
+                  <span className="font-medium text-foreground">{summary.blockedRows} {summary.blockedRows === 1 ? "row" : "rows"}</span> blocked by errors.
+                </div>
+                <div>Exports exclude error rows and include warning rows.</div>
+              </>
+            ) : (
+              "Map required fields and upload data to enable export."
+            )}
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={reset}>
