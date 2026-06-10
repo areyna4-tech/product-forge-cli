@@ -1086,53 +1086,65 @@ function MappingRow({
 }
 
 function IssueGroup({
-  title, description, tone, issues,
+  title, description, tone, issues, mappings,
 }: {
   title: string;
   description: string;
   tone: "error" | "warning";
   issues: { p: ProductRecord; e: ProductRecord["validationErrors"][number] }[];
+  mappings: ColumnMapping[];
 }) {
-  const toneClass = tone === "error"
-    ? "border-red-200 bg-red-50/40"
-    : "border-amber-200 bg-amber-50/40";
   const Icon = tone === "error" ? AlertCircle : AlertTriangle;
   const iconColor = tone === "error" ? "text-destructive" : "text-amber-600";
+  const badgeLabel = tone === "error" ? "Blocked" : "Warning";
+  const badgeClass = tone === "error"
+    ? "bg-destructive text-destructive-foreground"
+    : "bg-amber-500 text-white";
   return (
-    <div className={`rounded-md border ${toneClass}`}>
-      <div className="flex items-center justify-between gap-3 p-3 border-b">
-        <div className="flex items-center gap-2">
-          <Icon className={`h-4 w-4 ${iconColor}`} />
-          <p className="font-medium text-sm">{title}</p>
-          <Badge variant="secondary" className="text-[10px] h-4">{issues.length}</Badge>
-        </div>
-        <p className="text-xs text-muted-foreground hidden sm:block">{description}</p>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${iconColor}`} />
+        <p className="font-medium text-sm">{title}</p>
+        <Badge variant="secondary" className="text-[10px] h-4">{issues.length}</Badge>
       </div>
-      <div className="max-h-[280px] overflow-auto">
-        <table className="w-full text-xs">
-          <thead className="bg-background/60 sticky top-0">
-            <tr>
-              <th className="px-3 py-2 text-left font-medium border-b w-14">Row</th>
-              <th className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">Field</th>
-              <th className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">SKU</th>
-              <th className="px-3 py-2 text-left font-medium border-b">Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            {issues.slice(0, 100).map(({ p, e }, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="px-3 py-1.5 text-muted-foreground">{p.sourceRowId}</td>
-                <td className="px-3 py-1.5 font-mono whitespace-nowrap">{e.field}</td>
-                <td className="px-3 py-1.5 font-mono whitespace-nowrap">{p.sku || <span className="text-muted-foreground italic">—</span>}</td>
-                <td className="px-3 py-1.5">{e.message}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {issues.length > 100 && (
-          <p className="px-3 py-2 text-xs text-muted-foreground">Showing 100 of {issues.length} issues. Download the validation report to see all.</p>
-        )}
+      <p className="text-xs text-muted-foreground">{description}</p>
+      <div className="space-y-2">
+        {issues.slice(0, 100).map(({ p, e }, i) => {
+          const d = describeIssue(p, e, mappings);
+          return (
+            <div key={i} className="rounded-md border bg-card p-3 sm:p-4">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}>
+                  {badgeLabel}
+                </span>
+                <span className="text-sm font-medium">
+                  Row {p.sourceRowId} · {FIELD_LABELS[e.field] || e.field}
+                </span>
+                {p.sku && (
+                  <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
+                )}
+              </div>
+              <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]">
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Problem</dt>
+                <dd>{d.problem}</dd>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Current value</dt>
+                <dd className="font-mono break-all">
+                  {d.current ? d.current : <span className="italic text-muted-foreground font-sans">empty</span>}
+                </dd>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Expected</dt>
+                <dd>{d.expected}</dd>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Suggested fix</dt>
+                <dd>{d.fix}</dd>
+              </dl>
+            </div>
+          );
+        })}
       </div>
+      {issues.length > 100 && (
+        <p className="text-xs text-muted-foreground">
+          Showing 100 of {issues.length} issues. Download the validation report to see all.
+        </p>
+      )}
     </div>
   );
 }
