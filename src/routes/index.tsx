@@ -96,9 +96,11 @@ function Index() {
   }, [products, target, previewFilter]);
 
   const parseCsvText = useCallback((text: string, name: string) => {
-    Papa.parse<Record<string, string>>(text, {
+    // Strip BOM if present
+    const cleaned = text.replace(/^\uFEFF/, "");
+    Papa.parse<Record<string, string>>(cleaned, {
       header: true,
-      skipEmptyLines: true,
+      skipEmptyLines: "greedy",
       transform: (v) => (v == null ? "" : String(v)),
       complete: (results) => {
         const hdrs = (results.meta.fields || []).filter(Boolean);
@@ -106,16 +108,23 @@ function Index() {
           setError("CSV has no headers. Make sure the first row contains column names.");
           return;
         }
-        if (!results.data.length) {
+        // Keep rows that have at least one non-empty cell across any header
+        const rows = (results.data || []).filter((r) =>
+          hdrs.some((h) => {
+            const v = r?.[h];
+            return v != null && String(v).trim() !== "";
+          }),
+        );
+        if (!rows.length) {
           setError("CSV is empty. No data rows found.");
           return;
         }
         setError("");
         setFilename(name);
         setHeaders(hdrs);
-        setSourceRows(results.data);
+        setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
-        toast.success(`Loaded ${results.data.length} rows from ${name}`);
+        toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
         setError(`Failed to parse CSV: ${err.message}`);
