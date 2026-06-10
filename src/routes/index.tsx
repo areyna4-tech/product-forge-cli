@@ -236,16 +236,20 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const handleCopyMapping = async () => {
     const data = buildMappingJson();
     try {
       if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(data);
+      setCopyStatus("Mapping JSON copied.");
       toast.success("Mapping JSON copied.");
     } catch {
       downloadMappingJson();
+      setCopyStatus("Clipboard unavailable. Downloading mapping JSON instead.");
       toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
     }
+    setTimeout(() => setCopyStatus(null), 4000);
   };
 
   const previewHeaders = previewExportRows.length
