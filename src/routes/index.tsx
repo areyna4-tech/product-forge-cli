@@ -780,20 +780,25 @@ function Index() {
               )}
             </div>
             <div className="flex gap-2 flex-wrap items-center">
-              {copyStatus && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className={
-                    copyStatus.type === "success"
+              <div
+                role="status"
+                aria-live="polite"
+                data-testid="copy-mapping-status"
+                className={
+                  copyStatus
+                    ? copyStatus.type === "success"
                       ? "inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-sm font-medium text-green-700"
                       : "inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"
-                  }
-                >
-                  {copyStatus.type === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                  <span>{copyStatus.message}</span>
-                </div>
-              )}
+                    : "hidden"
+                }
+              >
+                {copyStatus && (
+                  <>
+                    <span aria-hidden="true">{copyStatus.type === "success" ? "✓" : "⚠"}</span>
+                    <span>{copyStatus.message}</span>
+                  </>
+                )}
+              </div>
               <Button variant="outline" size="sm" onClick={reset}>
                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
               </Button>
