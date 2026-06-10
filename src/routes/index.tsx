@@ -63,7 +63,12 @@ function Index() {
   const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
   const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning" | "duplicate" | "missing" | "price" | "image">("all");
   const [dragOver, setDragOver] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<{
+    type: "success" | "warning";
+    message: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const copyStatusTimeoutRef = useRef<number | null>(null);
 
   const products = useMemo(() => {
     if (!sourceRows.length) return [];
@@ -236,20 +241,25 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
-  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const handleCopyMapping = async () => {
     const data = buildMappingJson();
+    if (copyStatusTimeoutRef.current) {
+      window.clearTimeout(copyStatusTimeoutRef.current);
+    }
     try {
       if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(data);
-      setCopyStatus("Mapping JSON copied.");
+      setCopyStatus({ type: "success", message: "Mapping JSON copied." });
       toast.success("Mapping JSON copied.");
     } catch {
       downloadMappingJson();
-      setCopyStatus("Clipboard unavailable. Downloading mapping JSON instead.");
+      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping JSON instead." });
       toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
     }
-    setTimeout(() => setCopyStatus(null), 4000);
+    copyStatusTimeoutRef.current = window.setTimeout(() => {
+      setCopyStatus(null);
+      copyStatusTimeoutRef.current = null;
+    }, 8000);
   };
 
   const previewHeaders = previewExportRows.length
@@ -771,17 +781,18 @@ function Index() {
             </div>
             <div className="flex gap-2 flex-wrap items-center">
               {copyStatus && (
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${
-                    copyStatus.includes("copied")
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
-                  }`}
+                <div
                   role="status"
+                  aria-live="polite"
+                  className={
+                    copyStatus.type === "success"
+                      ? "inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-sm font-medium text-green-700"
+                      : "inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"
+                  }
                 >
-                  {copyStatus.includes("copied") ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                  {copyStatus}
-                </span>
+                  {copyStatus.type === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                  <span>{copyStatus.message}</span>
+                </div>
               )}
               <Button variant="outline" size="sm" onClick={reset}>
                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
