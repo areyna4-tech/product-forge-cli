@@ -431,7 +431,9 @@ function Index() {
             {headers.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">Upload a CSV to begin mapping.</p>
             ) : (
-              <div className="overflow-auto">
+              <div className="overflow-x-auto">
+                <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-xs text-muted-foreground">
