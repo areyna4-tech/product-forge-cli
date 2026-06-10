@@ -752,40 +752,45 @@ function Index() {
             )}
           </CardContent>
         </Card>
-      </main>
 
-      {/* Sticky Export Actions */}
-      <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-40 shadow-lg">
-        <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <div className="text-xs text-muted-foreground space-y-0.5">
-            {products.length > 0 ? (
-              <>
-                <div>
-                  Ready to export <span className="font-medium text-foreground">{summary.exportableRows} {summary.exportableRows === 1 ? "exportable row" : "exportable rows"}</span>.{" "}
-                  <span className="font-medium text-foreground">{summary.blockedRows} {summary.blockedRows === 1 ? "row" : "rows"}</span> blocked by errors.
-                </div>
-                <div>Exports exclude error rows and include warning rows.</div>
-              </>
-            ) : (
-              "Map required fields and upload data to enable export."
-            )}
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={reset}>
-              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
-              <Copy className="h-3.5 w-3.5 mr-1.5" />Copy Mapping JSON
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length}>
-              <Download className="h-3.5 w-3.5 mr-1.5" />Validation Report
-            </Button>
-            <Button size="sm" onClick={handleDownload} disabled={!exportRows.length}>
-              <Download className="h-3.5 w-3.5 mr-1.5" />Download CSV
-            </Button>
+        {/* Sticky Export Actions (in-flow, sticks to bottom of viewport while scrolling) */}
+        <div className="sticky bottom-0 -mx-6 px-6 border-t bg-background/95 backdrop-blur shadow-lg z-30">
+          <div className="py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-muted-foreground space-y-0.5">
+              {products.length > 0 ? (
+                <>
+                  <div>
+                    Ready to export <span className="font-medium text-foreground">{summary.exportableRows} {summary.exportableRows === 1 ? "exportable row" : "exportable rows"}</span>.{" "}
+                    <span className="font-medium text-foreground">{summary.blockedRows} {summary.blockedRows === 1 ? "row" : "rows"}</span> blocked by errors.
+                  </div>
+                  <div>Exports exclude error rows and include warning rows.</div>
+                </>
+              ) : (
+                "Map required fields and upload data to enable export."
+              )}
+              {copyStatus && (
+                <p className="text-sm text-foreground font-medium" role="status" aria-live="polite">
+                  {copyStatus}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
+                <Copy className="h-3.5 w-3.5 mr-1.5" />Copy Mapping JSON
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length}>
+                <Download className="h-3.5 w-3.5 mr-1.5" />Validation Report
+              </Button>
+              <Button size="sm" onClick={handleDownload} disabled={!exportRows.length}>
+                <Download className="h-3.5 w-3.5 mr-1.5" />Download CSV
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
