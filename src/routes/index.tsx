@@ -325,9 +325,17 @@ function Index() {
     }, 8000);
   };
 
-  const previewHeaders = previewExportRows.length
-    ? Object.keys(previewExportRows[0].row)
-    : [];
+  const previewHeaders = useMemo(() => {
+    if (!previewExportRows.length) return [];
+    const all = Object.keys(previewExportRows[0].row);
+    if (!hideEmptyCols) return all;
+    return all.filter((h) =>
+      previewExportRows.some(({ row }) => {
+        const v = row[h];
+        return v != null && String(v).trim() !== "";
+      }),
+    );
+  }, [previewExportRows, hideEmptyCols]);
 
   const requiredFields = ALL_DEST_FIELDS.filter((f) => REQUIRED_FIELDS.includes(f));
   const optionalFields = ALL_DEST_FIELDS.filter((f) => !REQUIRED_FIELDS.includes(f));
