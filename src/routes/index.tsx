@@ -241,17 +241,47 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
+  const legacyCopy = (text: string): boolean => {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
   const handleCopyMapping = async () => {
     const data = buildMappingJson();
     if (copyStatusTimeoutRef.current) {
       window.clearTimeout(copyStatusTimeoutRef.current);
+      copyStatusTimeoutRef.current = null;
     }
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
-      await navigator.clipboard.writeText(data);
+
+    let copied = false;
+    if (navigator.clipboard?.writeText) {
+      // Race against a short timeout so the UI always gets feedback quickly,
+      // even if the clipboard promise never settles (sandboxed iframes).
+      copied = await Promise.race<boolean>([
+        navigator.clipboard.writeText(data).then(() => true, () => false),
+        new Promise<boolean>((resolve) => window.setTimeout(() => resolve(false), 300)),
+      ]);
+    }
+    if (!copied) {
+      copied = legacyCopy(data);
+    }
+
+    if (copied) {
       setCopyStatus({ type: "success", message: "Mapping JSON copied." });
       toast.success("Mapping JSON copied.");
-    } catch {
+    } else {
       downloadMappingJson();
       setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping JSON instead." });
       toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
