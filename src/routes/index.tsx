@@ -61,6 +61,7 @@ function Index() {
   const [target, setTarget] = useState<ExportTemplate>("generic");
   const [error, setError] = useState<string>("");
   const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
+  const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning" | "duplicate" | "missing" | "price" | "image">("all");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
