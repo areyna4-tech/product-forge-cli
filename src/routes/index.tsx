@@ -357,7 +357,10 @@ function Index() {
             {sourceRows.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">No file uploaded yet.</p>
             ) : (
-              <div className="overflow-auto rounded-md border max-h-96">
+              <>
+              <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+              <div className="overflow-x-auto rounded-md border max-h-96">
+
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 sticky top-0">
                     <tr>
