@@ -88,6 +88,7 @@ function Index() {
   const [dragOver, setDragOver] = useState(false);
   const [optionalOpen, setOptionalOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [hideEmptyCols, setHideEmptyCols] = useState(true);
   const [copyStatus, setCopyStatus] = useState<{
     type: "success" | "warning";
     message: string;
