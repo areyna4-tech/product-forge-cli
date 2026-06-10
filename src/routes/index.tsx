@@ -372,7 +372,7 @@ function Index() {
         </div>
       </header>
 
-      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-28" : "pb-12"}`}>
+      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-40 sm:pb-32" : "pb-12"}`}>
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload CSV" active />
