@@ -577,16 +577,98 @@ function Index() {
           <CardContent>
             <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
               <StatCard label="Total rows" value={summary.totalRows} />
-              <StatCard label="Valid rows" value={summary.validRows} tone="good" icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
-              <StatCard label="Warnings" value={summary.warningRows} tone={summary.warningRows ? "warn" : "neutral"} icon={<AlertTriangle className="h-3.5 w-3.5" />} />
-              <StatCard label="Errors" value={summary.errorRows} tone={summary.errorRows ? "bad" : "neutral"} icon={<AlertCircle className="h-3.5 w-3.5" />} />
-              <StatCard label="Duplicate SKUs" value={summary.duplicateSkuCount} tone={summary.duplicateSkuCount ? "warn" : "neutral"} />
-              <StatCard label="Missing required" value={summary.missingRequiredFieldCount} tone={summary.missingRequiredFieldCount ? "bad" : "neutral"} />
-              <StatCard label="Invalid prices" value={summary.invalidPriceCount} tone={summary.invalidPriceCount ? "bad" : "neutral"} />
-              <StatCard label="Invalid image URLs" value={summary.invalidImageUrlCount} tone={summary.invalidImageUrlCount ? "warn" : "neutral"} />
+              <StatCard label="Exportable rows" value={summary.exportableRows} tone={summary.exportableRows ? "good" : "neutral"} icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
+              <StatCard label="Blocked rows" value={summary.blockedRows} tone={summary.blockedRows ? "bad" : "neutral"} icon={<AlertCircle className="h-3.5 w-3.5" />} />
+              <StatCard label="Rows with warnings" value={summary.warningRows} tone={summary.warningRows ? "warn" : "neutral"} icon={<AlertTriangle className="h-3.5 w-3.5" />} />
+              <StatCard label="Duplicate SKU issues" value={summary.duplicateSkuIssues} tone={summary.duplicateSkuIssues ? "warn" : "neutral"} />
+              <StatCard label="Missing required fields" value={summary.missingRequiredIssues} tone={summary.missingRequiredIssues ? "bad" : "neutral"} />
+              <StatCard label="Invalid price fields" value={summary.invalidPriceIssues} tone={summary.invalidPriceIssues ? "bad" : "neutral"} />
+              <StatCard label="Invalid image URL fields" value={summary.invalidImageUrlIssues} tone={summary.invalidImageUrlIssues ? "warn" : "neutral"} />
             </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Exportable rows have no error-level issues. Warning-only rows are exportable. Field issue cards count individual issue instances.
+            </p>
           </CardContent>
         </Card>
+
+        {/* Issue Details */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <CardTitle className="text-base">Issue Details</CardTitle>
+                <CardDescription>Every validation issue found in your data.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground">Filter</Label>
+                <Select value={issueFilter} onValueChange={(v) => setIssueFilter(v as any)}>
+                  <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="error">Errors</SelectItem>
+                    <SelectItem value="warning">Warnings</SelectItem>
+                    <SelectItem value="duplicate">Duplicate SKU</SelectItem>
+                    <SelectItem value="missing">Missing Required</SelectItem>
+                    <SelectItem value="price">Invalid Price</SelectItem>
+                    <SelectItem value="image">Invalid Image URL</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const issues: { p: ProductRecord; e: typeof products[number]["validationErrors"][number] }[] = [];
+              for (const p of products) for (const e of p.validationErrors) issues.push({ p, e });
+              const filtered = issues.filter(({ e }) => {
+                switch (issueFilter) {
+                  case "all": return true;
+                  case "error": return e.severity === "error";
+                  case "warning": return e.severity === "warning";
+                  case "duplicate": return e.message === "Duplicate SKU";
+                  case "missing": return e.severity === "error" && (e.field === "title" || e.field === "sku" || e.field === "price");
+                  case "price": return e.severity === "error" && e.field === "price";
+                  case "image": return e.severity === "warning" && e.field === "imageUrl";
+                }
+              });
+              if (!products.length) return <p className="text-sm text-muted-foreground py-8 text-center">Upload and map data to see issues.</p>;
+              if (!filtered.length) return <p className="text-sm text-muted-foreground py-8 text-center">No issues match this filter.</p>;
+              return (
+                <>
+                  <p className="text-xs text-muted-foreground mb-2">Scroll horizontally to view all columns.</p>
+                  <div className="overflow-x-auto rounded-md border max-h-[400px]">
+                    <table className="w-full text-xs">
+                      <thead className="bg-muted/50 sticky top-0">
+                        <tr>
+                          <th className="px-2 py-2 text-left font-medium border-b w-14">Row</th>
+                          <th className="px-2 py-2 text-left font-medium border-b w-24">Severity</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Field</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">SKU</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Title</th>
+                          <th className="px-2 py-2 text-left font-medium border-b whitespace-nowrap">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(({ p, e }, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="px-2 py-1.5 text-muted-foreground">{p.sourceRowId}</td>
+                            <td className="px-2 py-1.5">
+                              {e.severity === "error"
+                                ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
+                                : <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warning</Badge>}
+                            </td>
+                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{e.field}</td>
+                            <td className="px-2 py-1.5 font-mono whitespace-nowrap">{p.sku || <span className="text-muted-foreground italic">—</span>}</td>
+                            <td className="px-2 py-1.5 whitespace-nowrap max-w-[240px] truncate">{p.title || <span className="text-muted-foreground italic">—</span>}</td>
+                            <td className="px-2 py-1.5 whitespace-nowrap">{e.message}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              );
+            })()}
 
         {/* Output Preview */}
         <Card>
