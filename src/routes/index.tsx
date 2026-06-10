@@ -944,13 +944,13 @@ function Index() {
       {/* Sticky footer — only after upload */}
       {hasFile && (
         <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="mx-auto max-w-6xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
             <div className="text-xs text-muted-foreground min-w-0 truncate">
-              <span className="font-medium text-foreground">{summary.exportableRows}</span> ready ·{" "}
+              <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
               <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
-              <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
+              Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
             </div>
-            <div className="flex gap-1.5 flex-wrap items-center justify-end">
+            <div className="flex gap-1 flex-wrap items-center justify-end">
               <div
                 role="status"
                 aria-live="polite"
@@ -970,16 +970,16 @@ function Index() {
                   </>
                 )}
               </div>
-              <Button variant="ghost" size="sm" className="h-8" onClick={reset}>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={reset}>
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
               </Button>
-              <Button variant="ghost" size="sm" className="h-8" onClick={handleCopyMapping} disabled={!mappings.length}>
-                <Copy className="h-3.5 w-3.5 mr-1" />Copy Mapping JSON
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={handleCopyMapping} disabled={!mappings.length}>
+                <Copy className="h-3.5 w-3.5 mr-1" />Copy mapping
               </Button>
-              <Button variant="ghost" size="sm" className="h-8" onClick={handleValidationReport} disabled={!products.length}>
-                <Download className="h-3.5 w-3.5 mr-1" />Validation Report
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={handleValidationReport} disabled={!products.length}>
+                <Download className="h-3.5 w-3.5 mr-1" />Report
               </Button>
-              <Button size="default" onClick={handleDownload} disabled={!exportRows.length} className="h-9 font-semibold">
+              <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold ml-1">
                 <Download className="h-4 w-4 mr-1.5" />
                 {TARGET_META[target].ctaLabel}
               </Button>
