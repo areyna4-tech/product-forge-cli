@@ -76,14 +76,19 @@ export type MapperSettings = {
 
 export type ValidationSummary = {
   totalRows: number;
-  validRows: number;
+  exportableRows: number;
+  blockedRows: number;
   warningRows: number;
-  errorRows: number;
-  duplicateSkuCount: number;
-  missingRequiredFieldCount: number;
-  invalidPriceCount: number;
-  invalidImageUrlCount: number;
+  duplicateSkuIssues: number;
+  missingRequiredIssues: number;
+  invalidPriceIssues: number;
+  invalidImageUrlIssues: number;
 };
+
+export function formatMoney(n: number | null | undefined): string {
+  if (n == null || typeof n !== "number" || isNaN(n)) return "";
+  return (Math.round(n * 100) / 100).toFixed(2);
+}
 
 export const defaultSettings: MapperSettings = {
   defaultCurrency: "USD",
