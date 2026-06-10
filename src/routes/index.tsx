@@ -254,7 +254,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Toaster />
+      <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
       {/* Header */}
       <header className="border-b bg-background">
         <div className="mx-auto max-w-7xl px-6 py-6">
