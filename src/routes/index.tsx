@@ -881,8 +881,9 @@ function MappingRow({
             {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
           </div>
           {sample && (
-            <p className="mt-1 text-[11px] text-muted-foreground font-mono truncate">
-              → {sample}
+            <p className="mt-1.5 text-xs truncate">
+              <span className="text-muted-foreground">Preview:</span>{" "}
+              <span className="font-mono font-medium text-foreground">{sample}</span>
             </p>
           )}
         </div>
