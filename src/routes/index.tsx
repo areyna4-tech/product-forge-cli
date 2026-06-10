@@ -753,8 +753,8 @@ function Index() {
           </CardContent>
         </Card>
 
-        {/* Sticky Export Actions (in-flow, sticks to bottom of viewport while scrolling) */}
-        <div className="sticky bottom-0 -mx-6 px-6 border-t bg-background/95 backdrop-blur shadow-lg z-30">
+        {/* Export Actions (in normal document flow, never overlays content) */}
+        <div className="mt-8 -mx-6 px-6 border-t bg-background">
           <div className="py-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="text-xs text-muted-foreground space-y-0.5">
               {products.length > 0 ? (
