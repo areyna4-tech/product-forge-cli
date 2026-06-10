@@ -259,7 +259,7 @@ function Index() {
     copyStatusTimeoutRef.current = window.setTimeout(() => {
       setCopyStatus(null);
       copyStatusTimeoutRef.current = null;
-    }, 4000);
+    }, 8000);
   };
 
   const previewHeaders = previewExportRows.length
