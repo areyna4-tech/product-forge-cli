@@ -482,11 +482,19 @@ function Index() {
                         <button
                           key={id}
                           onClick={() => setTarget(id)}
-                          className={`text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "hover:border-foreground/30"}`}
+                          aria-pressed={selected}
+                          className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
-                          <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="h-4 w-4" />
-                            <span className="font-medium text-sm">{t.title}</span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <FileSpreadsheet className="h-4 w-4" />
+                              <span className="font-medium text-sm">{t.title}</span>
+                            </div>
+                            {selected && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                                <Check className="h-3 w-3" /> Selected
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1.5">{t.desc}</p>
                         </button>
