@@ -751,7 +751,7 @@ function Index() {
       </main>
 
       {/* Sticky Export Actions */}
-      <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-10">
+      <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur z-40 shadow-lg">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-xs text-muted-foreground space-y-0.5">
             {products.length > 0 ? (
