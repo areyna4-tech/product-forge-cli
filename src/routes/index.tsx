@@ -231,7 +231,8 @@ function Index() {
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
     setSettings(defaultSettings); setTarget("generic"); setError("");
-    setPreviewFilter("all"); setOptionalOpen(false); setAdvancedOpen(false);
+    setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
+    setOptionalOpen(false); setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     toast.info("Reset complete");
   };
