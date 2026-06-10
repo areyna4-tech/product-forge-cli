@@ -63,7 +63,12 @@ function Index() {
   const [previewFilter, setPreviewFilter] = useState<"all" | "valid" | "warning" | "error">("all");
   const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning" | "duplicate" | "missing" | "price" | "image">("all");
   const [dragOver, setDragOver] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<{
+    type: "success" | "warning";
+    message: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const copyStatusTimeoutRef = useRef<number | null>(null);
 
   const products = useMemo(() => {
     if (!sourceRows.length) return [];
@@ -236,20 +241,25 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
-  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const handleCopyMapping = async () => {
     const data = buildMappingJson();
+    if (copyStatusTimeoutRef.current) {
+      window.clearTimeout(copyStatusTimeoutRef.current);
+    }
     try {
       if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(data);
-      setCopyStatus("Mapping JSON copied.");
+      setCopyStatus({ type: "success", message: "Mapping JSON copied." });
       toast.success("Mapping JSON copied.");
     } catch {
       downloadMappingJson();
-      setCopyStatus("Clipboard unavailable. Downloading mapping JSON instead.");
+      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping JSON instead." });
       toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
     }
-    setTimeout(() => setCopyStatus(null), 4000);
+    copyStatusTimeoutRef.current = window.setTimeout(() => {
+      setCopyStatus(null);
+      copyStatusTimeoutRef.current = null;
+    }, 4000);
   };
 
   const previewHeaders = previewExportRows.length
