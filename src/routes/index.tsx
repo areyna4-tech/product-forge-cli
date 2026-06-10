@@ -621,19 +621,32 @@ function Index() {
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="space-y-3">
-                      {optionalFields.map((field) => (
-                        <MappingRow
-                          key={field}
-                          field={field}
-                          headers={headers}
-                          mapping={mappings.find((m) => m.destinationField === field)}
-                          sample={sampleTransformed(field)}
-                          onUpdate={updateMapping}
-                          onTransform={updateTransform}
-                          onClear={clearMapping}
-                        />
-                      ))}
+                    <CardContent className="space-y-6">
+                      {OPTIONAL_GROUPS.map((group) => {
+                        const groupMapped = group.fields.filter((f) => mappings.some((m) => m.destinationField === f)).length;
+                        return (
+                          <div key={group.title}>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
+                              <span className="text-[10px] text-muted-foreground">{groupMapped}/{group.fields.length} mapped</span>
+                            </div>
+                            <div className="space-y-3">
+                              {group.fields.map((field) => (
+                                <MappingRow
+                                  key={field}
+                                  field={field}
+                                  headers={headers}
+                                  mapping={mappings.find((m) => m.destinationField === field)}
+                                  sample={sampleTransformed(field)}
+                                  onUpdate={updateMapping}
+                                  onTransform={updateTransform}
+                                  onClear={clearMapping}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </CardContent>
                   </CollapsibleContent>
                 </Card>
