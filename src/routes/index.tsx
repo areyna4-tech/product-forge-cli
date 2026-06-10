@@ -362,6 +362,13 @@ function Index() {
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
             Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs.
           </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" />No signup required</span>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Runs locally in your browser</span>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3 w-3" />Shopify/WooCommerce ready</span>
+          </div>
         </div>
       </header>
 
