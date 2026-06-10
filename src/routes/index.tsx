@@ -3,9 +3,10 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
-  AlertTriangle, FileSpreadsheet, X, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield,
+  AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
+  ChevronDown, ChevronRight, Shield, Check,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +69,7 @@ const TRANSFORM_LABELS: Record<TransformRule, string> = {
 };
 
 const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabel: string; filename: string }> = {
-  generic: { title: "Generic Clean CSV", desc: "Clean normalized product file for general imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
+  generic: { title: "Clean CSV", desc: "For normalized product data, marketplace uploads, or custom imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
   shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
   woocommerce: { title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure.", ctaLabel: "Download WooCommerce CSV", filename: "woocommerce-products.csv" },
 };
@@ -87,6 +88,7 @@ function Index() {
   const [dragOver, setDragOver] = useState(false);
   const [optionalOpen, setOptionalOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [hideEmptyCols, setHideEmptyCols] = useState(true);
   const [copyStatus, setCopyStatus] = useState<{
     type: "success" | "warning";
     message: string;
@@ -323,9 +325,17 @@ function Index() {
     }, 8000);
   };
 
-  const previewHeaders = previewExportRows.length
-    ? Object.keys(previewExportRows[0].row)
-    : [];
+  const previewHeaders = useMemo(() => {
+    if (!previewExportRows.length) return [];
+    const all = Object.keys(previewExportRows[0].row);
+    if (!hideEmptyCols) return all;
+    return all.filter((h) =>
+      previewExportRows.some(({ row }) => {
+        const v = row[h];
+        return v != null && String(v).trim() !== "";
+      }),
+    );
+  }, [previewExportRows, hideEmptyCols]);
 
   const requiredFields = ALL_DEST_FIELDS.filter((f) => REQUIRED_FIELDS.includes(f));
   const optionalFields = ALL_DEST_FIELDS.filter((f) => !REQUIRED_FIELDS.includes(f));
@@ -352,10 +362,17 @@ function Index() {
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
             Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs.
           </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" />No signup required</span>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Runs locally in your browser</span>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3 w-3" />Shopify/WooCommerce ready</span>
+          </div>
         </div>
       </header>
 
-      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-28" : "pb-12"}`}>
+      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-40 sm:pb-32" : "pb-12"}`}>
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload CSV" active />
@@ -465,11 +482,19 @@ function Index() {
                         <button
                           key={id}
                           onClick={() => setTarget(id)}
-                          className={`text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "hover:border-foreground/30"}`}
+                          aria-pressed={selected}
+                          className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
-                          <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="h-4 w-4" />
-                            <span className="font-medium text-sm">{t.title}</span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <FileSpreadsheet className="h-4 w-4" />
+                              <span className="font-medium text-sm">{t.title}</span>
+                            </div>
+                            {selected && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                                <Check className="h-3 w-3" /> Selected
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1.5">{t.desc}</p>
                         </button>
@@ -628,7 +653,7 @@ function Index() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Validation</CardTitle>
-                  <CardDescription>Issues found in your transformed data.</CardDescription>
+                  <CardDescription>Check for missing required fields, invalid prices, duplicate SKUs, and image URL issues.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {blockingIssues.length === 0 && warningIssues.length === 0 ? (
@@ -706,7 +731,11 @@ function Index() {
                       <CardTitle className="text-base">Output preview</CardTitle>
                       <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                        <Switch checked={hideEmptyCols} onCheckedChange={setHideEmptyCols} />
+                        Hide empty columns
+                      </label>
                       <Label className="text-xs text-muted-foreground">Filter</Label>
                       <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
                         <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
@@ -769,13 +798,13 @@ function Index() {
       {/* Sticky footer — only after upload */}
       {hasFile && (
         <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-6 py-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="text-xs text-muted-foreground min-w-0 truncate">
-              <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
+              <span className="font-medium text-foreground">{summary.exportableRows}</span> ready ·{" "}
               <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
-              Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
+              <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
             </div>
-            <div className="flex gap-2 flex-wrap items-center justify-end">
+            <div className="flex gap-1.5 flex-wrap items-center justify-end">
               <div
                 role="status"
                 aria-live="polite"
@@ -783,8 +812,8 @@ function Index() {
                 className={
                   copyStatus
                     ? copyStatus.type === "success"
-                      ? "inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
-                      : "inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
+                      ? "inline-flex items-center gap-1.5 rounded-full border border-green-300 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                      : "inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"
                     : "hidden"
                 }
               >
@@ -795,17 +824,17 @@ function Index() {
                   </>
                 )}
               </div>
-              <Button variant="ghost" size="sm" onClick={reset}>
-                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
+              <Button variant="ghost" size="sm" className="h-8" onClick={reset}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
               </Button>
-              <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
-                <Copy className="h-3.5 w-3.5 mr-1.5" />Copy Mapping JSON
+              <Button variant="ghost" size="sm" className="h-8" onClick={handleCopyMapping} disabled={!mappings.length}>
+                <Copy className="h-3.5 w-3.5 mr-1" />Copy Mapping JSON
               </Button>
-              <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length}>
-                <Download className="h-3.5 w-3.5 mr-1.5" />Validation Report
+              <Button variant="ghost" size="sm" className="h-8" onClick={handleValidationReport} disabled={!products.length}>
+                <Download className="h-3.5 w-3.5 mr-1" />Validation Report
               </Button>
-              <Button size="sm" onClick={handleDownload} disabled={!exportRows.length}>
-                <Download className="h-3.5 w-3.5 mr-1.5" />
+              <Button size="default" onClick={handleDownload} disabled={!exportRows.length} className="h-9 font-semibold">
+                <Download className="h-4 w-4 mr-1.5" />
                 {TARGET_META[target].ctaLabel}
               </Button>
             </div>
@@ -852,8 +881,9 @@ function MappingRow({
             {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
           </div>
           {sample && (
-            <p className="mt-1 text-[11px] text-muted-foreground font-mono truncate">
-              → {sample}
+            <p className="mt-1.5 text-xs truncate">
+              <span className="text-muted-foreground">Preview:</span>{" "}
+              <span className="font-mono font-medium text-foreground">{sample}</span>
             </p>
           )}
         </div>
@@ -893,8 +923,14 @@ function MappingRow({
         </div>
         <div className="flex md:justify-end">
           {mapping && (
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onClear(field)} aria-label="Clear mapping">
-              <X className="h-3.5 w-3.5" />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => onClear(field)}
+              aria-label={`Clear mapping for ${FIELD_LABELS[field] || field}`}
+            >
+              Clear
             </Button>
           )}
         </div>
