@@ -768,13 +768,21 @@ function Index() {
               ) : (
                 "Map required fields and upload data to enable export."
               )}
-              {copyStatus && (
-                <p className="text-sm text-foreground font-medium" role="status" aria-live="polite">
-                  {copyStatus}
-                </p>
-              )}
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
+              {copyStatus && (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${
+                    copyStatus.includes("copied")
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}
+                  role="status"
+                >
+                  {copyStatus.includes("copied") ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                  {copyStatus}
+                </span>
+              )}
               <Button variant="outline" size="sm" onClick={reset}>
                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
               </Button>
