@@ -879,12 +879,19 @@ function Index() {
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                          <p className="font-medium">Ready to export</p>
+                          {summary.blockedRows > 0 ? (
+                            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          )}
+                          <p className="font-medium">
+                            {summary.blockedRows > 0 ? "Partial export available" : "Ready to export"}
+                          </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {summary.exportableRows} of {summary.totalRows} rows are exportable.{" "}
-                          {summary.blockedRows === 0 ? "No blocking errors found." : `${summary.blockedRows} blocked by errors.`}
+                          {summary.blockedRows > 0
+                            ? `${summary.exportableRows} of ${summary.totalRows} rows will be exported. ${summary.blockedRows} blocked rows will be excluded.`
+                            : "All rows are exportable."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} className="shrink-0">
