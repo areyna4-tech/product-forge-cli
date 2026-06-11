@@ -449,7 +449,7 @@ function Index() {
         </div>
       </header>
 
-      <main className={`mx-auto max-w-[1120px] px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+      <main className="mx-auto max-w-[1120px] px-6 py-8 pb-12 space-y-6">
 
         {/* Step 1 — Upload */}
         <section>
@@ -623,21 +623,22 @@ function Index() {
 
               <Collapsible open={optionalOpen} onOpenChange={setOptionalOpen} className="mt-4">
                 <Card>
-                  <CollapsibleTrigger className="w-full text-left">
+                  <CollapsibleTrigger className="w-full text-left" aria-expanded={optionalOpen}>
                     <CardHeader className="cursor-pointer">
                       <div className="flex items-center justify-between gap-3">
-                        <div>
+                        <div className="min-w-0">
                           <CardTitle className="text-base flex items-center gap-2">
                             {optionalOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             Optional fields
                           </CardTitle>
                           <CardDescription>
-                            Optional fields · {optionalFields.length} fields available
+                            {(() => {
+                              const mappedCount = mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length;
+                              const unmappedCount = optionalFields.length - mappedCount;
+                              return `${mappedCount} mapped · ${unmappedCount} unmapped · images, variants, inventory, SEO`;
+                            })()}
                           </CardDescription>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length} mapped
-                        </Badge>
                       </div>
                     </CardHeader>
                   </CollapsibleTrigger>
@@ -779,20 +780,8 @@ function Index() {
             <section>
               <StepHeader number={4} title="Validate & export" active />
 
-              {/* Validation */}
-              {blockingIssues.length === 0 && warningIssues.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                      <div className="text-sm">
-                        <p className="font-medium text-emerald-800">No validation issues found.</p>
-                        <p className="text-emerald-700">Your CSV is ready to export.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
+              {/* Validation — only show when issues exist */}
+              {(blockingIssues.length > 0 || warningIssues.length > 0) && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -961,8 +950,7 @@ function Index() {
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Previewing first 25 transformed rows. Download includes all exportable rows. Scroll horizontally to review all export columns.
-                    {summary.blockedRows > 0 && " Blocked rows are excluded from the downloaded CSV."}
+                    Previewing first 25 rows. Download includes all exportable rows. Scroll to review all columns.
                   </p>
 
                 </CardHeader>
@@ -1017,22 +1005,7 @@ function Index() {
         )}
       </main>
 
-      {/* Sticky footer — only after upload */}
-      {hasFile && (
-        <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="text-xs text-muted-foreground min-w-0 truncate">
-              <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
-              <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
-              Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
-            </div>
-            <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold">
-              <Download className="h-4 w-4 mr-1.5" />
-              {TARGET_META[target].ctaLabel}
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Sticky footer removed — inline download in readiness card is sufficient */}
     </div>
   );
 }
@@ -1061,19 +1034,25 @@ function MappingRow({
   onClear: (field: keyof ProductRecord) => void;
 }) {
   const notMapped = required && !mapping;
+  const fieldLabel = FIELD_LABELS[field] || field;
   return (
     <div className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}>
 
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{FIELD_LABELS[field] || field}</span>
+            <span className="font-medium text-sm">{fieldLabel}</span>
             {required && (
               <Badge variant={notMapped ? "destructive" : "default"} className="text-[10px] py-0 h-4">Required</Badge>
             )}
             {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
           </div>
-          {sample && (
+          {notMapped && (
+            <p className="mt-1.5 text-xs text-red-700">
+              {fieldLabel} is required. Choose a source column before exporting.
+            </p>
+          )}
+          {sample && !notMapped && (
             <p className="mt-1.5 text-xs truncate">
               <span className="text-muted-foreground">Preview:</span>{" "}
               <span className="font-mono font-medium text-foreground">{sample}</span>
