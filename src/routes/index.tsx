@@ -915,7 +915,7 @@ function Index() {
                         <p className="font-medium">Not ready to export</p>
                         <p className="text-muted-foreground">
                           {!allRequiredMapped
-                            ? "Map all required fields (Title, SKU, Price) to enable export."
+                            ? "Required fields need mapping before export."
                             : "No exportable rows yet — every row has a blocking error."}
                         </p>
                       </div>
