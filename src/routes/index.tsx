@@ -1144,6 +1144,10 @@ function IssueGroup({
                   <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Current: <span className="font-mono text-foreground">{d.current ? `‘${d.current}’` : "empty"}</span>
+                {" · "}Expected: <span className="text-foreground">{d.expected}</span>
+              </p>
               <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Problem</dt>
                 <dd>{d.problem}</dd>
