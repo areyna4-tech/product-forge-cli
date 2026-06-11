@@ -418,27 +418,38 @@ function Index() {
   );
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
 
       {/* Header */}
-      <header className="border-b bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Product CSV Cleaner &amp; Exporter</h1>
-          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs.
+      <header className="border-b bg-card">
+        <div className="mx-auto max-w-[1120px] px-6 py-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            Product CSV Cleaner &amp; Exporter
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground max-w-2xl">
+            Clean messy supplier spreadsheets into Shopify, WooCommerce, or standard product CSVs.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" />No signup required</span>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Runs locally in your browser</span>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3 w-3" />Shopify/WooCommerce ready</span>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              { icon: Check, label: "No signup" },
+              { icon: Shield, label: "Runs locally in your browser" },
+              { icon: FileSpreadsheet, label: "Import-ready exports" },
+            ].map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground/80"
+              >
+                <Icon className="h-3 w-3" />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </header>
 
-      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+      <main className={`mx-auto max-w-[1120px] px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload CSV" active />
