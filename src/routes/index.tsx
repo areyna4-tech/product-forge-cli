@@ -509,9 +509,14 @@ function Index() {
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" onClick={replaceFile} className="shrink-0">
-                    <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" variant="outline" onClick={replaceFile}>
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
+                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
+                    </Button>
+                  </div>
                 </div>
               )}
 
