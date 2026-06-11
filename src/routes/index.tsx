@@ -779,44 +779,47 @@ function Index() {
               ) : (
                 <Card>
                   <CardHeader>
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="min-w-0">
-                        <CardTitle className="text-base">Validation found issues</CardTitle>
-                        <CardDescription>
-                          {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
-                        </CardDescription>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {summary.blockedRows > 0
-                            ? "Blocked rows are excluded from export. Warning rows are included."
-                            : "All rows are exportable. Warning rows are included."}
-                        </p>
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <CardTitle className="text-base">Validation found issues</CardTitle>
+                          <CardDescription>
+                            {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
+                          </CardDescription>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            {summary.blockedRows > 0
+                              ? "Blocked rows are excluded from export. Warning rows are included."
+                              : "All rows are exportable. Warning rows are included."}
+                          </p>
+                        </div>
                       </div>
+                      <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length} className="shrink-0">
+                        <Download className="h-3.5 w-3.5 mr-1.5" />Download validation report
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* How to fix helper */}
-                    <Collapsible open={howToFixOpen} onOpenChange={setHowToFixOpen}>
-                      <div className="rounded-md border bg-muted/30">
-                        <CollapsibleTrigger className="w-full">
-                          <div className="flex items-center justify-between gap-2 p-3 text-left">
-                            <div className="flex items-center gap-2">
-                              <Wrench className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">How to fix issues</span>
-                            </div>
-                            {howToFixOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
-                            <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
-                            <li>Find the row number shown in each issue below.</li>
-                            <li>Update the field using the suggested fix.</li>
-                            <li>Save the CSV and re-upload it here.</li>
-                          </ol>
-                        </CollapsibleContent>
-                      </div>
-                    </Collapsible>
+                    {/* How to fix helper — native details for reliability */}
+                    <details
+                      className="rounded-md border bg-muted/30 group"
+                      open={howToFixOpen}
+                      onToggle={(e) => setHowToFixOpen((e.target as HTMLDetailsElement).open)}
+                    >
+                      <summary className="flex items-center justify-between gap-2 p-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <span className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">How to fix issues</span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-90" />
+                      </summary>
+                      <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
+                        <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
+                        <li>Find the row number shown in each issue below.</li>
+                        <li>Update the field using the suggested fix.</li>
+                        <li>Save the CSV and re-upload it here.</li>
+                      </ol>
+                    </details>
 
                     {/* Filters */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -825,15 +828,20 @@ function Index() {
                         ["all", `All issues (${blockingIssues.length + warningIssues.length})`],
                         ["blocking", `Blocking only (${blockingIssues.length})`],
                         ["warnings", `Warnings only (${warningIssues.length})`],
-                      ] as const).map(([id, label]) => (
-                        <button
-                          key={id}
-                          onClick={() => setIssueFilter(id)}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${issueFilter === id ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground/40"}`}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                      ] as const).map(([id, label]) => {
+                        const active = issueFilter === id;
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setIssueFilter(id)}
+                            aria-pressed={active}
+                            className={`text-xs px-3 py-1 rounded-full border transition-colors ${active ? "border-primary bg-primary text-primary-foreground font-medium shadow-sm" : "border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground"}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
