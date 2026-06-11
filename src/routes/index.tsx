@@ -1066,10 +1066,10 @@ function MappingRow({
             onValueChange={(v) => onUpdate(field, v)}
           >
             <SelectTrigger className="h-8 text-xs mt-1">
-              <SelectValue placeholder="— not mapped —" />
+              <SelectValue placeholder="Select source column" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NO_SOURCE}>— not mapped —</SelectItem>
+              <SelectItem value={NO_SOURCE}>Select source column</SelectItem>
               {headers.map((h) => (
                 <SelectItem key={h} value={h}>{h}</SelectItem>
               ))}
