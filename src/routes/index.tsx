@@ -438,7 +438,7 @@ function Index() {
         </div>
       </header>
 
-      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-40 sm:pb-32" : "pb-12"}`}>
+      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload CSV" active />
@@ -509,9 +509,14 @@ function Index() {
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" onClick={replaceFile} className="shrink-0">
-                    <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" variant="outline" onClick={replaceFile}>
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
+                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -722,6 +727,36 @@ function Index() {
                   </CollapsibleContent>
                 </Card>
               </Collapsible>
+
+              <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  Save your mapping to reuse it later with similar CSVs.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    data-testid="copy-mapping-status"
+                    className={
+                      copyStatus
+                        ? copyStatus.type === "success"
+                          ? "inline-flex items-center gap-1.5 rounded-full border border-green-300 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                          : "inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+                        : "hidden"
+                    }
+                  >
+                    {copyStatus && (
+                      <>
+                        <span aria-hidden="true">{copyStatus.type === "success" ? "✓" : "⚠"}</span>
+                        <span>{copyStatus.message}</span>
+                      </>
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />Copy mapping JSON
+                  </Button>
+                </div>
+              </div>
             </section>
 
             {/* Step 4 — Validate & export */}
@@ -744,44 +779,47 @@ function Index() {
               ) : (
                 <Card>
                   <CardHeader>
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="min-w-0">
-                        <CardTitle className="text-base">Validation found issues</CardTitle>
-                        <CardDescription>
-                          {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
-                        </CardDescription>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {summary.blockedRows > 0
-                            ? "Blocked rows are excluded from export. Warning rows are included."
-                            : "All rows are exportable. Warning rows are included."}
-                        </p>
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <CardTitle className="text-base">Validation found issues</CardTitle>
+                          <CardDescription>
+                            {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
+                          </CardDescription>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            {summary.blockedRows > 0
+                              ? "Blocked rows are excluded from export. Warning rows are included."
+                              : "All rows are exportable. Warning rows are included."}
+                          </p>
+                        </div>
                       </div>
+                      <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length} className="shrink-0">
+                        <Download className="h-3.5 w-3.5 mr-1.5" />Download validation report
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* How to fix helper */}
-                    <Collapsible open={howToFixOpen} onOpenChange={setHowToFixOpen}>
-                      <div className="rounded-md border bg-muted/30">
-                        <CollapsibleTrigger className="w-full">
-                          <div className="flex items-center justify-between gap-2 p-3 text-left">
-                            <div className="flex items-center gap-2">
-                              <Wrench className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">How to fix issues</span>
-                            </div>
-                            {howToFixOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
-                            <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
-                            <li>Find the row number shown in each issue below.</li>
-                            <li>Update the field using the suggested fix.</li>
-                            <li>Save the CSV and re-upload it here.</li>
-                          </ol>
-                        </CollapsibleContent>
-                      </div>
-                    </Collapsible>
+                    {/* How to fix helper — native details for reliability */}
+                    <details
+                      className="rounded-md border bg-muted/30 group"
+                      open={howToFixOpen}
+                      onToggle={(e) => setHowToFixOpen((e.target as HTMLDetailsElement).open)}
+                    >
+                      <summary className="flex items-center justify-between gap-2 p-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <span className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">How to fix issues</span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-90" />
+                      </summary>
+                      <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
+                        <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
+                        <li>Find the row number shown in each issue below.</li>
+                        <li>Update the field using the suggested fix.</li>
+                        <li>Save the CSV and re-upload it here.</li>
+                      </ol>
+                    </details>
 
                     {/* Filters */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -790,15 +828,20 @@ function Index() {
                         ["all", `All issues (${blockingIssues.length + warningIssues.length})`],
                         ["blocking", `Blocking only (${blockingIssues.length})`],
                         ["warnings", `Warnings only (${warningIssues.length})`],
-                      ] as const).map(([id, label]) => (
-                        <button
-                          key={id}
-                          onClick={() => setIssueFilter(id)}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${issueFilter === id ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground/40"}`}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                      ] as const).map(([id, label]) => {
+                        const active = issueFilter === id;
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setIssueFilter(id)}
+                            aria-pressed={active}
+                            className={`text-xs px-3 py-1 rounded-full border transition-colors ${active ? "border-primary bg-primary text-primary-foreground font-medium shadow-sm" : "border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground"}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
@@ -836,12 +879,19 @@ function Index() {
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                          <p className="font-medium">Ready to export</p>
+                          {summary.blockedRows > 0 ? (
+                            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          )}
+                          <p className="font-medium">
+                            {summary.blockedRows > 0 ? "Partial export available" : "Ready to export"}
+                          </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {summary.exportableRows} of {summary.totalRows} rows are exportable.{" "}
-                          {summary.blockedRows === 0 ? "No blocking errors found." : `${summary.blockedRows} blocked by errors.`}
+                          {summary.blockedRows > 0
+                            ? `${summary.exportableRows} of ${summary.totalRows} rows will be exported. ${summary.blockedRows} blocked rows will be excluded.`
+                            : "All rows are exportable."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} className="shrink-0">
@@ -944,46 +994,16 @@ function Index() {
       {/* Sticky footer — only after upload */}
       {hasFile && (
         <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="text-xs text-muted-foreground min-w-0 truncate">
               <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
               <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
               Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
             </div>
-            <div className="flex gap-1 flex-wrap items-center justify-end">
-              <div
-                role="status"
-                aria-live="polite"
-                data-testid="copy-mapping-status"
-                className={
-                  copyStatus
-                    ? copyStatus.type === "success"
-                      ? "inline-flex items-center gap-1.5 rounded-full border border-green-300 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700"
-                      : "inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"
-                    : "hidden"
-                }
-              >
-                {copyStatus && (
-                  <>
-                    <span aria-hidden="true">{copyStatus.type === "success" ? "✓" : "⚠"}</span>
-                    <span>{copyStatus.message}</span>
-                  </>
-                )}
-              </div>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={reset}>
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={handleCopyMapping} disabled={!mappings.length}>
-                <Copy className="h-3.5 w-3.5 mr-1" />Copy mapping
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={handleValidationReport} disabled={!products.length}>
-                <Download className="h-3.5 w-3.5 mr-1" />Report
-              </Button>
-              <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold ml-1">
-                <Download className="h-4 w-4 mr-1.5" />
-                {TARGET_META[target].ctaLabel}
-              </Button>
-            </div>
+            <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold">
+              <Download className="h-4 w-4 mr-1.5" />
+              {TARGET_META[target].ctaLabel}
+            </Button>
           </div>
         </div>
       )}
@@ -1124,6 +1144,10 @@ function IssueGroup({
                   <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Current: <span className="font-mono text-foreground">{d.current ? `‘${d.current}’` : "empty"}</span>
+                {" · "}Expected: <span className="text-foreground">{d.expected}</span>
+              </p>
               <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Problem</dt>
                 <dd>{d.problem}</dd>
