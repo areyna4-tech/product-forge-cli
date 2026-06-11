@@ -469,15 +469,18 @@ function Index() {
                   >
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
                     <p className="mt-3 text-sm font-medium">Drop your CSV here</p>
-                    <p className="text-xs text-muted-foreground">or</p>
-                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
-                      <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                        Browse CSV file
+                    <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
+                      Upload a CSV with product names, SKUs, prices, inventory, images, or variants.
+                    </p>
+                    <div className="mt-4 flex justify-center gap-2 flex-wrap">
+                      <Button onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-1.5" />Browse CSV file
                       </Button>
-                      <Button size="sm" variant="outline" onClick={loadSample}>
-                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />Try sample file
+                      <Button variant="outline" onClick={loadSample}>
+                        <Sparkles className="h-4 w-4 mr-1.5" />Try sample file
                       </Button>
                     </div>
+
                   </div>
 
                   {/* How it works */}
