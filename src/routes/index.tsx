@@ -599,9 +599,10 @@ function Index() {
                   <CardTitle className="text-base">Required fields</CardTitle>
                   <CardDescription>
                     {allRequiredMapped
-                      ? "All required fields are mapped."
-                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`}
+                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped automatically.`
+                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Required fields need mapping before export.`}
                   </CardDescription>
+
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {requiredFields.map((field) => (
