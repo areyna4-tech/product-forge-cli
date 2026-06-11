@@ -217,8 +217,9 @@ function Index() {
 
   const handleFile = useCallback((file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
-      setError("Invalid file type. Please upload a .csv file.");
+      setError("We could not read this file. Upload a valid .csv file with a header row.");
       return;
+
     }
     const reader = new FileReader();
     reader.onload = () => parseCsvText(String(reader.result || ""), file.name);
