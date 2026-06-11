@@ -1062,7 +1062,8 @@ function MappingRow({
 }) {
   const notMapped = required && !mapping;
   return (
-    <div className={`rounded-md border p-3 ${notMapped ? "border-red-200 bg-red-50/40" : "bg-card"}`}>
+    <div className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}>
+
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <div>
           <div className="flex items-center gap-2">
