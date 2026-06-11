@@ -621,14 +621,18 @@ function Index() {
                 </CardContent>
               </Card>
 
-              <Collapsible open={optionalOpen} onOpenChange={setOptionalOpen} className="mt-4">
-                <Card>
-                  <CollapsibleTrigger className="w-full text-left" aria-expanded={optionalOpen}>
-                    <CardHeader className="cursor-pointer">
+              <Card className="mt-4">
+                <details
+                  open={optionalOpen}
+                  onToggle={(e) => setOptionalOpen((e.target as HTMLDetailsElement).open)}
+                  className="group"
+                >
+                  <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer">
+                    <CardHeader>
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <CardTitle className="text-base flex items-center gap-2">
-                            {optionalOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
                             Optional fields
                           </CardTitle>
                           <CardDescription>
@@ -641,38 +645,36 @@ function Index() {
                         </div>
                       </div>
                     </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="space-y-6">
-                      {OPTIONAL_GROUPS.map((group) => {
-                        const groupMapped = group.fields.filter((f) => mappings.some((m) => m.destinationField === f)).length;
-                        return (
-                          <div key={group.title}>
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
-                              <span className="text-[10px] text-muted-foreground">{groupMapped}/{group.fields.length} mapped</span>
-                            </div>
-                            <div className="space-y-3">
-                              {group.fields.map((field) => (
-                                <MappingRow
-                                  key={field}
-                                  field={field}
-                                  headers={headers}
-                                  mapping={mappings.find((m) => m.destinationField === field)}
-                                  sample={sampleTransformed(field)}
-                                  onUpdate={updateMapping}
-                                  onTransform={updateTransform}
-                                  onClear={clearMapping}
-                                />
-                              ))}
-                            </div>
+                  </summary>
+                  <CardContent className="space-y-6">
+                    {OPTIONAL_GROUPS.map((group) => {
+                      const groupMapped = group.fields.filter((f) => mappings.some((m) => m.destinationField === f)).length;
+                      return (
+                        <div key={group.title}>
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
+                            <span className="text-[10px] text-muted-foreground">{groupMapped}/{group.fields.length} mapped</span>
                           </div>
-                        );
-                      })}
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
+                          <div className="space-y-3">
+                            {group.fields.map((field) => (
+                              <MappingRow
+                                key={field}
+                                field={field}
+                                headers={headers}
+                                mapping={mappings.find((m) => m.destinationField === field)}
+                                sample={sampleTransformed(field)}
+                                onUpdate={updateMapping}
+                                onTransform={updateTransform}
+                                onClear={clearMapping}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </details>
+              </Card>
 
               {/* Advanced settings */}
               <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="mt-4">
