@@ -994,46 +994,16 @@ function Index() {
       {/* Sticky footer — only after upload */}
       {hasFile && (
         <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="text-xs text-muted-foreground min-w-0 truncate">
               <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
               <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
               Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
             </div>
-            <div className="flex gap-1 flex-wrap items-center justify-end">
-              <div
-                role="status"
-                aria-live="polite"
-                data-testid="copy-mapping-status"
-                className={
-                  copyStatus
-                    ? copyStatus.type === "success"
-                      ? "inline-flex items-center gap-1.5 rounded-full border border-green-300 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700"
-                      : "inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"
-                    : "hidden"
-                }
-              >
-                {copyStatus && (
-                  <>
-                    <span aria-hidden="true">{copyStatus.type === "success" ? "✓" : "⚠"}</span>
-                    <span>{copyStatus.message}</span>
-                  </>
-                )}
-              </div>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={reset}>
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={handleCopyMapping} disabled={!mappings.length}>
-                <Copy className="h-3.5 w-3.5 mr-1" />Copy mapping
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={handleValidationReport} disabled={!products.length}>
-                <Download className="h-3.5 w-3.5 mr-1" />Report
-              </Button>
-              <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold ml-1">
-                <Download className="h-4 w-4 mr-1.5" />
-                {TARGET_META[target].ctaLabel}
-              </Button>
-            </div>
+            <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold">
+              <Download className="h-4 w-4 mr-1.5" />
+              {TARGET_META[target].ctaLabel}
+            </Button>
           </div>
         </div>
       )}
