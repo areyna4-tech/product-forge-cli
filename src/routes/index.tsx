@@ -1005,22 +1005,7 @@ function Index() {
         )}
       </main>
 
-      {/* Sticky footer — only after upload */}
-      {hasFile && (
-        <div className="fixed bottom-0 inset-x-0 z-20 border-t bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="text-xs text-muted-foreground min-w-0 truncate">
-              <span className="font-medium text-foreground">{summary.exportableRows}</span> rows ready ·{" "}
-              <span className="font-medium text-foreground">{summary.blockedRows}</span> blocked ·{" "}
-              Target: <span className="font-medium text-foreground">{TARGET_META[target].title}</span>
-            </div>
-            <Button size="sm" onClick={handleDownload} disabled={!exportRows.length} className="h-8 font-semibold">
-              <Download className="h-4 w-4 mr-1.5" />
-              {TARGET_META[target].ctaLabel}
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Sticky footer removed — inline download in readiness card is sufficient */}
     </div>
   );
 }
