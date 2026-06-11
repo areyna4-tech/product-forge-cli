@@ -1034,19 +1034,25 @@ function MappingRow({
   onClear: (field: keyof ProductRecord) => void;
 }) {
   const notMapped = required && !mapping;
+  const fieldLabel = FIELD_LABELS[field] || field;
   return (
     <div className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}>
 
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{FIELD_LABELS[field] || field}</span>
+            <span className="font-medium text-sm">{fieldLabel}</span>
             {required && (
               <Badge variant={notMapped ? "destructive" : "default"} className="text-[10px] py-0 h-4">Required</Badge>
             )}
             {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
           </div>
-          {sample && (
+          {notMapped && (
+            <p className="mt-1.5 text-xs text-red-700">
+              {fieldLabel} is required. Choose a source column before exporting.
+            </p>
+          )}
+          {sample && !notMapped && (
             <p className="mt-1.5 text-xs truncate">
               <span className="text-muted-foreground">Preview:</span>{" "}
               <span className="font-mono font-medium text-foreground">{sample}</span>
