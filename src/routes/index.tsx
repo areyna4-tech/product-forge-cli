@@ -449,7 +449,7 @@ function Index() {
         </div>
       </header>
 
-      <main className={`mx-auto max-w-[1120px] px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+      <main className="mx-auto max-w-[1120px] px-6 py-8 pb-12 space-y-6">
 
         {/* Step 1 — Upload */}
         <section>
