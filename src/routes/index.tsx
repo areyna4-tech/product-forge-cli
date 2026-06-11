@@ -905,15 +905,19 @@ function Index() {
                           </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
+                          {summary.exportableRows} rows validated · {summary.blockedRows} blocked · {TARGET_META[target].title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
-                            ? `${summary.exportableRows} of ${summary.totalRows} rows will be exported. ${summary.blockedRows} blocked rows will be excluded.`
-                            : "All rows are exportable."}
+                            ? "Blocked rows will be excluded from the downloaded CSV."
+                            : "All required fields are mapped and every row is exportable."}
                         </p>
                       </div>
-                      <Button onClick={handleDownload} className="shrink-0">
+                      <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
                         <Download className="h-4 w-4 mr-1.5" />
                         {TARGET_META[target].ctaLabel}
                       </Button>
+
                     </div>
                   ) : (
                     <div className="flex items-start gap-3">
