@@ -950,8 +950,7 @@ function Index() {
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Previewing first 25 transformed rows. Download includes all exportable rows. Scroll horizontally to review all export columns.
-                    {summary.blockedRows > 0 && " Blocked rows are excluded from the downloaded CSV."}
+                    Previewing first 25 rows. Download includes all exportable rows. Scroll to review all columns.
                   </p>
 
                 </CardHeader>
