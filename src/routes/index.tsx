@@ -623,21 +623,22 @@ function Index() {
 
               <Collapsible open={optionalOpen} onOpenChange={setOptionalOpen} className="mt-4">
                 <Card>
-                  <CollapsibleTrigger className="w-full text-left">
+                  <CollapsibleTrigger className="w-full text-left" aria-expanded={optionalOpen}>
                     <CardHeader className="cursor-pointer">
                       <div className="flex items-center justify-between gap-3">
-                        <div>
+                        <div className="min-w-0">
                           <CardTitle className="text-base flex items-center gap-2">
                             {optionalOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             Optional fields
                           </CardTitle>
                           <CardDescription>
-                            Optional fields · {optionalFields.length} fields available
+                            {(() => {
+                              const mappedCount = mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length;
+                              const unmappedCount = optionalFields.length - mappedCount;
+                              return `${mappedCount} mapped · ${unmappedCount} unmapped · images, variants, inventory, SEO`;
+                            })()}
                           </CardDescription>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length} mapped
-                        </Badge>
                       </div>
                     </CardHeader>
                   </CollapsibleTrigger>
