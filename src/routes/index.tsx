@@ -972,12 +972,12 @@ function Index() {
                   ) : (
                     <div className="overflow-x-auto rounded-md border max-h-[500px]">
                       <table className="w-full text-xs">
-                        <thead className="bg-muted/50 sticky top-0 z-10">
+                        <thead className="bg-[#f8fafc] sticky top-0 z-10">
                           <tr>
-                            <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
-                            <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
+                            <th className="px-2 py-2 text-left font-medium border-b w-16 text-muted-foreground">Row</th>
+                            <th className="px-2 py-2 text-left font-medium border-b w-24 text-muted-foreground">Status</th>
                             {previewHeaders.map((h) => (
-                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap text-muted-foreground">{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -986,12 +986,16 @@ function Index() {
                             const hasErr = product.validationErrors.some((e) => e.severity === "error");
                             const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
                             return (
-                              <tr key={i} className="border-b last:border-0">
+                              <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
                                 <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
                                 <td className="px-2 py-1.5 border-b">
-                                  {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                                    : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
-                                    : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
+                                  {hasErr ? (
+                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Blocked</span>
+                                  ) : hasWarn ? (
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Warning</span>
+                                  ) : (
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">✓ OK</span>
+                                  )}
                                 </td>
                                 {previewHeaders.map((h) => (
                                   <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
@@ -1004,6 +1008,7 @@ function Index() {
                         </tbody>
                       </table>
                     </div>
+
                   )}
                 </CardContent>
               </Card>
