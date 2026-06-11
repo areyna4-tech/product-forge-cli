@@ -780,20 +780,8 @@ function Index() {
             <section>
               <StepHeader number={4} title="Validate & export" active />
 
-              {/* Validation */}
-              {blockingIssues.length === 0 && warningIssues.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                      <div className="text-sm">
-                        <p className="font-medium text-emerald-800">No validation issues found.</p>
-                        <p className="text-emerald-700">Your CSV is ready to export.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
+              {/* Validation — only show when issues exist */}
+              {(blockingIssues.length > 0 || warningIssues.length > 0) && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3 flex-wrap">
