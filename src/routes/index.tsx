@@ -217,8 +217,9 @@ function Index() {
 
   const handleFile = useCallback((file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
-      setError("Invalid file type. Please upload a .csv file.");
+      setError("We could not read this file. Upload a valid .csv file with a header row.");
       return;
+
     }
     const reader = new FileReader();
     reader.onload = () => parseCsvText(String(reader.result || ""), file.name);
@@ -418,27 +419,38 @@ function Index() {
   );
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
 
       {/* Header */}
-      <header className="border-b bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Product CSV Cleaner &amp; Exporter</h1>
-          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs.
+      <header className="border-b bg-card">
+        <div className="mx-auto max-w-[1120px] px-6 py-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            Product CSV Cleaner &amp; Exporter
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground max-w-2xl">
+            Clean messy supplier spreadsheets into Shopify, WooCommerce, or standard product CSVs.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" />No signup required</span>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Runs locally in your browser</span>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3 w-3" />Shopify/WooCommerce ready</span>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              { icon: Check, label: "No signup" },
+              { icon: Shield, label: "Runs locally in your browser" },
+              { icon: FileSpreadsheet, label: "Import-ready exports" },
+            ].map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground/80"
+              >
+                <Icon className="h-3 w-3" />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </header>
 
-      <main className={`mx-auto max-w-6xl px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+      <main className={`mx-auto max-w-[1120px] px-6 py-8 space-y-6 ${hasFile ? "pb-56 sm:pb-48" : "pb-12"}`}>
+
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload CSV" active />
@@ -458,15 +470,18 @@ function Index() {
                   >
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
                     <p className="mt-3 text-sm font-medium">Drop your CSV here</p>
-                    <p className="text-xs text-muted-foreground">or</p>
-                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
-                      <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                        Browse CSV file
+                    <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
+                      Upload a CSV with product names, SKUs, prices, inventory, images, or variants.
+                    </p>
+                    <div className="mt-4 flex justify-center gap-2 flex-wrap">
+                      <Button onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-1.5" />Browse CSV file
                       </Button>
-                      <Button size="sm" variant="outline" onClick={loadSample}>
-                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />Try sample file
+                      <Button variant="outline" onClick={loadSample}>
+                        <Sparkles className="h-4 w-4 mr-1.5" />Try sample file
                       </Button>
                     </div>
+
                   </div>
 
                   {/* How it works */}
@@ -584,9 +599,10 @@ function Index() {
                   <CardTitle className="text-base">Required fields</CardTitle>
                   <CardDescription>
                     {allRequiredMapped
-                      ? "All required fields are mapped."
-                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`}
+                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped automatically.`
+                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Required fields need mapping before export.`}
                   </CardDescription>
+
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {requiredFields.map((field) => (
@@ -889,15 +905,19 @@ function Index() {
                           </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
+                          {summary.exportableRows} rows validated · {summary.blockedRows} blocked · {TARGET_META[target].title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
-                            ? `${summary.exportableRows} of ${summary.totalRows} rows will be exported. ${summary.blockedRows} blocked rows will be excluded.`
-                            : "All rows are exportable."}
+                            ? "Blocked rows will be excluded from the downloaded CSV."
+                            : "All required fields are mapped and every row is exportable."}
                         </p>
                       </div>
-                      <Button onClick={handleDownload} className="shrink-0">
+                      <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
                         <Download className="h-4 w-4 mr-1.5" />
                         {TARGET_META[target].ctaLabel}
                       </Button>
+
                     </div>
                   ) : (
                     <div className="flex items-start gap-3">
@@ -941,9 +961,10 @@ function Index() {
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Showing mapped and non-empty columns by default.
+                    Previewing first 25 transformed rows. Download includes all exportable rows. Scroll horizontally to review all export columns.
                     {summary.blockedRows > 0 && " Blocked rows are excluded from the downloaded CSV."}
                   </p>
+
                 </CardHeader>
                 <CardContent>
                   {previewExportRows.length === 0 ? (
@@ -951,12 +972,12 @@ function Index() {
                   ) : (
                     <div className="overflow-x-auto rounded-md border max-h-[500px]">
                       <table className="w-full text-xs">
-                        <thead className="bg-muted/50 sticky top-0 z-10">
+                        <thead className="bg-[#f8fafc] sticky top-0 z-10">
                           <tr>
-                            <th className="px-2 py-2 text-left font-medium border-b w-16">Row</th>
-                            <th className="px-2 py-2 text-left font-medium border-b w-24">Status</th>
+                            <th className="px-2 py-2 text-left font-medium border-b w-16 text-muted-foreground">Row</th>
+                            <th className="px-2 py-2 text-left font-medium border-b w-24 text-muted-foreground">Status</th>
                             {previewHeaders.map((h) => (
-                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap">{h}</th>
+                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap text-muted-foreground">{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -965,12 +986,16 @@ function Index() {
                             const hasErr = product.validationErrors.some((e) => e.severity === "error");
                             const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
                             return (
-                              <tr key={i} className="border-b last:border-0">
+                              <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
                                 <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
                                 <td className="px-2 py-1.5 border-b">
-                                  {hasErr ? <Badge variant="destructive" className="text-[10px] h-4">error</Badge>
-                                    : hasWarn ? <Badge className="text-[10px] h-4 bg-amber-500 hover:bg-amber-500 text-white">warn</Badge>
-                                    : <Badge variant="secondary" className="text-[10px] h-4">ok</Badge>}
+                                  {hasErr ? (
+                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Blocked</span>
+                                  ) : hasWarn ? (
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Warning</span>
+                                  ) : (
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">✓ OK</span>
+                                  )}
                                 </td>
                                 {previewHeaders.map((h) => (
                                   <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
@@ -983,6 +1008,7 @@ function Index() {
                         </tbody>
                       </table>
                     </div>
+
                   )}
                 </CardContent>
               </Card>
@@ -1036,7 +1062,8 @@ function MappingRow({
 }) {
   const notMapped = required && !mapping;
   return (
-    <div className={`rounded-md border p-3 ${notMapped ? "border-red-200 bg-red-50/40" : "bg-card"}`}>
+    <div className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}>
+
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <div>
           <div className="flex items-center gap-2">
