@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
   AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench,
+  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench, Lock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,12 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import { track } from "@/lib/analytics";
 import {
   ALL_DEST_FIELDS, REQUIRED_FIELDS, TRANSFORM_OPTIONS, SAMPLE_CSV,
   autoMapHeaders, applyTransform, buildGenericRows, buildShopifyRows, buildWooCommerceRows,
@@ -176,8 +180,18 @@ function Index() {
     type: "success" | "warning";
     message: string;
   } | null>(null);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [payIntent, setPayIntent] = useState<"yes" | "no" | "maybe" | null>(null);
+  const [payEmail, setPayEmail] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "partially" | "no" | null>(null);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
+
+  // Track landing view once on mount.
+  useEffect(() => { track("landing_page_view"); }, []);
 
   const hasFile = sourceRows.length > 0;
 
@@ -187,6 +201,19 @@ function Index() {
   }, [sourceRows, mappings, settings]);
 
   const summary = useMemo(() => summarize(products), [products]);
+
+  // Fire validation events when results change.
+  useEffect(() => {
+    if (!products.length) return;
+    track("validation_completed", {
+      total: products.length,
+      exportable: summary.exportableRows,
+      blocked: summary.blockedRows,
+      warnings: summary.warningRows,
+    });
+    if (summary.blockedRows > 0) track("blocker_found", { count: summary.blockedRows });
+    if (summary.warningRows > 0) track("warning_found", { count: summary.warningRows });
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
@@ -205,6 +232,13 @@ function Index() {
       : buildGenericRows(filtered);
     return rows.slice(0, 25).map((r, i) => ({ row: r, product: filtered[i] }));
   }, [products, target, previewFilter]);
+
+  // Fire once whenever the preview becomes available for a new file.
+  useEffect(() => {
+    if (previewExportRows.length > 0) {
+      track("output_preview_viewed", { target, rows: previewExportRows.length });
+    }
+  }, [target, previewExportRows.length]);
 
   const parseCsvText = useCallback((text: string, name: string) => {
     const cleaned = text.replace(/^\uFEFF/, "");
@@ -233,6 +267,7 @@ function Index() {
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
+        track("csv_uploaded", { rows: rows.length, columns: hdrs.length, filename: name });
         toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
@@ -253,7 +288,10 @@ function Index() {
     reader.readAsText(file);
   }, [parseCsvText]);
 
-  const loadSample = () => parseCsvText(SAMPLE_CSV, "sample-products.csv");
+  const loadSample = () => {
+    track("sample_file_loaded");
+    parseCsvText(SAMPLE_CSV, "sample-products.csv");
+  };
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
@@ -269,6 +307,7 @@ function Index() {
   };
 
   const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
+    track("mapping_changed", { field, sourceColumn: sourceColumn === NO_SOURCE ? null : sourceColumn });
     setMappings((prev) => {
       const idx = prev.findIndex((m) => m.destinationField === field);
       if (sourceColumn === NO_SOURCE || !sourceColumn) {
@@ -286,6 +325,7 @@ function Index() {
   };
 
   const updateTransform = (field: keyof ProductRecord, transform: TransformRule) => {
+    track("mapping_changed", { field, transform });
     setMappings((prev) => prev.map((m) => m.destinationField === field ? { ...m, transform } : m));
   };
 
@@ -316,6 +356,11 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
+  const performDownload = () => {
+    downloadCsv(exportRows, TARGET_META[target].filename);
+    toast.success(`Exported ${exportRows.length} rows`);
+  };
+
   const handleDownload = () => {
     const requiredMapped = REQUIRED_FIELDS.every((f) => mappings.some((m) => m.destinationField === f));
     if (!requiredMapped) {
@@ -326,8 +371,38 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    downloadCsv(exportRows, TARGET_META[target].filename);
-    toast.success(`Exported ${exportRows.length} rows`);
+    track("export_clicked", { target, rows: exportRows.length });
+    track("payment_modal_viewed");
+    setPayIntent(null);
+    setPayEmail("");
+    setPayModalOpen(true);
+  };
+
+  const handlePayIntent = (intent: "yes" | "no" | "maybe") => {
+    setPayIntent(intent);
+    track(
+      intent === "yes" ? "payment_intent_yes"
+        : intent === "no" ? "payment_intent_no"
+        : "payment_intent_maybe",
+      { email: payEmail || null, target, rows: exportRows.length },
+    );
+  };
+
+  const closePayModalAndDownload = () => {
+    setPayModalOpen(false);
+    // During validation phase users can still receive the file so they
+    // can complete the full pre-flight workflow. Swap this for a real
+    // paywall once Stripe checkout is wired up.
+    performDownload();
+    setFeedbackSubmitted(false);
+    setFeedbackChoice(null);
+    setFeedbackNote("");
+    setFeedbackOpen(true);
+  };
+
+  const submitFeedback = () => {
+    track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
+    setFeedbackSubmitted(true);
   };
 
   const handleValidationReport = () => {
@@ -351,6 +426,7 @@ function Index() {
       }
     }
     if (!rows.length) { toast.info("No validation issues to report."); return; }
+    track("validation_report_downloaded", { issues: rows.length });
     downloadCsv(rows, "validation-report.csv");
   };
 
@@ -407,6 +483,7 @@ function Index() {
     if (!copied) copied = legacyCopy(data);
 
     if (copied) {
+      track("mapping_template_copied");
       setCopyStatus({ type: "success", message: "Mapping template copied." });
       toast.success("Mapping template copied.");
     } else {
@@ -478,6 +555,80 @@ function Index() {
       </header>
 
       <main className="mx-auto max-w-[1120px] px-6 py-8 pb-12 space-y-6">
+
+        {/* Landing hero — public-facing intro shown until a file is uploaded */}
+        {!hasFile && (
+          <section aria-labelledby="landing-headline" className="space-y-6">
+            <div className="rounded-xl border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-10 text-center">
+              <h2
+                id="landing-headline"
+                className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
+              >
+                Fix Shopify product CSV import errors before upload.
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+                Upload a messy supplier product CSV, find blockers, fix field mappings, and export a Shopify-ready file.
+              </p>
+              <div className="mt-5 flex justify-center">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    track("check_csv_cta_clicked");
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  <Upload className="h-4 w-4 mr-1.5" />
+                  Check my CSV free
+                </Button>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                No signup required. Runs locally in your browser. Import-ready export.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">How it works</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <ol className="space-y-2 list-decimal pl-4">
+                    <li>Upload your supplier CSV</li>
+                    <li>Review blockers and warnings</li>
+                    <li>Export a Shopify-ready CSV</li>
+                  </ol>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">What this checks</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <ul className="space-y-1.5 list-disc pl-4">
+                    <li>Missing titles</li>
+                    <li>Missing SKUs</li>
+                    <li>Invalid prices</li>
+                    <li>Duplicate SKUs or handles</li>
+                    <li>Image URL format issues</li>
+                    <li>Required Shopify fields</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Pricing</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-2">
+                  <p className="text-foreground font-medium">Free scan.</p>
+                  <p>
+                    <span className="text-foreground font-semibold">$9</span> to export a fixed Shopify-ready CSV.
+                  </p>
+                  <p className="text-xs">No subscription. Pay only when you export.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
 
         {/* Step 1 — Upload */}
         <section>
@@ -600,7 +751,7 @@ function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => setTarget(id)}
+                          onClick={() => { setTarget(id); track("target_format_selected", { target: id }); }}
                           aria-pressed={selected}
                           className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
@@ -970,10 +1121,13 @@ function Index() {
                                 : "No blockers found for required clean product fields."}
                         </p>
                       </div>
-                      <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
-                        <Download className="h-4 w-4 mr-1.5" />
-                        {TARGET_META[target].ctaLabel}
-                      </Button>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <Button onClick={handleDownload} size="lg" className="font-semibold">
+                          <Lock className="h-4 w-4 mr-1.5" />
+                          {TARGET_META[target].ctaLabel} — $9
+                        </Button>
+                        <span className="text-[11px] text-muted-foreground">Free scan · $9 to export</span>
+                      </div>
 
                     </div>
                   ) : (
@@ -1073,7 +1227,107 @@ function Index() {
         )}
       </main>
 
-      {/* Sticky footer removed — inline download in readiness card is sufficient */}
+      {/* Payment-intent modal (stub — wire to Stripe $9 checkout when available) */}
+      <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Paid export is coming soon</DialogTitle>
+            <DialogDescription>
+              Would you pay <span className="font-semibold text-foreground">$9</span> to export this fixed
+              {" "}{TARGET_META[target].title}? Your answer helps us decide what to ship next.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              {exportRows.length} rows ready · {summary.blockedRows} blocked rows excluded · {TARGET_META[target].title}
+            </div>
+
+            {!payIntent ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pay-email" className="text-xs">Email (optional, for launch updates)</Label>
+                  <Input
+                    id="pay-email"
+                    type="email"
+                    placeholder="you@store.com"
+                    value={payEmail}
+                    onChange={(e) => setPayEmail(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button onClick={() => handlePayIntent("yes")}>Yes, notify me</Button>
+                  <Button variant="outline" onClick={() => handlePayIntent("maybe")}>Maybe</Button>
+                  <Button variant="ghost" onClick={() => handlePayIntent("no")}>No</Button>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-md border bg-emerald-50 border-emerald-200 px-3 py-2 text-sm text-emerald-800">
+                Thanks — we recorded your answer{payEmail ? ` and saved ${payEmail}` : ""}.
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+            <Button
+              onClick={closePayModalAndDownload}
+              disabled={!payIntent}
+              title={!payIntent ? "Pick an option above first" : ""}
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              Continue & download (testing)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Post-export feedback */}
+      <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Did this solve your product CSV import problem?</DialogTitle>
+            <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
+          </DialogHeader>
+
+          {!feedbackSubmitted ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {(["yes", "partially", "no"] as const).map((c) => (
+                  <Button
+                    key={c}
+                    variant={feedbackChoice === c ? "default" : "outline"}
+                    onClick={() => setFeedbackChoice(c)}
+                    className="capitalize"
+                  >
+                    {c}
+                  </Button>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-note" className="text-xs">What was missing? (optional)</Label>
+                <Input
+                  id="feedback-note"
+                  placeholder="Anything that didn't work or felt off"
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>Skip</Button>
+                <Button onClick={submitFeedback} disabled={!feedbackChoice}>Send feedback</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">Thanks for the feedback.</p>
+              <DialogFooter>
+                <Button onClick={() => setFeedbackOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
