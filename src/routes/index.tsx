@@ -918,6 +918,7 @@ function Index() {
                         tone="error"
                         issues={blockingIssues}
                         mappings={mappings}
+                        headers={headers}
                       />
                     )}
                     {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
@@ -927,6 +928,7 @@ function Index() {
                         tone="warning"
                         issues={warningIssues}
                         mappings={mappings}
+                        headers={headers}
                       />
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
