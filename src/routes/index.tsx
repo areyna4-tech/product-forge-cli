@@ -300,6 +300,7 @@ function Index() {
   };
 
   const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
+    track("mapping_changed", { field, sourceColumn: sourceColumn === NO_SOURCE ? null : sourceColumn });
     setMappings((prev) => {
       const idx = prev.findIndex((m) => m.destinationField === field);
       if (sourceColumn === NO_SOURCE || !sourceColumn) {
@@ -317,6 +318,7 @@ function Index() {
   };
 
   const updateTransform = (field: keyof ProductRecord, transform: TransformRule) => {
+    track("mapping_changed", { field, transform });
     setMappings((prev) => prev.map((m) => m.destinationField === field ? { ...m, transform } : m));
   };
 
