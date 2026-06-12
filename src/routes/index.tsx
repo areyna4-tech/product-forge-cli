@@ -785,7 +785,7 @@ function Index() {
 
             {/* Step 4 — Validate & export */}
             <section>
-              <StepHeader number={4} title="Validate & export" active />
+              <StepHeader number={4} title="Pre-flight check & export" active />
 
               {/* Validation — only show when issues exist */}
               {(blockingIssues.length > 0 || warningIssues.length > 0) && (
