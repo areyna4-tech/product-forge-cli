@@ -31,10 +31,10 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Product CSV Cleaner & Exporter" },
-      { name: "description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs. Runs entirely in your browser." },
-      { property: "og:title", content: "Product CSV Cleaner & Exporter" },
-      { property: "og:description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs." },
+      { title: "Shopify CSV Pre-Flight Checker & Converter" },
+      { name: "description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
+      { property: "og:title", content: "Shopify CSV Pre-Flight Checker & Converter" },
+      { property: "og:description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
     ],
   }),
   component: Index,
@@ -70,7 +70,7 @@ const TRANSFORM_LABELS: Record<TransformRule, string> = {
 
 const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabel: string; filename: string }> = {
   generic: { title: "Clean CSV", desc: "For normalized product data, marketplace uploads, or custom imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
-  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
+  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure with required fields pre-mapped.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
   woocommerce: { title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure.", ctaLabel: "Download WooCommerce CSV", filename: "woocommerce-products.csv" },
 };
 
@@ -137,7 +137,7 @@ function Index() {
   const [sourceRows, setSourceRows] = useState<Record<string, string>[]>([]);
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [settings, setSettings] = useState<MapperSettings>(defaultSettings);
-  const [target, setTarget] = useState<ExportTemplate>("generic");
+  const [target, setTarget] = useState<ExportTemplate>("shopify");
   const [error, setError] = useState<string>("");
   const [previewFilter, setPreviewFilter] = useState<"all" | "exportable" | "warning" | "error">("exportable");
   const [issueFilter, setIssueFilter] = useState<"all" | "blocking" | "warnings">("all");
@@ -231,7 +231,7 @@ function Index() {
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
-    setSettings(defaultSettings); setTarget("generic"); setError("");
+    setSettings(defaultSettings); setTarget("shopify"); setError("");
     setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
     setOptionalOpen(false); setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -342,7 +342,7 @@ function Index() {
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "product-csv-mapping.json"; a.click();
+    a.href = url; a.download = "mapping-template.json"; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -379,12 +379,12 @@ function Index() {
     if (!copied) copied = legacyCopy(data);
 
     if (copied) {
-      setCopyStatus({ type: "success", message: "Mapping JSON copied." });
-      toast.success("Mapping JSON copied.");
+      setCopyStatus({ type: "success", message: "Mapping template copied." });
+      toast.success("Mapping template copied.");
     } else {
       downloadMappingJson();
-      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping JSON instead." });
-      toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
+      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping template instead." });
+      toast.warning("Clipboard unavailable. Downloading mapping template instead.", { duration: 4000 });
     }
     copyStatusTimeoutRef.current = window.setTimeout(() => {
       setCopyStatus(null);
@@ -426,16 +426,16 @@ function Index() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Product CSV Cleaner &amp; Exporter
+            Shopify CSV Pre-Flight Checker &amp; Converter
           </h1>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Clean messy supplier spreadsheets into Shopify, WooCommerce, or standard product CSVs.
+            Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
-              { icon: Check, label: "No signup" },
+              { icon: Check, label: "No signup required" },
               { icon: Shield, label: "Runs locally in your browser" },
-              { icon: FileSpreadsheet, label: "Import-ready exports" },
+              { icon: FileSpreadsheet, label: "Shopify-ready export" },
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
@@ -453,7 +453,7 @@ function Index() {
 
         {/* Step 1 — Upload */}
         <section>
-          <StepHeader number={1} title="Upload CSV" active />
+          <StepHeader number={1} title="Upload supplier product CSV" active />
           <Card>
             <CardContent className="pt-6">
               {!hasFile ? (
@@ -483,6 +483,11 @@ function Index() {
                     </div>
 
                   </div>
+
+                  {/* Prototype notice */}
+                  <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                    <strong>Prototype notice:</strong> Please do not upload sensitive or confidential product data during testing. Use a non-sensitive CSV or the provided sample file.
+                  </p>
 
                   {/* How it works */}
                   <div className="mt-6 rounded-md border bg-card p-4">
@@ -557,11 +562,11 @@ function Index() {
           <>
             {/* Step 2 — Choose export format */}
             <section>
-              <StepHeader number={2} title="Choose export format" active />
+              <StepHeader number={2} title="Choose target import format" active />
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid gap-3 md:grid-cols-3">
-                    {(["generic", "shopify", "woocommerce"] as const).map((id) => {
+                    {(["shopify", "woocommerce", "generic"] as const).map((id) => {
                       const t = TARGET_META[id];
                       const selected = target === id;
                       return (
@@ -593,14 +598,14 @@ function Index() {
 
             {/* Step 3 — Review field mapping */}
             <section>
-              <StepHeader number={3} title="Review field mapping" active />
+              <StepHeader number={3} title="Review import field mapping" active />
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Required fields</CardTitle>
                   <CardDescription>
                     {allRequiredMapped
-                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped automatically.`
-                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Required fields need mapping before export.`}
+                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`
+                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Map all required fields before export.`}
                   </CardDescription>
 
                 </CardHeader>
@@ -749,7 +754,7 @@ function Index() {
 
               <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
-                  Save your mapping to reuse it later with similar CSVs.
+                  Save this supplier mapping so you can reuse it with similar CSVs later.
                 </p>
                 <div className="flex items-center gap-2">
                   <div
@@ -772,7 +777,7 @@ function Index() {
                     )}
                   </div>
                   <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />Copy mapping JSON
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />Download mapping template
                   </Button>
                 </div>
               </div>
@@ -780,7 +785,7 @@ function Index() {
 
             {/* Step 4 — Validate & export */}
             <section>
-              <StepHeader number={4} title="Validate & export" active />
+              <StepHeader number={4} title="Pre-flight check & export" active />
 
               {/* Validation — only show when issues exist */}
               {(blockingIssues.length > 0 || warningIssues.length > 0) && (
@@ -790,14 +795,14 @@ function Index() {
                       <div className="flex items-start gap-3 min-w-0">
                         <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                         <div className="min-w-0">
-                          <CardTitle className="text-base">Validation found issues</CardTitle>
+                          <CardTitle className="text-base">Import blockers found</CardTitle>
                           <CardDescription>
                             {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
                           </CardDescription>
                           <p className="mt-2 text-xs text-muted-foreground">
                             {summary.blockedRows > 0
-                              ? "Blocked rows are excluded from export. Warning rows are included."
-                              : "All rows are exportable. Warning rows are included."}
+                              ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
+                              : "All rows are import-ready. Warning rows are included."}
                           </p>
                         </div>
                       </div>
@@ -828,6 +833,19 @@ function Index() {
                       </ol>
                     </details>
 
+                    {/* What this checks */}
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                      <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
+                        <li>Missing titles</li>
+                        <li>Missing SKUs</li>
+                        <li>Invalid prices</li>
+                        <li>Duplicate SKUs or handles</li>
+                        <li>Image URL issues</li>
+                        <li>Required import fields</li>
+                      </ul>
+                    </div>
+
                     {/* Filters */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <ListFilter className="h-3.5 w-3.5 text-muted-foreground" />
@@ -854,7 +872,7 @@ function Index() {
                     {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
                       <IssueGroup
                         title="Blocking errors"
-                        description="Rows with these issues will be excluded from export until fixed."
+                        description="These rows will be excluded from the import file. Fix them in the source CSV and re-upload."
                         tone="error"
                         issues={blockingIssues}
                         mappings={mappings}
@@ -863,14 +881,14 @@ function Index() {
                     {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
                       <IssueGroup
                         title="Warnings"
-                        description="Rows with these issues can still be exported, but may import incorrectly."
+                        description="These rows can still be imported, but may cause issues in Shopify."
                         tone="warning"
                         issues={warningIssues}
                         mappings={mappings}
                       />
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking errors.</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking import errors.</p>
                     )}
                     {issueFilter === "warnings" && warningIssues.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4 text-center">No warnings.</p>
@@ -892,7 +910,7 @@ function Index() {
                             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                           )}
                           <p className="font-medium">
-                            {summary.blockedRows > 0 ? "Partial export available" : "Ready to export"}
+                            {summary.blockedRows > 0 ? "Import blockers found. Review required fields before exporting." : "Ready for import"}
                           </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -900,8 +918,8 @@ function Index() {
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
-                            ? "Blocked rows will be excluded from the downloaded CSV."
-                            : "All required fields are mapped and every row is exportable."}
+                            ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
+                            : "No import blockers found for required Shopify fields."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
@@ -914,11 +932,11 @@ function Index() {
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium">Not ready to export</p>
+                        <p className="font-medium">Not ready for import</p>
                         <p className="text-muted-foreground">
                           {!allRequiredMapped
                             ? "Required fields need mapping before export."
-                            : "No exportable rows yet — every row has a blocking error."}
+                            : "No importable rows yet — every row has a blocking error."}
                         </p>
                       </div>
                     </div>
@@ -932,7 +950,7 @@ function Index() {
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0">
                       <CardTitle className="text-base">Output preview</CardTitle>
-                      <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
+                      <CardDescription>Preview the first 25 rows exactly as they will appear in the exported import file.</CardDescription>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <Label className="text-xs text-muted-foreground">Show</Label>
@@ -980,11 +998,11 @@ function Index() {
                                 <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
                                 <td className="px-2 py-1.5 border-b">
                                   {hasErr ? (
-                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Blocked</span>
+                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Must fix before import</span>
                                   ) : hasWarn ? (
-                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Warning</span>
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Review recommended</span>
                                   ) : (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">✓ OK</span>
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">Exportable</span>
                                   )}
                                 </td>
                                 {previewHeaders.map((h) => (
