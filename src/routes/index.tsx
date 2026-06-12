@@ -1121,10 +1121,13 @@ function Index() {
                                 : "No blockers found for required clean product fields."}
                         </p>
                       </div>
-                      <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
-                        <Download className="h-4 w-4 mr-1.5" />
-                        {TARGET_META[target].ctaLabel}
-                      </Button>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <Button onClick={handleDownload} size="lg" className="font-semibold">
+                          <Lock className="h-4 w-4 mr-1.5" />
+                          {TARGET_META[target].ctaLabel} — $9
+                        </Button>
+                        <span className="text-[11px] text-muted-foreground">Free scan · $9 to export</span>
+                      </div>
 
                     </div>
                   ) : (
