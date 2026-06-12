@@ -426,16 +426,16 @@ function Index() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Product CSV Cleaner &amp; Exporter
+            Shopify CSV Pre-Flight Checker &amp; Converter
           </h1>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Clean messy supplier spreadsheets into Shopify, WooCommerce, or standard product CSVs.
+            Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
-              { icon: Check, label: "No signup" },
+              { icon: Check, label: "No signup required" },
               { icon: Shield, label: "Runs locally in your browser" },
-              { icon: FileSpreadsheet, label: "Import-ready exports" },
+              { icon: FileSpreadsheet, label: "Shopify-ready export" },
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
