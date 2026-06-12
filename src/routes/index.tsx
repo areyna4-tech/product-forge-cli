@@ -910,7 +910,7 @@ function Index() {
                             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                           )}
                           <p className="font-medium">
-                            {summary.blockedRows > 0 ? "Partial export available" : "Ready to export"}
+                            {summary.blockedRows > 0 ? "Import blockers found. Review required fields before exporting." : "Ready for import"}
                           </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -918,8 +918,8 @@ function Index() {
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
-                            ? "Blocked rows will be excluded from the downloaded CSV."
-                            : "All required fields are mapped and every row is exportable."}
+                            ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
+                            : "No import blockers found for required Shopify fields."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
