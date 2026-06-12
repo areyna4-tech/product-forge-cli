@@ -334,12 +334,14 @@ function Index() {
     const rows: Record<string, any>[] = [];
     for (const p of products) {
       for (const e of p.validationErrors) {
-        const d = describeIssue(p, e, mappings);
+        const d = describeIssue(p, e, mappings, headers);
         rows.push({
           row: p.sourceRowId,
           sku: p.sku,
           title: p.title,
           field: FIELD_LABELS[e.field] || e.field,
+          sourceColumn: d.sourceColumn,
+          cell: d.cellRef,
           severity: e.severity === "error" ? "Blocked" : "Warning",
           problem: d.problem,
           currentValue: d.current,
