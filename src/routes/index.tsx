@@ -998,11 +998,11 @@ function Index() {
                                 <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
                                 <td className="px-2 py-1.5 border-b">
                                   {hasErr ? (
-                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Blocked</span>
+                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Must fix before import</span>
                                   ) : hasWarn ? (
-                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Warning</span>
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Review recommended</span>
                                   ) : (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">✓ OK</span>
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">Exportable</span>
                                   )}
                                 </td>
                                 {previewHeaders.map((h) => (
