@@ -349,6 +349,11 @@ function Index() {
     URL.revokeObjectURL(url);
   };
 
+  const performDownload = () => {
+    downloadCsv(exportRows, TARGET_META[target].filename);
+    toast.success(`Exported ${exportRows.length} rows`);
+  };
+
   const handleDownload = () => {
     const requiredMapped = REQUIRED_FIELDS.every((f) => mappings.some((m) => m.destinationField === f));
     if (!requiredMapped) {
@@ -359,8 +364,38 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    downloadCsv(exportRows, TARGET_META[target].filename);
-    toast.success(`Exported ${exportRows.length} rows`);
+    track("export_clicked", { target, rows: exportRows.length });
+    track("payment_modal_viewed");
+    setPayIntent(null);
+    setPayEmail("");
+    setPayModalOpen(true);
+  };
+
+  const handlePayIntent = (intent: "yes" | "no" | "maybe") => {
+    setPayIntent(intent);
+    track(
+      intent === "yes" ? "payment_intent_yes"
+        : intent === "no" ? "payment_intent_no"
+        : "payment_intent_maybe",
+      { email: payEmail || null, target, rows: exportRows.length },
+    );
+  };
+
+  const closePayModalAndDownload = () => {
+    setPayModalOpen(false);
+    // During validation phase users can still receive the file so they
+    // can complete the full pre-flight workflow. Swap this for a real
+    // paywall once Stripe checkout is wired up.
+    performDownload();
+    setFeedbackSubmitted(false);
+    setFeedbackChoice(null);
+    setFeedbackNote("");
+    setFeedbackOpen(true);
+  };
+
+  const submitFeedback = () => {
+    track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
+    setFeedbackSubmitted(true);
   };
 
   const handleValidationReport = () => {
@@ -384,6 +419,7 @@ function Index() {
       }
     }
     if (!rows.length) { toast.info("No validation issues to report."); return; }
+    track("validation_report_downloaded", { issues: rows.length });
     downloadCsv(rows, "validation-report.csv");
   };
 
