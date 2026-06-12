@@ -1178,13 +1178,14 @@ function MappingRow({
 }
 
 function IssueGroup({
-  title, description, tone, issues, mappings,
+  title, description, tone, issues, mappings, headers,
 }: {
   title: string;
   description: string;
   tone: "error" | "warning";
   issues: { p: ProductRecord; e: ProductRecord["validationErrors"][number] }[];
   mappings: ColumnMapping[];
+  headers: string[];
 }) {
   const Icon = tone === "error" ? AlertCircle : AlertTriangle;
   const iconColor = tone === "error" ? "text-destructive" : "text-amber-600";
@@ -1202,7 +1203,11 @@ function IssueGroup({
       <p className="text-xs text-muted-foreground">{description}</p>
       <div className="space-y-2">
         {issues.slice(0, 100).map(({ p, e }, i) => {
-          const d = describeIssue(p, e, mappings);
+          const d = describeIssue(p, e, mappings, headers);
+          const fieldLabel = FIELD_LABELS[e.field] || e.field;
+          const sourceLine = d.sourceColumn
+            ? `Source: ${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}`
+            : "Source: not mapped";
           return (
             <div key={i} className="rounded-md border bg-card p-3 sm:p-4">
               <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -1210,27 +1215,26 @@ function IssueGroup({
                   {badgeLabel}
                 </span>
                 <span className="text-sm font-medium">
-                  Row {p.sourceRowId} · {FIELD_LABELS[e.field] || e.field}
+                  Row {p.sourceRowId} · {fieldLabel} · {d.shortIssue}
                 </span>
                 {p.sku && (
                   <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Current: <span className="font-mono text-foreground">{d.current ? `‘${d.current}’` : "empty"}</span>
-                {" · "}Expected: <span className="text-foreground">{d.expected}</span>
-              </p>
-              <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]">
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Problem</dt>
-                <dd>{d.problem}</dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Current value</dt>
-                <dd className="font-mono break-all">
-                  {d.current ? d.current : <span className="italic text-muted-foreground font-sans">empty</span>}
-                </dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Expected</dt>
-                <dd>{d.expected}</dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Suggested fix</dt>
-                <dd>{d.fix}</dd>
+              <dl className="space-y-1 text-xs sm:text-sm">
+                <div className="text-muted-foreground">{sourceLine}</div>
+                <div>
+                  <span className="text-muted-foreground">Value: </span>
+                  {d.current ? (
+                    <span className="font-mono text-foreground break-all">{d.current}</span>
+                  ) : (
+                    <span className="italic text-muted-foreground">blank</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Suggested fix: </span>
+                  <span className="text-foreground">{d.fix}</span>
+                </div>
               </dl>
             </div>
           );
