@@ -31,10 +31,10 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Product CSV Cleaner & Exporter" },
-      { name: "description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs. Runs entirely in your browser." },
-      { property: "og:title", content: "Product CSV Cleaner & Exporter" },
-      { property: "og:description", content: "Turn messy product spreadsheets into Shopify, WooCommerce, or clean import-ready CSVs." },
+      { title: "Shopify CSV Pre-Flight Checker & Converter" },
+      { name: "description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
+      { property: "og:title", content: "Shopify CSV Pre-Flight Checker & Converter" },
+      { property: "og:description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
     ],
   }),
   component: Index,
