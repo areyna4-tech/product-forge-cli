@@ -231,7 +231,7 @@ function Index() {
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
-    setSettings(defaultSettings); setTarget("generic"); setError("");
+    setSettings(defaultSettings); setTarget("shopify"); setError("");
     setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
     setOptionalOpen(false); setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
