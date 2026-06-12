@@ -833,6 +833,19 @@ function Index() {
                       </ol>
                     </details>
 
+                    {/* What this checks */}
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                      <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
+                        <li>Missing titles</li>
+                        <li>Missing SKUs</li>
+                        <li>Invalid prices</li>
+                        <li>Duplicate SKUs or handles</li>
+                        <li>Image URL issues</li>
+                        <li>Required import fields</li>
+                      </ul>
+                    </div>
+
                     {/* Filters */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <ListFilter className="h-3.5 w-3.5 text-muted-foreground" />
