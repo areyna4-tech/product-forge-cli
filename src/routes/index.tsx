@@ -1227,7 +1227,107 @@ function Index() {
         )}
       </main>
 
-      {/* Sticky footer removed — inline download in readiness card is sufficient */}
+      {/* Payment-intent modal (stub — wire to Stripe $9 checkout when available) */}
+      <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Paid export is coming soon</DialogTitle>
+            <DialogDescription>
+              Would you pay <span className="font-semibold text-foreground">$9</span> to export this fixed
+              {" "}{TARGET_META[target].title}? Your answer helps us decide what to ship next.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              {exportRows.length} rows ready · {summary.blockedRows} blocked rows excluded · {TARGET_META[target].title}
+            </div>
+
+            {!payIntent ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pay-email" className="text-xs">Email (optional, for launch updates)</Label>
+                  <Input
+                    id="pay-email"
+                    type="email"
+                    placeholder="you@store.com"
+                    value={payEmail}
+                    onChange={(e) => setPayEmail(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button onClick={() => handlePayIntent("yes")}>Yes, notify me</Button>
+                  <Button variant="outline" onClick={() => handlePayIntent("maybe")}>Maybe</Button>
+                  <Button variant="ghost" onClick={() => handlePayIntent("no")}>No</Button>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-md border bg-emerald-50 border-emerald-200 px-3 py-2 text-sm text-emerald-800">
+                Thanks — we recorded your answer{payEmail ? ` and saved ${payEmail}` : ""}.
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+            <Button
+              onClick={closePayModalAndDownload}
+              disabled={!payIntent}
+              title={!payIntent ? "Pick an option above first" : ""}
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              Continue & download (testing)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Post-export feedback */}
+      <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Did this solve your product CSV import problem?</DialogTitle>
+            <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
+          </DialogHeader>
+
+          {!feedbackSubmitted ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {(["yes", "partially", "no"] as const).map((c) => (
+                  <Button
+                    key={c}
+                    variant={feedbackChoice === c ? "default" : "outline"}
+                    onClick={() => setFeedbackChoice(c)}
+                    className="capitalize"
+                  >
+                    {c}
+                  </Button>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-note" className="text-xs">What was missing? (optional)</Label>
+                <Input
+                  id="feedback-note"
+                  placeholder="Anything that didn't work or felt off"
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>Skip</Button>
+                <Button onClick={submitFeedback} disabled={!feedbackChoice}>Send feedback</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">Thanks for the feedback.</p>
+              <DialogFooter>
+                <Button onClick={() => setFeedbackOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
