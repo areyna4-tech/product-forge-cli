@@ -260,6 +260,7 @@ function Index() {
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
+        track("csv_uploaded", { rows: rows.length, columns: hdrs.length, filename: name });
         toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
