@@ -70,7 +70,7 @@ const TRANSFORM_LABELS: Record<TransformRule, string> = {
 
 const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabel: string; filename: string }> = {
   generic: { title: "Clean CSV", desc: "For normalized product data, marketplace uploads, or custom imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
-  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
+  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure with required fields pre-mapped.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
   woocommerce: { title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure.", ctaLabel: "Download WooCommerce CSV", filename: "woocommerce-products.csv" },
 };
 
