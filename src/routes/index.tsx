@@ -787,6 +787,20 @@ function Index() {
             <section>
               <StepHeader number={4} title="Pre-flight check & export" active />
 
+              {/* What this checks */}
+              <Card className="mb-4">
+                <CardContent className="pt-6">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                  <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
+                    <li>Required field mappings</li>
+                    <li>Price formatting</li>
+                    <li>Exportable rows</li>
+                    <li>Blocked rows</li>
+                    <li>Target CSV structure</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
               {/* Validation — only show when issues exist */}
               {(blockingIssues.length > 0 || warningIssues.length > 0) && (
                 <Card>
