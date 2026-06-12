@@ -754,7 +754,7 @@ function Index() {
 
               <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
-                  Save this supplier mapping so you can reuse it with similar CSVs later.
+                  Copy this supplier mapping so you can save it and reuse it with similar CSVs later.
                 </p>
                 <div className="flex items-center gap-2">
                   <div
@@ -777,7 +777,7 @@ function Index() {
                     )}
                   </div>
                   <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />Download mapping template
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />Copy mapping template
                   </Button>
                 </div>
               </div>
