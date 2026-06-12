@@ -476,6 +476,7 @@ function Index() {
     if (!copied) copied = legacyCopy(data);
 
     if (copied) {
+      track("mapping_template_copied");
       setCopyStatus({ type: "success", message: "Mapping template copied." });
       toast.success("Mapping template copied.");
     } else {
