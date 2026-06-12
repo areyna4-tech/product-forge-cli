@@ -435,7 +435,7 @@ function Index() {
             {[
               { icon: Check, label: "No signup required" },
               { icon: Shield, label: "Runs locally in your browser" },
-              { icon: FileSpreadsheet, label: "Shopify-ready export" },
+              { icon: FileSpreadsheet, label: "Import-ready export" },
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
