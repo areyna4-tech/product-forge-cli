@@ -202,6 +202,19 @@ function Index() {
 
   const summary = useMemo(() => summarize(products), [products]);
 
+  // Fire validation events when results change.
+  useEffect(() => {
+    if (!products.length) return;
+    track("validation_completed", {
+      total: products.length,
+      exportable: summary.exportableRows,
+      blocked: summary.blockedRows,
+      warnings: summary.warningRows,
+    });
+    if (summary.blockedRows > 0) track("blocker_found", { count: summary.blockedRows });
+    if (summary.warningRows > 0) track("warning_found", { count: summary.warningRows });
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows]);
+
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
     if (target === "shopify") return buildShopifyRows(valid);
