@@ -556,6 +556,80 @@ function Index() {
 
       <main className="mx-auto max-w-[1120px] px-6 py-8 pb-12 space-y-6">
 
+        {/* Landing hero — public-facing intro shown until a file is uploaded */}
+        {!hasFile && (
+          <section aria-labelledby="landing-headline" className="space-y-6">
+            <div className="rounded-xl border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-10 text-center">
+              <h2
+                id="landing-headline"
+                className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
+              >
+                Fix Shopify product CSV import errors before upload.
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+                Upload a messy supplier product CSV, find blockers, fix field mappings, and export a Shopify-ready file.
+              </p>
+              <div className="mt-5 flex justify-center">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    track("check_csv_cta_clicked");
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  <Upload className="h-4 w-4 mr-1.5" />
+                  Check my CSV free
+                </Button>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                No signup required. Runs locally in your browser. Import-ready export.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">How it works</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <ol className="space-y-2 list-decimal pl-4">
+                    <li>Upload your supplier CSV</li>
+                    <li>Review blockers and warnings</li>
+                    <li>Export a Shopify-ready CSV</li>
+                  </ol>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">What this checks</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <ul className="space-y-1.5 list-disc pl-4">
+                    <li>Missing titles</li>
+                    <li>Missing SKUs</li>
+                    <li>Invalid prices</li>
+                    <li>Duplicate SKUs or handles</li>
+                    <li>Image URL format issues</li>
+                    <li>Required Shopify fields</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Pricing</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-2">
+                  <p className="text-foreground font-medium">Free scan.</p>
+                  <p>
+                    <span className="text-foreground font-semibold">$9</span> to export a fixed Shopify-ready CSV.
+                  </p>
+                  <p className="text-xs">No subscription. Pay only when you export.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
+
         {/* Step 1 — Upload */}
         <section>
           <StepHeader number={1} title="Upload supplier product CSV" active />
