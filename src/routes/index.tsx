@@ -281,7 +281,10 @@ function Index() {
     reader.readAsText(file);
   }, [parseCsvText]);
 
-  const loadSample = () => parseCsvText(SAMPLE_CSV, "sample-products.csv");
+  const loadSample = () => {
+    track("sample_file_loaded");
+    parseCsvText(SAMPLE_CSV, "sample-products.csv");
+  };
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
