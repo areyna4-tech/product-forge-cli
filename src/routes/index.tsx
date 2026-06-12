@@ -795,14 +795,14 @@ function Index() {
                       <div className="flex items-start gap-3 min-w-0">
                         <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                         <div className="min-w-0">
-                          <CardTitle className="text-base">Validation found issues</CardTitle>
+                          <CardTitle className="text-base">Import blockers found</CardTitle>
                           <CardDescription>
                             {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
                           </CardDescription>
                           <p className="mt-2 text-xs text-muted-foreground">
                             {summary.blockedRows > 0
-                              ? "Blocked rows are excluded from export. Warning rows are included."
-                              : "All rows are exportable. Warning rows are included."}
+                              ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
+                              : "All rows are import-ready. Warning rows are included."}
                           </p>
                         </div>
                       </div>
