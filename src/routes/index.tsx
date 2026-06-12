@@ -604,8 +604,8 @@ function Index() {
                   <CardTitle className="text-base">Required fields</CardTitle>
                   <CardDescription>
                     {allRequiredMapped
-                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped automatically.`
-                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Required fields need mapping before export.`}
+                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`
+                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Map all required fields before export.`}
                   </CardDescription>
 
                 </CardHeader>
