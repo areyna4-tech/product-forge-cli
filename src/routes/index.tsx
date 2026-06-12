@@ -566,7 +566,7 @@ function Index() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid gap-3 md:grid-cols-3">
-                    {(["generic", "shopify", "woocommerce"] as const).map((id) => {
+                    {(["shopify", "woocommerce", "generic"] as const).map((id) => {
                       const t = TARGET_META[id];
                       const selected = target === id;
                       return (
