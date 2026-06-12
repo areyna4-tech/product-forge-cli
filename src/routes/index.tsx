@@ -562,7 +562,7 @@ function Index() {
           <>
             {/* Step 2 — Choose export format */}
             <section>
-              <StepHeader number={2} title="Choose export format" active />
+              <StepHeader number={2} title="Choose target import format" active />
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid gap-3 md:grid-cols-3">
