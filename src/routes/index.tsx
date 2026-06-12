@@ -598,7 +598,7 @@ function Index() {
 
             {/* Step 3 — Review field mapping */}
             <section>
-              <StepHeader number={3} title="Review field mapping" active />
+              <StepHeader number={3} title="Review import field mapping" active />
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Required fields</CardTitle>
