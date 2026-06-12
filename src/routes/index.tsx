@@ -932,11 +932,11 @@ function Index() {
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium">Not ready to export</p>
+                        <p className="font-medium">Not ready for import</p>
                         <p className="text-muted-foreground">
                           {!allRequiredMapped
                             ? "Required fields need mapping before export."
-                            : "No exportable rows yet — every row has a blocking error."}
+                            : "No importable rows yet — every row has a blocking error."}
                         </p>
                       </div>
                     </div>
