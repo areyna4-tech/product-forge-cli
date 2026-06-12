@@ -453,7 +453,7 @@ function Index() {
 
         {/* Step 1 — Upload */}
         <section>
-          <StepHeader number={1} title="Upload CSV" active />
+          <StepHeader number={1} title="Upload supplier product CSV" active />
           <Card>
             <CardContent className="pt-6">
               {!hasFile ? (
