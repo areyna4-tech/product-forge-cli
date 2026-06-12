@@ -137,7 +137,7 @@ function Index() {
   const [sourceRows, setSourceRows] = useState<Record<string, string>[]>([]);
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [settings, setSettings] = useState<MapperSettings>(defaultSettings);
-  const [target, setTarget] = useState<ExportTemplate>("generic");
+  const [target, setTarget] = useState<ExportTemplate>("shopify");
   const [error, setError] = useState<string>("");
   const [previewFilter, setPreviewFilter] = useState<"all" | "exportable" | "warning" | "error">("exportable");
   const [issueFilter, setIssueFilter] = useState<"all" | "blocking" | "warnings">("all");
