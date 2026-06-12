@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
   AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench,
+  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench, Lock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,12 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import { track } from "@/lib/analytics";
 import {
   ALL_DEST_FIELDS, REQUIRED_FIELDS, TRANSFORM_OPTIONS, SAMPLE_CSV,
   autoMapHeaders, applyTransform, buildGenericRows, buildShopifyRows, buildWooCommerceRows,
