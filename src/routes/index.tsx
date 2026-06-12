@@ -950,7 +950,7 @@ function Index() {
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0">
                       <CardTitle className="text-base">Output preview</CardTitle>
-                      <CardDescription>First 25 transformed rows for {TARGET_META[target].title}.</CardDescription>
+                      <CardDescription>Preview the first 25 rows exactly as they will appear in the exported import file.</CardDescription>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <Label className="text-xs text-muted-foreground">Show</Label>
