@@ -484,6 +484,11 @@ function Index() {
 
                   </div>
 
+                  {/* Prototype notice */}
+                  <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                    <strong>Prototype notice:</strong> Please do not upload sensitive or confidential product data during testing. Use a non-sensitive CSV or the provided sample file.
+                  </p>
+
                   {/* How it works */}
                   <div className="mt-6 rounded-md border bg-card p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">How it works</p>
