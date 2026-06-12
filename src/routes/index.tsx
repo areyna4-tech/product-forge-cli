@@ -435,7 +435,7 @@ function Index() {
             {[
               { icon: Check, label: "No signup required" },
               { icon: Shield, label: "Runs locally in your browser" },
-              { icon: FileSpreadsheet, label: "Shopify-ready export" },
+              { icon: FileSpreadsheet, label: "Import-ready export" },
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
@@ -787,6 +787,20 @@ function Index() {
             <section>
               <StepHeader number={4} title="Pre-flight check & export" active />
 
+              {/* What this checks */}
+              <Card className="mb-4">
+                <CardContent className="pt-6">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                  <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
+                    <li>Required field mappings</li>
+                    <li>Price formatting</li>
+                    <li>Exportable rows</li>
+                    <li>Blocked rows</li>
+                    <li>Target CSV structure</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
               {/* Validation — only show when issues exist */}
               {(blockingIssues.length > 0 || warningIssues.length > 0) && (
                 <Card>
@@ -919,7 +933,11 @@ function Index() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
                             ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
-                            : "No import blockers found for required Shopify fields."}
+                            : target === "shopify"
+                              ? "No import blockers found for required Shopify fields."
+                              : target === "woocommerce"
+                                ? "No import blockers found for required WooCommerce fields."
+                                : "No blockers found for required clean product fields."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
