@@ -233,6 +233,13 @@ function Index() {
     return rows.slice(0, 25).map((r, i) => ({ row: r, product: filtered[i] }));
   }, [products, target, previewFilter]);
 
+  // Fire once whenever the preview becomes available for a new file.
+  useEffect(() => {
+    if (previewExportRows.length > 0) {
+      track("output_preview_viewed", { target, rows: previewExportRows.length });
+    }
+  }, [target, previewExportRows.length]);
+
   const parseCsvText = useCallback((text: string, name: string) => {
     const cleaned = text.replace(/^\uFEFF/, "");
     Papa.parse<Record<string, string>>(cleaned, {
