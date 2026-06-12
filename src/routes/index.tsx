@@ -933,7 +933,11 @@ function Index() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {summary.blockedRows > 0
                             ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
-                            : "No import blockers found for required Shopify fields."}
+                            : target === "shopify"
+                              ? "No import blockers found for required Shopify fields."
+                              : target === "woocommerce"
+                                ? "No import blockers found for required WooCommerce fields."
+                                : "No blockers found for required clean product fields."}
                         </p>
                       </div>
                       <Button onClick={handleDownload} size="lg" className="shrink-0 font-semibold">
