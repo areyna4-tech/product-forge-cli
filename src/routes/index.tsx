@@ -86,49 +86,75 @@ const OPTIONAL_GROUPS: { title: string; fields: DestField[] }[] = [
   { title: "SEO", fields: ["seoTitle", "seoDescription"] },
 ];
 
-type IssueInfo = { problem: string; current: string; expected: string; fix: string };
+type IssueInfo = {
+  problem: string;
+  current: string;
+  expected: string;
+  fix: string;
+  shortIssue: string;
+  sourceColumn: string;
+  cellRef: string;
+};
+
+function columnIndexToLetter(index: number): string {
+  let n = index + 1;
+  let s = "";
+  while (n > 0) {
+    const r = (n - 1) % 26;
+    s = String.fromCharCode(65 + r) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
 
 function describeIssue(
   p: ProductRecord,
   e: ProductRecord["validationErrors"][number],
   mappings: ColumnMapping[],
+  headers: string[],
 ): IssueInfo {
   const m = mappings.find((x) => x.destinationField === e.field);
+  const sourceColumn = m?.sourceColumn ?? "";
   const raw = m ? (p.rawSource[m.sourceColumn] ?? "") : "";
   const fieldVal = (p as any)[e.field];
   const currentRaw = raw !== "" ? raw : (fieldVal == null || fieldVal === "" ? "" : String(fieldVal));
+  const colIdx = sourceColumn ? headers.indexOf(sourceColumn) : -1;
+  // Spreadsheet row = data row + 1 (header occupies row 1)
+  const cellRef = colIdx >= 0 ? `${columnIndexToLetter(colIdx)}${p.sourceRowId + 1}` : "";
+
+  const base = { current: currentRaw, sourceColumn, cellRef };
 
   if (e.field === "title" && e.message === "Title is required") {
-    return { problem: "Required field is missing.", current: currentRaw, expected: "Product title", fix: "Add a product title in the source CSV." };
+    return { ...base, shortIssue: "Missing required value", problem: "Required field is missing.", expected: "Product title", fix: "Add a product title before import." };
   }
   if (e.field === "sku" && e.message === "SKU is required") {
-    return { problem: "Required field is missing.", current: currentRaw, expected: "A unique product code like ABC-123", fix: "Add a SKU in the source CSV." };
+    return { ...base, shortIssue: "Missing required value", problem: "Required field is missing.", expected: "A unique product code like ABC-123", fix: "Add a unique SKU before import." };
   }
   if (e.field === "sku" && e.message === "Duplicate SKU") {
-    return { problem: "SKU is used by more than one row.", current: currentRaw, expected: "A unique SKU per row", fix: "Change one of the duplicate SKUs so each row is unique." };
+    return { ...base, shortIssue: "Duplicate SKU detected", problem: "SKU is used by more than one row.", expected: "A unique SKU per row", fix: "Confirm whether this is a variant or assign a unique SKU." };
   }
   if (e.field === "price" && e.message === "Price is invalid or missing") {
-    return { problem: "Price is not a valid number.", current: currentRaw, expected: "A number like 29.99", fix: "Replace with a numeric price, then re-upload the CSV." };
+    return { ...base, shortIssue: "Invalid price format", problem: "Price is not a valid number.", expected: "A number like 29.99", fix: "Convert to a numeric value (for example, 44,95 → 44.95) before export." };
   }
   if (e.field === "price" && e.message === "Price is zero or negative") {
-    return { problem: "Price is zero or negative.", current: currentRaw, expected: "A positive number like 29.99", fix: "Set a positive price greater than zero." };
+    return { ...base, shortIssue: "Price is zero or negative", problem: "Price is zero or negative.", expected: "A positive number like 29.99", fix: "Set a positive price greater than zero." };
   }
   if (e.field === "compareAtPrice") {
-    return { problem: "Compare-at price is lower than price.", current: currentRaw, expected: "A value higher than the price, or leave it blank", fix: "Increase the compare-at price or remove it." };
+    return { ...base, shortIssue: "Compare-at price lower than price", problem: "Compare-at price is lower than price.", expected: "A value higher than the price, or leave it blank", fix: "Increase the compare-at price or remove it." };
   }
   if (e.field === "cost") {
-    return { problem: "Cost is higher than the price.", current: currentRaw, expected: "A cost lower than the price", fix: "Lower the cost or raise the price." };
+    return { ...base, shortIssue: "Cost exceeds price", problem: "Cost is higher than the price.", expected: "A cost lower than the price", fix: "Lower the cost or raise the price." };
   }
   if (e.field === "quantity") {
-    return { problem: "Quantity is negative.", current: currentRaw, expected: "Zero or a positive whole number", fix: "Set quantity to 0 or higher." };
+    return { ...base, shortIssue: "Negative quantity", problem: "Quantity is negative.", expected: "Zero or a positive whole number", fix: "Set quantity to 0 or higher." };
   }
   if (e.field === "imageUrl") {
-    return { problem: "Image URL may not be valid.", current: currentRaw, expected: "A full URL starting with https://", fix: "Use a complete image URL such as https://example.com/blue-shirt.jpg." };
+    return { ...base, shortIssue: "Invalid image URL", problem: "Image URL may not be valid.", expected: "A full URL starting with https://", fix: "Use a full https:// image URL." };
   }
   if (e.field === "barcode") {
-    return { problem: "Barcode contains letters.", current: currentRaw, expected: "Digits only (UPC, EAN, or GTIN)", fix: "Remove letters so only digits remain." };
+    return { ...base, shortIssue: "Barcode contains letters", problem: "Barcode contains letters.", expected: "Digits only (UPC, EAN, or GTIN)", fix: "Remove letters so only digits remain." };
   }
-  return { problem: e.message, current: currentRaw, expected: "Valid value for this field", fix: "Update the value in the source CSV and re-upload." };
+  return { ...base, shortIssue: e.message, problem: e.message, expected: "Valid value for this field", fix: "Update the value in the source CSV and re-upload." };
 }
 
 function Index() {
@@ -308,12 +334,14 @@ function Index() {
     const rows: Record<string, any>[] = [];
     for (const p of products) {
       for (const e of p.validationErrors) {
-        const d = describeIssue(p, e, mappings);
+        const d = describeIssue(p, e, mappings, headers);
         rows.push({
           row: p.sourceRowId,
           sku: p.sku,
           title: p.title,
           field: FIELD_LABELS[e.field] || e.field,
+          sourceColumn: d.sourceColumn,
+          cell: d.cellRef,
           severity: e.severity === "error" ? "Blocked" : "Warning",
           problem: d.problem,
           currentValue: d.current,
@@ -890,6 +918,7 @@ function Index() {
                         tone="error"
                         issues={blockingIssues}
                         mappings={mappings}
+                        headers={headers}
                       />
                     )}
                     {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
@@ -899,6 +928,7 @@ function Index() {
                         tone="warning"
                         issues={warningIssues}
                         mappings={mappings}
+                        headers={headers}
                       />
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
@@ -1150,13 +1180,14 @@ function MappingRow({
 }
 
 function IssueGroup({
-  title, description, tone, issues, mappings,
+  title, description, tone, issues, mappings, headers,
 }: {
   title: string;
   description: string;
   tone: "error" | "warning";
   issues: { p: ProductRecord; e: ProductRecord["validationErrors"][number] }[];
   mappings: ColumnMapping[];
+  headers: string[];
 }) {
   const Icon = tone === "error" ? AlertCircle : AlertTriangle;
   const iconColor = tone === "error" ? "text-destructive" : "text-amber-600";
@@ -1174,7 +1205,11 @@ function IssueGroup({
       <p className="text-xs text-muted-foreground">{description}</p>
       <div className="space-y-2">
         {issues.slice(0, 100).map(({ p, e }, i) => {
-          const d = describeIssue(p, e, mappings);
+          const d = describeIssue(p, e, mappings, headers);
+          const fieldLabel = FIELD_LABELS[e.field] || e.field;
+          const sourceLine = d.sourceColumn
+            ? `Source: ${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}`
+            : "Source: not mapped";
           return (
             <div key={i} className="rounded-md border bg-card p-3 sm:p-4">
               <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -1182,27 +1217,26 @@ function IssueGroup({
                   {badgeLabel}
                 </span>
                 <span className="text-sm font-medium">
-                  Row {p.sourceRowId} · {FIELD_LABELS[e.field] || e.field}
+                  Row {p.sourceRowId} · {fieldLabel} · {d.shortIssue}
                 </span>
                 {p.sku && (
                   <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Current: <span className="font-mono text-foreground">{d.current ? `‘${d.current}’` : "empty"}</span>
-                {" · "}Expected: <span className="text-foreground">{d.expected}</span>
-              </p>
-              <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]">
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Problem</dt>
-                <dd>{d.problem}</dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Current value</dt>
-                <dd className="font-mono break-all">
-                  {d.current ? d.current : <span className="italic text-muted-foreground font-sans">empty</span>}
-                </dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Expected</dt>
-                <dd>{d.expected}</dd>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground sm:pt-0.5">Suggested fix</dt>
-                <dd>{d.fix}</dd>
+              <dl className="space-y-1 text-xs sm:text-sm">
+                <div className="text-muted-foreground">{sourceLine}</div>
+                <div>
+                  <span className="text-muted-foreground">Value: </span>
+                  {d.current ? (
+                    <span className="font-mono text-foreground break-all">{d.current}</span>
+                  ) : (
+                    <span className="italic text-muted-foreground">blank</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Suggested fix: </span>
+                  <span className="text-foreground">{d.fix}</span>
+                </div>
               </dl>
             </div>
           );
