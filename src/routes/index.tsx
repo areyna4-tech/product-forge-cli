@@ -379,12 +379,12 @@ function Index() {
     if (!copied) copied = legacyCopy(data);
 
     if (copied) {
-      setCopyStatus({ type: "success", message: "Mapping JSON copied." });
-      toast.success("Mapping JSON copied.");
+      setCopyStatus({ type: "success", message: "Mapping template copied." });
+      toast.success("Mapping template copied.");
     } else {
       downloadMappingJson();
-      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping JSON instead." });
-      toast.warning("Clipboard unavailable. Downloading mapping JSON instead.", { duration: 4000 });
+      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping template instead." });
+      toast.warning("Clipboard unavailable. Downloading mapping template instead.", { duration: 4000 });
     }
     copyStatusTimeoutRef.current = window.setTimeout(() => {
       setCopyStatus(null);
