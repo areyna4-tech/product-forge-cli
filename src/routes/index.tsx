@@ -872,7 +872,7 @@ function Index() {
                     {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
                       <IssueGroup
                         title="Blocking errors"
-                        description="Rows with these issues will be excluded from export until fixed."
+                        description="These rows will be excluded from the import file. Fix them in the source CSV and re-upload."
                         tone="error"
                         issues={blockingIssues}
                         mappings={mappings}
@@ -881,14 +881,14 @@ function Index() {
                     {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
                       <IssueGroup
                         title="Warnings"
-                        description="Rows with these issues can still be exported, but may import incorrectly."
+                        description="These rows can still be imported, but may cause issues in Shopify."
                         tone="warning"
                         issues={warningIssues}
                         mappings={mappings}
                       />
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking errors.</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking import errors.</p>
                     )}
                     {issueFilter === "warnings" && warningIssues.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4 text-center">No warnings.</p>
