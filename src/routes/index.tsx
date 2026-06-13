@@ -1293,14 +1293,15 @@ function Index() {
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Did this solve your product CSV import problem?</DialogTitle>
+            <DialogTitle>Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?</DialogTitle>
             <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
           </DialogHeader>
 
           {!feedbackSubmitted ? (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                {(["yes", "partially", "no"] as const).map((c) => (
+                {(["yes", "maybe", "no"] as const).map((c) => (
+
                   <Button
                     key={c}
                     variant={feedbackChoice === c ? "default" : "outline"}
