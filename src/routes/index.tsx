@@ -180,14 +180,13 @@ function Index() {
     type: "success" | "warning";
     message: string;
   } | null>(null);
-  const [limitModalOpen, setLimitModalOpen] = useState(false);
-  const [limitEmail, setLimitEmail] = useState("");
-  const [limitSubmitted, setLimitSubmitted] = useState(false);
-  const [freeExportUsed, setFreeExportUsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "maybe" | "no" | null>(null);
+  const [worthChoice, setWorthChoice] = useState<"yes" | "maybe" | "no" | null>(null);
+  const [solvedChoice, setSolvedChoice] = useState<"yes" | "partially" | "no" | null>(null);
+  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
@@ -195,15 +194,8 @@ function Index() {
   // Track landing view once on mount.
   useEffect(() => { track("landing_page_view"); }, []);
 
-  // Load free-export flag from localStorage on mount.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      if (window.localStorage.getItem("csv_free_export_used") === "1") {
-        setFreeExportUsed(true);
-      }
-    } catch { /* ignore */ }
-  }, []);
+
+
 
 
   const hasFile = sourceRows.length > 0;
@@ -384,36 +376,30 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    if (freeExportUsed) {
-      track("free_export_limit_reached", { target, rows: exportRows.length });
-      setLimitEmail("");
-      setLimitSubmitted(false);
-      setLimitModalOpen(true);
-      return;
-    }
     track("export_clicked", { target, rows: exportRows.length });
-    track("free_beta_export_used", { target, rows: exportRows.length });
-    try { window.localStorage.setItem("csv_free_export_used", "1"); } catch { /* ignore */ }
-    setFreeExportUsed(true);
     performDownload();
+    track("beta_export_downloaded", { target, rows: exportRows.length });
     setFeedbackSubmitted(false);
-    setFeedbackChoice(null);
+    setWorthChoice(null);
+    setSolvedChoice(null);
+    setFeedbackEmail("");
     setFeedbackNote("");
     setFeedbackOpen(true);
   };
 
-  const handleLimitInterest = (intent: "yes" | "maybe") => {
-    track("paid_beta_interest_clicked", { intent, email: limitEmail || null });
-    if (intent === "yes" && limitEmail) {
-      track("email_submitted_after_limit", { email: limitEmail });
-    }
-    setLimitSubmitted(true);
-  };
-
   const submitFeedback = () => {
-    track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
+    track("post_export_feedback_submitted", {
+      worth: worthChoice,
+      solved: solvedChoice,
+      email: feedbackEmail || null,
+      note: feedbackNote || null,
+    });
+    if (worthChoice === "yes") track("payment_intent_yes", { email: feedbackEmail || null });
+    else if (worthChoice === "maybe") track("payment_intent_maybe", { email: feedbackEmail || null });
+    else if (worthChoice === "no") track("payment_intent_no", { email: feedbackEmail || null });
     setFeedbackSubmitted(true);
   };
+
 
 
   const handleValidationReport = () => {
@@ -630,9 +616,10 @@ function Index() {
                   <CardTitle className="text-base">Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p className="text-foreground font-medium">Free scan available now.</p>
-                  <p>Fixed Shopify-ready export is in beta.</p>
-                  <p className="text-xs">Target price: $9 per export.</p>
+                  <p className="text-foreground font-medium">Free beta scan available now.</p>
+                  <p>Beta export is free while we validate quality.</p>
+                  <p className="text-xs">Target future price: $9 per fixed export.</p>
+
                 </CardContent>
               </Card>
             </div>
@@ -1131,23 +1118,13 @@ function Index() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        {freeExportUsed ? (
-                          <>
-                            <Button onClick={handleDownload} size="lg" variant="outline" className="font-semibold">
-                              You’ve used your free beta export
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">Request more exports — $9/file target price</span>
-                          </>
-                        ) : (
-                          <>
-                            <Button onClick={handleDownload} size="lg" className="font-semibold">
-                              <Download className="h-4 w-4 mr-1.5" />
-                              Download free beta export
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">1 free export per browser during beta</span>
-                          </>
-                        )}
+                        <Button onClick={handleDownload} size="lg" className="font-semibold">
+                          <Download className="h-4 w-4 mr-1.5" />
+                          Download beta export free
+                        </Button>
+                        <span className="text-[11px] text-muted-foreground">Beta export is free · Target future price $9/file</span>
                       </div>
+
 
 
                     </div>
@@ -1248,72 +1225,60 @@ function Index() {
         )}
       </main>
 
-      {/* Free-export limit modal */}
-      <Dialog open={limitModalOpen} onOpenChange={setLimitModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>You’ve used your free beta export</DialogTitle>
-            <DialogDescription>
-              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
-            </DialogDescription>
-          </DialogHeader>
-
-          {!limitSubmitted ? (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
-                <Input
-                  id="limit-email"
-                  type="email"
-                  placeholder="you@store.com"
-                  value={limitEmail}
-                  onChange={(e) => setLimitEmail(e.target.value)}
-                />
-              </div>
-              <DialogFooter className="sm:justify-end gap-2">
-                <Button variant="ghost" onClick={() => handleLimitInterest("maybe")}>Maybe later</Button>
-                <Button onClick={() => handleLimitInterest("yes")}>Yes, notify me</Button>
-              </DialogFooter>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-emerald-700">
-                Thanks{limitEmail ? ` — we saved ${limitEmail}` : ""}. We’ll be in touch when more exports are available.
-              </p>
-              <DialogFooter>
-                <Button onClick={() => setLimitModalOpen(false)}>Close</Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-
       {/* Post-export feedback */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?</DialogTitle>
-            <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
+            <DialogTitle>Was this export useful?</DialogTitle>
+            <DialogDescription>
+              Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?
+            </DialogDescription>
           </DialogHeader>
 
           {!feedbackSubmitted ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="grid grid-cols-3 gap-2">
                 {(["yes", "maybe", "no"] as const).map((c) => (
-
                   <Button
                     key={c}
-                    variant={feedbackChoice === c ? "default" : "outline"}
-                    onClick={() => setFeedbackChoice(c)}
+                    variant={worthChoice === c ? "default" : "outline"}
+                    onClick={() => setWorthChoice(c)}
                     className="capitalize"
                   >
                     {c}
                   </Button>
                 ))}
               </div>
+
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-note" className="text-xs">What was missing? (optional)</Label>
+                <Label className="text-xs">Did this solve your product CSV import problem?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["yes", "partially", "no"] as const).map((c) => (
+                    <Button
+                      key={c}
+                      variant={solvedChoice === c ? "default" : "outline"}
+                      onClick={() => setSolvedChoice(c)}
+                      className="capitalize"
+                    >
+                      {c}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-email" className="text-xs">Email optional — we’ll notify you when paid export launches.</Label>
+                <Input
+                  id="feedback-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={feedbackEmail}
+                  onChange={(e) => setFeedbackEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-note" className="text-xs">What was missing?</Label>
                 <Input
                   id="feedback-note"
                   placeholder="Anything that didn't work or felt off"
@@ -1321,9 +1286,10 @@ function Index() {
                   onChange={(e) => setFeedbackNote(e.target.value)}
                 />
               </div>
+
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>Skip</Button>
-                <Button onClick={submitFeedback} disabled={!feedbackChoice}>Send feedback</Button>
+                <Button onClick={submitFeedback} disabled={!worthChoice && !solvedChoice}>Send feedback</Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1336,6 +1302,7 @@ function Index() {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
