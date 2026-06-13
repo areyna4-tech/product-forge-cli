@@ -195,8 +195,15 @@ function Index() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
-  // Track landing view once on mount.
-  useEffect(() => { track("landing_page_view"); }, []);
+  // Track landing view once on mount; load free-export flag.
+  useEffect(() => {
+    track("landing_page_view");
+    try {
+      if (typeof window !== "undefined" && window.localStorage.getItem("productForgeFreeExportUsed") === "true") {
+        setFreeExportUsed(true);
+      }
+    } catch {}
+  }, []);
 
 
 
