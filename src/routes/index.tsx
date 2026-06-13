@@ -194,15 +194,8 @@ function Index() {
   // Track landing view once on mount.
   useEffect(() => { track("landing_page_view"); }, []);
 
-  // Load free-export flag from localStorage on mount.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      if (window.localStorage.getItem("csv_free_export_used") === "1") {
-        setFreeExportUsed(true);
-      }
-    } catch { /* ignore */ }
-  }, []);
+
+
 
 
   const hasFile = sourceRows.length > 0;
