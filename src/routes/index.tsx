@@ -186,13 +186,24 @@ function Index() {
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [freeExportUsed, setFreeExportUsed] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const [limitEmail, setLimitEmail] = useState("");
+  const [limitSubmitted, setLimitSubmitted] = useState(false);
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
-  // Track landing view once on mount.
-  useEffect(() => { track("landing_page_view"); }, []);
+  // Track landing view once on mount; load free-export flag.
+  useEffect(() => {
+    track("landing_page_view");
+    try {
+      if (typeof window !== "undefined" && window.localStorage.getItem("productForgeFreeExportUsed") === "true") {
+        setFreeExportUsed(true);
+      }
+    } catch {}
+  }, []);
 
 
 
@@ -377,8 +388,18 @@ function Index() {
       return;
     }
     track("export_clicked", { target, rows: exportRows.length });
+    if (freeExportUsed) {
+      track("free_export_limit_reached", { target });
+      setLimitSubmitted(false);
+      setLimitEmail("");
+      setLimitOpen(true);
+      return;
+    }
     performDownload();
     track("beta_export_downloaded", { target, rows: exportRows.length });
+    track("free_beta_export_used", { target, rows: exportRows.length });
+    try { window.localStorage.setItem("productForgeFreeExportUsed", "true"); } catch {}
+    setFreeExportUsed(true);
     setFeedbackSubmitted(false);
     setWorthChoice(null);
     setSolvedChoice(null);
@@ -1118,11 +1139,22 @@ function Index() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <Button onClick={handleDownload} size="lg" className="font-semibold">
-                          <Download className="h-4 w-4 mr-1.5" />
-                          Download beta export free
-                        </Button>
-                        <span className="text-[11px] text-muted-foreground">Beta export is free · Target future price $9/file</span>
+                        {freeExportUsed ? (
+                          <>
+                            <Button onClick={handleDownload} size="lg" variant="outline" className="font-semibold">
+                              Request more exports
+                            </Button>
+                            <span className="text-[11px] text-muted-foreground">You’ve used your free beta export · Target price $9/file</span>
+                          </>
+                        ) : (
+                          <>
+                            <Button onClick={handleDownload} size="lg" className="font-semibold">
+                              <Download className="h-4 w-4 mr-1.5" />
+                              Download beta export free
+                            </Button>
+                            <span className="text-[11px] text-muted-foreground">1 free beta export per browser · Target future price $9/file</span>
+                          </>
+                        )}
                       </div>
 
 
@@ -1297,6 +1329,50 @@ function Index() {
               <p className="text-sm text-emerald-700">Thanks for the feedback.</p>
               <DialogFooter>
                 <Button onClick={() => setFeedbackOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Free export limit reached */}
+      <Dialog open={limitOpen} onOpenChange={setLimitOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>You’ve used your free beta export</DialogTitle>
+            <DialogDescription>
+              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
+            </DialogDescription>
+          </DialogHeader>
+          {!limitSubmitted ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
+                <Input
+                  id="limit-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={limitEmail}
+                  onChange={(e) => setLimitEmail(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  track("paid_beta_interest_clicked", { choice: "maybe" });
+                  setLimitOpen(false);
+                }}>Maybe later</Button>
+                <Button onClick={() => {
+                  track("paid_beta_interest_clicked", { choice: "yes", email: limitEmail || null });
+                  if (limitEmail) track("email_submitted_after_limit", { email: limitEmail });
+                  setLimitSubmitted(true);
+                }}>Yes, notify me</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">Thanks — we’ll be in touch when paid exports launch.</p>
+              <DialogFooter>
+                <Button onClick={() => setLimitOpen(false)}>Close</Button>
               </DialogFooter>
             </div>
           )}

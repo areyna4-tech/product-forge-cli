@@ -44,7 +44,11 @@ export type AnalyticsEvent =
   | "mapping_template_copied"
   | "feedback_submitted"
   | "beta_export_downloaded"
-  | "post_export_feedback_submitted";
+  | "post_export_feedback_submitted"
+  | "free_beta_export_used"
+  | "free_export_limit_reached"
+  | "paid_beta_interest_clicked"
+  | "email_submitted_after_limit";
 
 
 
