@@ -180,14 +180,13 @@ function Index() {
     type: "success" | "warning";
     message: string;
   } | null>(null);
-  const [limitModalOpen, setLimitModalOpen] = useState(false);
-  const [limitEmail, setLimitEmail] = useState("");
-  const [limitSubmitted, setLimitSubmitted] = useState(false);
-  const [freeExportUsed, setFreeExportUsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "maybe" | "no" | null>(null);
+  const [worthChoice, setWorthChoice] = useState<"yes" | "maybe" | "no" | null>(null);
+  const [solvedChoice, setSolvedChoice] = useState<"yes" | "partially" | "no" | null>(null);
+  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
