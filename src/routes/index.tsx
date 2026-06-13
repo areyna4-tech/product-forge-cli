@@ -1117,23 +1117,13 @@ function Index() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        {freeExportUsed ? (
-                          <>
-                            <Button onClick={handleDownload} size="lg" variant="outline" className="font-semibold">
-                              You’ve used your free beta export
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">Request more exports — $9/file target price</span>
-                          </>
-                        ) : (
-                          <>
-                            <Button onClick={handleDownload} size="lg" className="font-semibold">
-                              <Download className="h-4 w-4 mr-1.5" />
-                              Download free beta export
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">1 free export per browser during beta</span>
-                          </>
-                        )}
+                        <Button onClick={handleDownload} size="lg" className="font-semibold">
+                          <Download className="h-4 w-4 mr-1.5" />
+                          Download beta export free
+                        </Button>
+                        <span className="text-[11px] text-muted-foreground">Beta export is free · Target future price $9/file</span>
                       </div>
+
 
 
                     </div>
