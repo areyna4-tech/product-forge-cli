@@ -1248,62 +1248,46 @@ function Index() {
         )}
       </main>
 
-      {/* Payment-intent modal (stub — wire to Stripe $9 checkout when available) */}
-      <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
+      {/* Free-export limit modal */}
+      <Dialog open={limitModalOpen} onOpenChange={setLimitModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Paid export beta</DialogTitle>
+            <DialogTitle>You’ve used your free beta export</DialogTitle>
             <DialogDescription>
-              We’re validating whether users want a $9 fixed Shopify-ready export. Would you pay $9 to export this fixed file once payment is available?
+              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3">
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              {exportRows.length} rows ready · {summary.blockedRows} blocked rows excluded · {TARGET_META[target].title}
-            </div>
-
-            {!payIntent ? (
-              <>
-                <div className="space-y-1.5">
-                  <Label htmlFor="pay-email" className="text-xs">Email optional — we’ll notify you when paid export is available.</Label>
-                  <Input
-                    id="pay-email"
-                    type="email"
-                    placeholder="you@store.com"
-                    value={payEmail}
-                    onChange={(e) => setPayEmail(e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button onClick={() => handlePayIntent("yes")}>Yes, notify me</Button>
-                  <Button variant="outline" onClick={() => handlePayIntent("maybe")}>Maybe</Button>
-                  <Button variant="ghost" onClick={() => handlePayIntent("no")}>No</Button>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-md border bg-emerald-50 border-emerald-200 px-3 py-2 text-sm text-emerald-800">
-                Thanks — we recorded your answer{payEmail ? ` and saved ${payEmail}` : ""}.
+          {!limitSubmitted ? (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
+                <Input
+                  id="limit-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={limitEmail}
+                  onChange={(e) => setLimitEmail(e.target.value)}
+                />
               </div>
-            )}
-          </div>
-
-          <DialogFooter className="sm:justify-between gap-2 items-end">
-            <div className="flex flex-col gap-1">
-              <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
-              <span className="text-[11px] text-muted-foreground">Available during beta after answering.</span>
+              <DialogFooter className="sm:justify-end gap-2">
+                <Button variant="ghost" onClick={() => handleLimitInterest("maybe")}>Maybe later</Button>
+                <Button onClick={() => handleLimitInterest("yes")}>Yes, notify me</Button>
+              </DialogFooter>
             </div>
-            <Button
-              onClick={closePayModalAndDownload}
-              disabled={!payIntent}
-              title={!payIntent ? "Pick an option above first" : ""}
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              Download test export
-            </Button>
-          </DialogFooter>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">
+                Thanks{limitEmail ? ` — we saved ${limitEmail}` : ""}. We’ll be in touch when more exports are available.
+              </p>
+              <DialogFooter>
+                <Button onClick={() => setLimitModalOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       {/* Post-export feedback */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
