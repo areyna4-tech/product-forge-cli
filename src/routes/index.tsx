@@ -1243,7 +1243,7 @@ function Index() {
             {!payIntent ? (
               <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pay-email" className="text-xs">Email (optional, for launch updates)</Label>
+                  <Label htmlFor="pay-email" className="text-xs">Email optional — we’ll notify you when paid export is available.</Label>
                   <Input
                     id="pay-email"
                     type="email"
@@ -1265,15 +1265,18 @@ function Index() {
             )}
           </div>
 
-          <DialogFooter className="sm:justify-between gap-2">
-            <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+          <DialogFooter className="sm:justify-between gap-2 items-end">
+            <div className="flex flex-col gap-1">
+              <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+              <span className="text-[11px] text-muted-foreground">Available during beta after answering.</span>
+            </div>
             <Button
               onClick={closePayModalAndDownload}
               disabled={!payIntent}
               title={!payIntent ? "Pick an option above first" : ""}
             >
               <Download className="h-4 w-4 mr-1.5" />
-              Continue & download (testing)
+              Download test export
             </Button>
           </DialogFooter>
         </DialogContent>
