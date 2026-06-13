@@ -42,7 +42,12 @@ export type AnalyticsEvent =
   | "payment_intent_maybe"
   | "paid_export_completed"
   | "mapping_template_copied"
-  | "feedback_submitted";
+  | "feedback_submitted"
+  | "free_beta_export_used"
+  | "free_export_limit_reached"
+  | "paid_beta_interest_clicked"
+  | "email_submitted_after_limit";
+
 
 declare global {
   interface Window {
