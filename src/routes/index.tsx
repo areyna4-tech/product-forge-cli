@@ -616,9 +616,10 @@ function Index() {
                   <CardTitle className="text-base">Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p className="text-foreground font-medium">Free scan available now.</p>
-                  <p>Fixed Shopify-ready export is in beta.</p>
-                  <p className="text-xs">Target price: $9 per export.</p>
+                  <p className="text-foreground font-medium">Free beta scan available now.</p>
+                  <p>Beta export is free while we validate quality.</p>
+                  <p className="text-xs">Target future price: $9 per fixed export.</p>
+
                 </CardContent>
               </Card>
             </div>
