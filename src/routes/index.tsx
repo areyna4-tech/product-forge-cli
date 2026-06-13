@@ -376,36 +376,30 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    if (freeExportUsed) {
-      track("free_export_limit_reached", { target, rows: exportRows.length });
-      setLimitEmail("");
-      setLimitSubmitted(false);
-      setLimitModalOpen(true);
-      return;
-    }
     track("export_clicked", { target, rows: exportRows.length });
-    track("free_beta_export_used", { target, rows: exportRows.length });
-    try { window.localStorage.setItem("csv_free_export_used", "1"); } catch { /* ignore */ }
-    setFreeExportUsed(true);
     performDownload();
+    track("beta_export_downloaded", { target, rows: exportRows.length });
     setFeedbackSubmitted(false);
-    setFeedbackChoice(null);
+    setWorthChoice(null);
+    setSolvedChoice(null);
+    setFeedbackEmail("");
     setFeedbackNote("");
     setFeedbackOpen(true);
   };
 
-  const handleLimitInterest = (intent: "yes" | "maybe") => {
-    track("paid_beta_interest_clicked", { intent, email: limitEmail || null });
-    if (intent === "yes" && limitEmail) {
-      track("email_submitted_after_limit", { email: limitEmail });
-    }
-    setLimitSubmitted(true);
-  };
-
   const submitFeedback = () => {
-    track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
+    track("post_export_feedback_submitted", {
+      worth: worthChoice,
+      solved: solvedChoice,
+      email: feedbackEmail || null,
+      note: feedbackNote || null,
+    });
+    if (worthChoice === "yes") track("payment_intent_yes", { email: feedbackEmail || null });
+    else if (worthChoice === "maybe") track("payment_intent_maybe", { email: feedbackEmail || null });
+    else if (worthChoice === "no") track("payment_intent_no", { email: feedbackEmail || null });
     setFeedbackSubmitted(true);
   };
+
 
 
   const handleValidationReport = () => {
