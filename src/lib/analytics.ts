@@ -43,10 +43,9 @@ export type AnalyticsEvent =
   | "paid_export_completed"
   | "mapping_template_copied"
   | "feedback_submitted"
-  | "free_beta_export_used"
-  | "free_export_limit_reached"
-  | "paid_beta_interest_clicked"
-  | "email_submitted_after_limit";
+  | "beta_export_downloaded"
+  | "post_export_feedback_submitted";
+
 
 
 declare global {
