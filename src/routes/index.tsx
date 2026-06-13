@@ -1224,72 +1224,60 @@ function Index() {
         )}
       </main>
 
-      {/* Free-export limit modal */}
-      <Dialog open={limitModalOpen} onOpenChange={setLimitModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>You’ve used your free beta export</DialogTitle>
-            <DialogDescription>
-              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
-            </DialogDescription>
-          </DialogHeader>
-
-          {!limitSubmitted ? (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
-                <Input
-                  id="limit-email"
-                  type="email"
-                  placeholder="you@store.com"
-                  value={limitEmail}
-                  onChange={(e) => setLimitEmail(e.target.value)}
-                />
-              </div>
-              <DialogFooter className="sm:justify-end gap-2">
-                <Button variant="ghost" onClick={() => handleLimitInterest("maybe")}>Maybe later</Button>
-                <Button onClick={() => handleLimitInterest("yes")}>Yes, notify me</Button>
-              </DialogFooter>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-emerald-700">
-                Thanks{limitEmail ? ` — we saved ${limitEmail}` : ""}. We’ll be in touch when more exports are available.
-              </p>
-              <DialogFooter>
-                <Button onClick={() => setLimitModalOpen(false)}>Close</Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-
       {/* Post-export feedback */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?</DialogTitle>
-            <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
+            <DialogTitle>Was this export useful?</DialogTitle>
+            <DialogDescription>
+              Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?
+            </DialogDescription>
           </DialogHeader>
 
           {!feedbackSubmitted ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="grid grid-cols-3 gap-2">
                 {(["yes", "maybe", "no"] as const).map((c) => (
-
                   <Button
                     key={c}
-                    variant={feedbackChoice === c ? "default" : "outline"}
-                    onClick={() => setFeedbackChoice(c)}
+                    variant={worthChoice === c ? "default" : "outline"}
+                    onClick={() => setWorthChoice(c)}
                     className="capitalize"
                   >
                     {c}
                   </Button>
                 ))}
               </div>
+
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-note" className="text-xs">What was missing? (optional)</Label>
+                <Label className="text-xs">Did this solve your product CSV import problem?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["yes", "partially", "no"] as const).map((c) => (
+                    <Button
+                      key={c}
+                      variant={solvedChoice === c ? "default" : "outline"}
+                      onClick={() => setSolvedChoice(c)}
+                      className="capitalize"
+                    >
+                      {c}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-email" className="text-xs">Email optional — we’ll notify you when paid export launches.</Label>
+                <Input
+                  id="feedback-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={feedbackEmail}
+                  onChange={(e) => setFeedbackEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="feedback-note" className="text-xs">What was missing?</Label>
                 <Input
                   id="feedback-note"
                   placeholder="Anything that didn't work or felt off"
@@ -1297,9 +1285,10 @@ function Index() {
                   onChange={(e) => setFeedbackNote(e.target.value)}
                 />
               </div>
+
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>Skip</Button>
-                <Button onClick={submitFeedback} disabled={!feedbackChoice}>Send feedback</Button>
+                <Button onClick={submitFeedback} disabled={!worthChoice && !solvedChoice}>Send feedback</Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1312,6 +1301,7 @@ function Index() {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
