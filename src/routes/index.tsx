@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
   AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench, Lock,
+  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -180,18 +180,31 @@ function Index() {
     type: "success" | "warning";
     message: string;
   } | null>(null);
-  const [payModalOpen, setPayModalOpen] = useState(false);
-  const [payIntent, setPayIntent] = useState<"yes" | "no" | "maybe" | null>(null);
-  const [payEmail, setPayEmail] = useState("");
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
+  const [limitEmail, setLimitEmail] = useState("");
+  const [limitSubmitted, setLimitSubmitted] = useState(false);
+  const [freeExportUsed, setFreeExportUsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "partially" | "no" | null>(null);
+  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "maybe" | "no" | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
   // Track landing view once on mount.
   useEffect(() => { track("landing_page_view"); }, []);
+
+  // Load free-export flag from localStorage on mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.localStorage.getItem("csv_free_export_used") === "1") {
+        setFreeExportUsed(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
 
   const hasFile = sourceRows.length > 0;
 
@@ -371,28 +384,17 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
+    if (freeExportUsed) {
+      track("free_export_limit_reached", { target, rows: exportRows.length });
+      setLimitEmail("");
+      setLimitSubmitted(false);
+      setLimitModalOpen(true);
+      return;
+    }
     track("export_clicked", { target, rows: exportRows.length });
-    track("payment_modal_viewed");
-    setPayIntent(null);
-    setPayEmail("");
-    setPayModalOpen(true);
-  };
-
-  const handlePayIntent = (intent: "yes" | "no" | "maybe") => {
-    setPayIntent(intent);
-    track(
-      intent === "yes" ? "payment_intent_yes"
-        : intent === "no" ? "payment_intent_no"
-        : "payment_intent_maybe",
-      { email: payEmail || null, target, rows: exportRows.length },
-    );
-  };
-
-  const closePayModalAndDownload = () => {
-    setPayModalOpen(false);
-    // During validation phase users can still receive the file so they
-    // can complete the full pre-flight workflow. Swap this for a real
-    // paywall once Stripe checkout is wired up.
+    track("free_beta_export_used", { target, rows: exportRows.length });
+    try { window.localStorage.setItem("csv_free_export_used", "1"); } catch { /* ignore */ }
+    setFreeExportUsed(true);
     performDownload();
     setFeedbackSubmitted(false);
     setFeedbackChoice(null);
@@ -400,10 +402,19 @@ function Index() {
     setFeedbackOpen(true);
   };
 
+  const handleLimitInterest = (intent: "yes" | "maybe") => {
+    track("paid_beta_interest_clicked", { intent, email: limitEmail || null });
+    if (intent === "yes" && limitEmail) {
+      track("email_submitted_after_limit", { email: limitEmail });
+    }
+    setLimitSubmitted(true);
+  };
+
   const submitFeedback = () => {
     track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
     setFeedbackSubmitted(true);
   };
+
 
   const handleValidationReport = () => {
     const rows: Record<string, any>[] = [];
@@ -1120,12 +1131,24 @@ function Index() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <Button onClick={handleDownload} size="lg" className="font-semibold">
-                          <Lock className="h-4 w-4 mr-1.5" />
-                          Request fixed export — $9 target price
-                        </Button>
-                        <span className="text-[11px] text-muted-foreground">Free scan · Target price $9 to export</span>
+                        {freeExportUsed ? (
+                          <>
+                            <Button onClick={handleDownload} size="lg" variant="outline" className="font-semibold">
+                              You’ve used your free beta export
+                            </Button>
+                            <span className="text-[11px] text-muted-foreground">Request more exports — $9/file target price</span>
+                          </>
+                        ) : (
+                          <>
+                            <Button onClick={handleDownload} size="lg" className="font-semibold">
+                              <Download className="h-4 w-4 mr-1.5" />
+                              Download free beta export
+                            </Button>
+                            <span className="text-[11px] text-muted-foreground">1 free export per browser during beta</span>
+                          </>
+                        )}
                       </div>
+
 
                     </div>
                   ) : (
@@ -1225,75 +1248,60 @@ function Index() {
         )}
       </main>
 
-      {/* Payment-intent modal (stub — wire to Stripe $9 checkout when available) */}
-      <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
+      {/* Free-export limit modal */}
+      <Dialog open={limitModalOpen} onOpenChange={setLimitModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Paid export beta</DialogTitle>
+            <DialogTitle>You’ve used your free beta export</DialogTitle>
             <DialogDescription>
-              We’re validating whether users want a $9 fixed Shopify-ready export. Would you pay $9 to export this fixed file once payment is available?
+              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3">
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              {exportRows.length} rows ready · {summary.blockedRows} blocked rows excluded · {TARGET_META[target].title}
-            </div>
-
-            {!payIntent ? (
-              <>
-                <div className="space-y-1.5">
-                  <Label htmlFor="pay-email" className="text-xs">Email optional — we’ll notify you when paid export is available.</Label>
-                  <Input
-                    id="pay-email"
-                    type="email"
-                    placeholder="you@store.com"
-                    value={payEmail}
-                    onChange={(e) => setPayEmail(e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button onClick={() => handlePayIntent("yes")}>Yes, notify me</Button>
-                  <Button variant="outline" onClick={() => handlePayIntent("maybe")}>Maybe</Button>
-                  <Button variant="ghost" onClick={() => handlePayIntent("no")}>No</Button>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-md border bg-emerald-50 border-emerald-200 px-3 py-2 text-sm text-emerald-800">
-                Thanks — we recorded your answer{payEmail ? ` and saved ${payEmail}` : ""}.
+          {!limitSubmitted ? (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
+                <Input
+                  id="limit-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={limitEmail}
+                  onChange={(e) => setLimitEmail(e.target.value)}
+                />
               </div>
-            )}
-          </div>
-
-          <DialogFooter className="sm:justify-between gap-2 items-end">
-            <div className="flex flex-col gap-1">
-              <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
-              <span className="text-[11px] text-muted-foreground">Available during beta after answering.</span>
+              <DialogFooter className="sm:justify-end gap-2">
+                <Button variant="ghost" onClick={() => handleLimitInterest("maybe")}>Maybe later</Button>
+                <Button onClick={() => handleLimitInterest("yes")}>Yes, notify me</Button>
+              </DialogFooter>
             </div>
-            <Button
-              onClick={closePayModalAndDownload}
-              disabled={!payIntent}
-              title={!payIntent ? "Pick an option above first" : ""}
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              Download test export
-            </Button>
-          </DialogFooter>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">
+                Thanks{limitEmail ? ` — we saved ${limitEmail}` : ""}. We’ll be in touch when more exports are available.
+              </p>
+              <DialogFooter>
+                <Button onClick={() => setLimitModalOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       {/* Post-export feedback */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Did this solve your product CSV import problem?</DialogTitle>
+            <DialogTitle>Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?</DialogTitle>
             <DialogDescription>Quick feedback helps us improve the checks.</DialogDescription>
           </DialogHeader>
 
           {!feedbackSubmitted ? (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                {(["yes", "partially", "no"] as const).map((c) => (
+                {(["yes", "maybe", "no"] as const).map((c) => (
+
                   <Button
                     key={c}
                     variant={feedbackChoice === c ? "default" : "outline"}
