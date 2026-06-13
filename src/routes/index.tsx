@@ -619,11 +619,9 @@ function Index() {
                   <CardTitle className="text-base">Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p className="text-foreground font-medium">Free scan.</p>
-                  <p>
-                    <span className="text-foreground font-semibold">$9</span> to export a fixed Shopify-ready CSV.
-                  </p>
-                  <p className="text-xs">No subscription. Pay only when you export.</p>
+                  <p className="text-foreground font-medium">Free scan available now.</p>
+                  <p>Fixed Shopify-ready export is in beta.</p>
+                  <p className="text-xs">Target price: $9 per export.</p>
                 </CardContent>
               </Card>
             </div>
@@ -1124,9 +1122,9 @@ function Index() {
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <Button onClick={handleDownload} size="lg" className="font-semibold">
                           <Lock className="h-4 w-4 mr-1.5" />
-                          {TARGET_META[target].ctaLabel} — $9
+                          Request fixed export — $9 target price
                         </Button>
-                        <span className="text-[11px] text-muted-foreground">Free scan · $9 to export</span>
+                        <span className="text-[11px] text-muted-foreground">Free scan · Target price $9 to export</span>
                       </div>
 
                     </div>
@@ -1231,10 +1229,9 @@ function Index() {
       <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Paid export is coming soon</DialogTitle>
+            <DialogTitle>Paid export beta</DialogTitle>
             <DialogDescription>
-              Would you pay <span className="font-semibold text-foreground">$9</span> to export this fixed
-              {" "}{TARGET_META[target].title}? Your answer helps us decide what to ship next.
+              We’re validating whether users want a $9 fixed Shopify-ready export. Would you pay $9 to export this fixed file once payment is available?
             </DialogDescription>
           </DialogHeader>
 
@@ -1246,7 +1243,7 @@ function Index() {
             {!payIntent ? (
               <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pay-email" className="text-xs">Email (optional, for launch updates)</Label>
+                  <Label htmlFor="pay-email" className="text-xs">Email optional — we’ll notify you when paid export is available.</Label>
                   <Input
                     id="pay-email"
                     type="email"
@@ -1268,15 +1265,18 @@ function Index() {
             )}
           </div>
 
-          <DialogFooter className="sm:justify-between gap-2">
-            <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+          <DialogFooter className="sm:justify-between gap-2 items-end">
+            <div className="flex flex-col gap-1">
+              <Button variant="ghost" onClick={() => setPayModalOpen(false)}>Close</Button>
+              <span className="text-[11px] text-muted-foreground">Available during beta after answering.</span>
+            </div>
             <Button
               onClick={closePayModalAndDownload}
               disabled={!payIntent}
               title={!payIntent ? "Pick an option above first" : ""}
             >
               <Download className="h-4 w-4 mr-1.5" />
-              Continue & download (testing)
+              Download test export
             </Button>
           </DialogFooter>
         </DialogContent>
