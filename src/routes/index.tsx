@@ -180,13 +180,15 @@ function Index() {
     type: "success" | "warning";
     message: string;
   } | null>(null);
-  const [payModalOpen, setPayModalOpen] = useState(false);
-  const [payIntent, setPayIntent] = useState<"yes" | "no" | "maybe" | null>(null);
-  const [payEmail, setPayEmail] = useState("");
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
+  const [limitEmail, setLimitEmail] = useState("");
+  const [limitSubmitted, setLimitSubmitted] = useState(false);
+  const [freeExportUsed, setFreeExportUsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "partially" | "no" | null>(null);
+  const [feedbackChoice, setFeedbackChoice] = useState<"yes" | "maybe" | "no" | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
