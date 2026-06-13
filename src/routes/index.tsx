@@ -1335,6 +1335,50 @@ function Index() {
         </DialogContent>
       </Dialog>
 
+      {/* Free export limit reached */}
+      <Dialog open={limitOpen} onOpenChange={setLimitOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>You’ve used your free beta export</DialogTitle>
+            <DialogDescription>
+              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
+            </DialogDescription>
+          </DialogHeader>
+          {!limitSubmitted ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
+                <Input
+                  id="limit-email"
+                  type="email"
+                  placeholder="you@store.com"
+                  value={limitEmail}
+                  onChange={(e) => setLimitEmail(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  track("paid_beta_interest_clicked", { choice: "maybe" });
+                  setLimitOpen(false);
+                }}>Maybe later</Button>
+                <Button onClick={() => {
+                  track("paid_beta_interest_clicked", { choice: "yes", email: limitEmail || null });
+                  if (limitEmail) track("email_submitted_after_limit", { email: limitEmail });
+                  setLimitSubmitted(true);
+                }}>Yes, notify me</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-700">Thanks — we’ll be in touch when paid exports launch.</p>
+              <DialogFooter>
+                <Button onClick={() => setLimitOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
