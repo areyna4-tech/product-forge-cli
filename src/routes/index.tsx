@@ -388,8 +388,18 @@ function Index() {
       return;
     }
     track("export_clicked", { target, rows: exportRows.length });
+    if (freeExportUsed) {
+      track("free_export_limit_reached", { target });
+      setLimitSubmitted(false);
+      setLimitEmail("");
+      setLimitOpen(true);
+      return;
+    }
     performDownload();
     track("beta_export_downloaded", { target, rows: exportRows.length });
+    track("free_beta_export_used", { target, rows: exportRows.length });
+    try { window.localStorage.setItem("productForgeFreeExportUsed", "true"); } catch {}
+    setFreeExportUsed(true);
     setFeedbackSubmitted(false);
     setWorthChoice(null);
     setSolvedChoice(null);
