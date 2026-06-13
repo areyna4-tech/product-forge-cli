@@ -384,28 +384,17 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
+    if (freeExportUsed) {
+      track("free_export_limit_reached", { target, rows: exportRows.length });
+      setLimitEmail("");
+      setLimitSubmitted(false);
+      setLimitModalOpen(true);
+      return;
+    }
     track("export_clicked", { target, rows: exportRows.length });
-    track("payment_modal_viewed");
-    setPayIntent(null);
-    setPayEmail("");
-    setPayModalOpen(true);
-  };
-
-  const handlePayIntent = (intent: "yes" | "no" | "maybe") => {
-    setPayIntent(intent);
-    track(
-      intent === "yes" ? "payment_intent_yes"
-        : intent === "no" ? "payment_intent_no"
-        : "payment_intent_maybe",
-      { email: payEmail || null, target, rows: exportRows.length },
-    );
-  };
-
-  const closePayModalAndDownload = () => {
-    setPayModalOpen(false);
-    // During validation phase users can still receive the file so they
-    // can complete the full pre-flight workflow. Swap this for a real
-    // paywall once Stripe checkout is wired up.
+    track("free_beta_export_used", { target, rows: exportRows.length });
+    try { window.localStorage.setItem("csv_free_export_used", "1"); } catch { /* ignore */ }
+    setFreeExportUsed(true);
     performDownload();
     setFeedbackSubmitted(false);
     setFeedbackChoice(null);
@@ -413,10 +402,19 @@ function Index() {
     setFeedbackOpen(true);
   };
 
+  const handleLimitInterest = (intent: "yes" | "maybe") => {
+    track("paid_beta_interest_clicked", { intent, email: limitEmail || null });
+    if (intent === "yes" && limitEmail) {
+      track("email_submitted_after_limit", { email: limitEmail });
+    }
+    setLimitSubmitted(true);
+  };
+
   const submitFeedback = () => {
     track("feedback_submitted", { choice: feedbackChoice, note: feedbackNote || null });
     setFeedbackSubmitted(true);
   };
+
 
   const handleValidationReport = () => {
     const rows: Record<string, any>[] = [];
