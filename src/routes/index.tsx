@@ -186,6 +186,10 @@ function Index() {
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [freeExportUsed, setFreeExportUsed] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const [limitEmail, setLimitEmail] = useState("");
+  const [limitSubmitted, setLimitSubmitted] = useState(false);
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
