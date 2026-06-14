@@ -35,11 +35,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Shopify CSV Pre-Flight Checker & Converter" },
-      { name: "description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
-      { property: "og:title", content: "Shopify CSV Pre-Flight Checker & Converter" },
-      { property: "og:description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
+      { title: "Fix Shopify CSV Import Errors | Product Forge" },
+      { name: "description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },
+      { property: "og:description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      { property: "og:url", content: "https://productcsvfixer.com/" },
     ],
+    links: [{ rel: "canonical", href: "https://productcsvfixer.com/" }],
   }),
   component: Index,
 });
