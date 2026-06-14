@@ -1260,6 +1260,45 @@ function Index() {
             </section>
           </>
         )}
+
+        <section aria-labelledby="faq-heading" className="mt-12 border-t pt-10">
+          <h2 id="faq-heading" className="text-2xl font-semibold tracking-tight text-foreground">
+            FAQ
+          </h2>
+          <dl className="mt-6 space-y-6 max-w-3xl">
+            {[
+              {
+                q: "Is my CSV uploaded to a server?",
+                a: "Your CSV is processed in your browser. We do not store your uploaded file. Please use non-sensitive files during beta.",
+              },
+              {
+                q: "Does this import directly into Shopify?",
+                a: "No. ProductCSVFixer checks and prepares your CSV before import. You still upload the exported CSV into Shopify.",
+              },
+              {
+                q: "What does it check?",
+                a: "It checks required field mappings, missing titles, missing SKUs, invalid prices, duplicate SKUs or handles, image URL format issues, blocked rows, and target CSV structure.",
+              },
+              {
+                q: "What happens to blocked rows?",
+                a: "Blocked rows are excluded from the beta export so they do not create bad imports. The validation report shows what to fix.",
+              },
+              {
+                q: "Is this free?",
+                a: "During beta, scanning and one beta export are free while we validate quality. The target future price is $9 per fixed export.",
+              },
+              {
+                q: "Can I use this with WooCommerce?",
+                a: "Shopify is the primary beta focus. WooCommerce export is available for early testing but may change based on feedback.",
+              },
+            ].map(({ q, a }) => (
+              <div key={q}>
+                <dt className="font-medium text-foreground">{q}</dt>
+                <dd className="mt-1 text-sm text-muted-foreground">{a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </main>
 
       {/* Post-export feedback */}
