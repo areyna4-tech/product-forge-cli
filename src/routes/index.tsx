@@ -685,9 +685,12 @@ function Index() {
 
                   </div>
 
-                  {/* Prototype notice */}
+                  {/* Beta notice */}
                   <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                    <strong>Prototype notice:</strong> Please do not upload sensitive or confidential product data during testing. Use a non-sensitive CSV or the provided sample file.
+                    <strong>Beta notice:</strong> Please use a non-sensitive CSV during beta. Your file is processed in your browser and is not stored by ProductCSVFixer.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
+                    <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not store your uploaded file. We may collect anonymous usage events such as page views, upload, validation, and export clicks, but not your CSV contents.
                   </p>
 
                   {/* How it works */}
