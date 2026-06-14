@@ -9,8 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupplierCsvToShopifyRouteImport } from './routes/supplier-csv-to-shopify'
+import { Route as ShopifyCsvImportErrorsRouteImport } from './routes/shopify-csv-import-errors'
+import { Route as FixShopifyProductCsvRouteImport } from './routes/fix-shopify-product-csv'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SupplierCsvToShopifyRoute = SupplierCsvToShopifyRouteImport.update({
+  id: '/supplier-csv-to-shopify',
+  path: '/supplier-csv-to-shopify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopifyCsvImportErrorsRoute = ShopifyCsvImportErrorsRouteImport.update({
+  id: '/shopify-csv-import-errors',
+  path: '/shopify-csv-import-errors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FixShopifyProductCsvRoute = FixShopifyProductCsvRouteImport.update({
+  id: '/fix-shopify-product-csv',
+  path: '/fix-shopify-product-csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +37,74 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
+  '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
+  '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
+  '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/fix-shopify-product-csv'
+    | '/shopify-csv-import-errors'
+    | '/supplier-csv-to-shopify'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/fix-shopify-product-csv'
+    | '/shopify-csv-import-errors'
+    | '/supplier-csv-to-shopify'
+  id:
+    | '__root__'
+    | '/'
+    | '/fix-shopify-product-csv'
+    | '/shopify-csv-import-errors'
+    | '/supplier-csv-to-shopify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FixShopifyProductCsvRoute: typeof FixShopifyProductCsvRoute
+  ShopifyCsvImportErrorsRoute: typeof ShopifyCsvImportErrorsRoute
+  SupplierCsvToShopifyRoute: typeof SupplierCsvToShopifyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/supplier-csv-to-shopify': {
+      id: '/supplier-csv-to-shopify'
+      path: '/supplier-csv-to-shopify'
+      fullPath: '/supplier-csv-to-shopify'
+      preLoaderRoute: typeof SupplierCsvToShopifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shopify-csv-import-errors': {
+      id: '/shopify-csv-import-errors'
+      path: '/shopify-csv-import-errors'
+      fullPath: '/shopify-csv-import-errors'
+      preLoaderRoute: typeof ShopifyCsvImportErrorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fix-shopify-product-csv': {
+      id: '/fix-shopify-product-csv'
+      path: '/fix-shopify-product-csv'
+      fullPath: '/fix-shopify-product-csv'
+      preLoaderRoute: typeof FixShopifyProductCsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,7 +117,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FixShopifyProductCsvRoute: FixShopifyProductCsvRoute,
+  ShopifyCsvImportErrorsRoute: ShopifyCsvImportErrorsRoute,
+  SupplierCsvToShopifyRoute: SupplierCsvToShopifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
