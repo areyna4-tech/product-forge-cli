@@ -35,11 +35,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Shopify CSV Pre-Flight Checker & Converter" },
-      { name: "description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
-      { property: "og:title", content: "Shopify CSV Pre-Flight Checker & Converter" },
-      { property: "og:description", content: "Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload." },
+      { title: "Fix Shopify CSV Import Errors | Product Forge" },
+      { name: "description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },
+      { property: "og:description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      { property: "og:url", content: "https://productcsvfixer.com/" },
     ],
+    links: [{ rel: "canonical", href: "https://productcsvfixer.com/" }],
   }),
   component: Index,
 });
@@ -548,9 +550,12 @@ function Index() {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+          <div className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
+            Product Forge
+          </div>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Shopify CSV Pre-Flight Checker &amp; Converter
-          </h1>
+          </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
             Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
           </p>
@@ -578,12 +583,12 @@ function Index() {
         {!hasFile && (
           <section aria-labelledby="landing-headline" className="space-y-6">
             <div className="rounded-xl border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-10 text-center">
-              <h2
+              <h1
                 id="landing-headline"
                 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
               >
                 Fix Shopify product CSV import errors before upload.
-              </h2>
+              </h1>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
                 Upload a messy supplier product CSV, find blockers, fix field mappings, and export a Shopify-ready file.
               </p>
