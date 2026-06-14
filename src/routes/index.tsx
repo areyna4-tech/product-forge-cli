@@ -1302,6 +1302,15 @@ function Index() {
             ))}
           </dl>
         </section>
+
+        <section aria-labelledby="privacy-heading" className="mt-12 border-t pt-10">
+          <h2 id="privacy-heading" className="text-2xl font-semibold tracking-tight text-foreground">
+            File privacy
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground max-w-3xl">
+            ProductCSVFixer is designed as a browser-based CSV checker. Your CSV file is processed locally in your browser for mapping, validation, preview, and beta export. We do not store uploaded CSV files. We only collect anonymous product analytics events, such as whether a file was uploaded, validation completed, or a beta export was downloaded. We do not collect product names, SKUs, prices, image URLs, row values, or CSV contents.
+          </p>
+        </section>
       </main>
 
       {/* Post-export feedback */}
