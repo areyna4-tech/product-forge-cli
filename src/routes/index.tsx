@@ -35,6 +35,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { name: "robots", content: "index, follow" },
       { title: "Fix Shopify CSV Import Errors | Product Forge" },
       { name: "description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
       { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },

@@ -7,11 +7,12 @@ import { track } from "@/lib/analytics";
 export const Route = createFileRoute("/supplier-csv-to-shopify")({
   head: () => ({
     meta: [
+      { name: "robots", content: "index, follow" },
       { title: "Supplier CSV to Shopify Checker | Product Forge" },
       { name: "description", content: "Convert supplier product spreadsheets into Shopify-ready CSVs. Map columns, validate data, block bad rows, and export a clean file for Shopify import." },
       { property: "og:title", content: "Supplier CSV to Shopify Checker | Product Forge" },
       { property: "og:description", content: "Convert supplier product spreadsheets into Shopify-ready CSVs. Map columns, validate data, block bad rows, and export a clean file for Shopify import." },
-      { property: "og:url", content: "https://productcsvfixer.com/supplier-csv-to-shopify" } ,
+      { property: "og:url", content: "https://productcsvfixer.com/supplier-csv-to-shopify" },
     ],
     links: [{ rel: "canonical", href: "https://productcsvfixer.com/supplier-csv-to-shopify" }],
   }),

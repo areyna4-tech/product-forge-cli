@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 export const Route = createFileRoute("/shopify-csv-import-errors")({
   head: () => ({
     meta: [
+      { name: "robots", content: "index, follow" },
       { title: "Shopify CSV Import Errors Checker | Product Forge" },
       { name: "description", content: "Find and fix Shopify CSV import errors before upload. Check for missing SKUs, invalid prices, image URL issues, duplicate SKUs or handles, and required Shopify fields." },
       { property: "og:title", content: "Shopify CSV Import Errors Checker | Product Forge" },
