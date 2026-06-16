@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 export const Route = createFileRoute("/fix-shopify-product-csv")({
   head: () => ({
     meta: [
+      { name: "robots", content: "index, follow" },
       { title: "Fix Shopify Product CSV Files | Product Forge" },
       { name: "description", content: "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export." },
       { property: "og:title", content: "Fix Shopify Product CSV Files | Product Forge" },
