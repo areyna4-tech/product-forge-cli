@@ -555,10 +555,10 @@ function Index() {
             Product Forge
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Shopify CSV Pre-Flight Checker &amp; Converter
+            Shopify CSV Import Error Checker &amp; Pre-Flight Validator
           </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
+            Find import blockers in messy supplier product CSVs before Shopify upload. This is a pre-flight checker, not a bulk editor.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
