@@ -693,6 +693,9 @@ function Index() {
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
                     <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not store your uploaded file. We may collect anonymous usage events such as page views, upload, validation, and export clicks, but not your CSV contents.
                   </p>
+                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
+                    ProductCSVFixer is a CSV import pre-flight checker, not a bulk product editor.
+                  </p>
 
                   {/* How it works */}
                   <div className="mt-6 rounded-md border bg-card p-4">
