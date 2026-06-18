@@ -613,7 +613,7 @@ function Index() {
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">How it works</CardTitle>
+                  <CardTitle className="text-base">How the pre-flight check works</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   <ol className="space-y-2 list-decimal pl-4">
