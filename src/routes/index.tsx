@@ -555,10 +555,10 @@ function Index() {
             Product Forge
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Shopify CSV Pre-Flight Checker &amp; Converter
+            Shopify CSV Import Error Checker &amp; Pre-Flight Validator
           </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
+            Find import blockers in messy supplier product CSVs before Shopify upload. This is a pre-flight checker, not a bulk editor.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
@@ -588,10 +588,10 @@ function Index() {
                 id="landing-headline"
                 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
               >
-                Fix Shopify product CSV import errors before upload.
+                Check Shopify CSV import errors before upload.
               </h1>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                Upload a messy supplier product CSV, find blockers, fix field mappings, and export a Shopify-ready file.
+                Upload a messy supplier product CSV and find import blockers before Shopify upload. This is a pre-flight checker, not a bulk product editor.
               </p>
               <div className="mt-5 flex justify-center">
                 <Button
@@ -606,14 +606,14 @@ function Index() {
                 </Button>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                No signup required. Runs locally in your browser. Import-ready export.
+                No signup required. Runs locally in your browser. Pre-flight checker, not a bulk editor.
               </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">How it works</CardTitle>
+                  <CardTitle className="text-base">How the pre-flight check works</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   <ol className="space-y-2 list-decimal pl-4">
@@ -692,6 +692,9 @@ function Index() {
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
                     <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not store your uploaded file. We may collect anonymous usage events such as page views, upload, validation, and export clicks, but not your CSV contents.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
+                    ProductCSVFixer is a CSV import pre-flight checker, not a bulk product editor.
                   </p>
 
                   {/* How it works */}
