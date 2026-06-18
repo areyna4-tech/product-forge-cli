@@ -588,10 +588,10 @@ function Index() {
                 id="landing-headline"
                 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
               >
-                Fix Shopify product CSV import errors before upload.
+                Check Shopify CSV import errors before upload.
               </h1>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                Upload a messy supplier product CSV, find blockers, fix field mappings, and export a Shopify-ready file.
+                Upload a messy supplier product CSV and find import blockers before Shopify upload. This is a pre-flight checker, not a bulk product editor.
               </p>
               <div className="mt-5 flex justify-center">
                 <Button
@@ -606,7 +606,7 @@ function Index() {
                 </Button>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                No signup required. Runs locally in your browser. Import-ready export.
+                No signup required. Runs locally in your browser. Pre-flight checker, not a bulk editor.
               </p>
             </div>
 
