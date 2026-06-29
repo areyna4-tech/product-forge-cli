@@ -813,7 +813,7 @@ function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => { setTarget(id); track("target_format_selected", { target: id }); }}
+                          onClick={() => { setTarget(id); track("target_format_selected", { target_format: id }); }}
                           aria-pressed={selected}
                           className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
