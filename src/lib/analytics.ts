@@ -42,10 +42,17 @@ function ensureInit() {
       capture_pageview: true,
       capture_pageleave: true,
       persistence: "localStorage+cookie",
+      disable_session_recording: true,
+      autocapture: false,
     });
   } catch {
     // no-op
   }
+}
+
+// Eager init so events fired before any track() call also work.
+if (typeof window !== "undefined") {
+  ensureInit();
 }
 
 declare global {
