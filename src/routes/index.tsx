@@ -47,6 +47,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function bucketFileSize(bytes?: number): string | undefined {
+  if (bytes == null) return undefined;
+  if (bytes < 50_000) return "<50KB";
+  if (bytes < 250_000) return "50KB-250KB";
+  if (bytes < 1_000_000) return "250KB-1MB";
+  if (bytes < 5_000_000) return "1MB-5MB";
+  return ">5MB";
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: "Title", sku: "SKU", price: "Price", handle: "Handle",
   description: "Description", vendor: "Vendor", brand: "Brand",
