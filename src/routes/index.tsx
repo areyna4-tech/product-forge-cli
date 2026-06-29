@@ -263,7 +263,7 @@ function Index() {
     }
   }, [target, previewExportRows.length]);
 
-  const parseCsvText = useCallback((text: string, name: string) => {
+  const parseCsvText = useCallback((text: string, name: string, fileSize?: number) => {
     const cleaned = text.replace(/^\uFEFF/, "");
     Papa.parse<Record<string, string>>(cleaned, {
       header: true,
@@ -290,7 +290,11 @@ function Index() {
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
-        track("csv_uploaded", { rows: rows.length, columns: hdrs.length, filename: name });
+        track("csv_uploaded", {
+          row_count: rows.length,
+          column_count: hdrs.length,
+          file_size_bucket: bucketFileSize(fileSize),
+        });
         toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
@@ -306,13 +310,13 @@ function Index() {
 
     }
     const reader = new FileReader();
-    reader.onload = () => parseCsvText(String(reader.result || ""), file.name);
+    reader.onload = () => parseCsvText(String(reader.result || ""), file.name, file.size);
     reader.onerror = () => setError("Failed to read file.");
     reader.readAsText(file);
   }, [parseCsvText]);
 
   const loadSample = () => {
-    track("sample_file_loaded");
+    track("sample_file_loaded", { source: "sample" });
     parseCsvText(SAMPLE_CSV, "sample-products.csv");
   };
 
