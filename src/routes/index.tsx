@@ -1455,8 +1455,8 @@ function Index() {
                   setLimitOpen(false);
                 }}>Maybe later</Button>
                 <Button onClick={() => {
-                  track("paid_beta_interest_clicked", { choice: "yes", email: limitEmail || null });
-                  if (limitEmail) track("email_submitted_after_limit", { email: limitEmail });
+                  track("paid_beta_interest_clicked", { choice: "yes" });
+                  if (limitEmail) track("email_submitted", { source: "free_export_limit" });
                   setLimitSubmitted(true);
                 }}>Yes, notify me</Button>
               </DialogFooter>
