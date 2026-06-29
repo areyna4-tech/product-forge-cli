@@ -224,15 +224,19 @@ function Index() {
   // Fire validation events when results change.
   useEffect(() => {
     if (!products.length) return;
+    const issueCount = products.reduce((n, p) => n + p.validationErrors.length, 0);
     track("validation_completed", {
-      total: products.length,
-      exportable: summary.exportableRows,
-      blocked: summary.blockedRows,
-      warnings: summary.warningRows,
+      target_format: target,
+      row_count: products.length,
+      column_count: headers.length,
+      exportable_rows: summary.exportableRows,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+      issue_count: issueCount,
     });
-    if (summary.blockedRows > 0) track("blocker_found", { count: summary.blockedRows });
-    if (summary.warningRows > 0) track("warning_found", { count: summary.warningRows });
-  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows]);
+    if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
+    if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, target, headers.length]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
