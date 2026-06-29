@@ -343,7 +343,13 @@ function Index() {
   };
 
   const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
-    track("mapping_changed", { field, sourceColumn: sourceColumn === NO_SOURCE ? null : sourceColumn });
+    const cleared = sourceColumn === NO_SOURCE || !sourceColumn;
+    const idx = cleared ? -1 : headers.indexOf(sourceColumn);
+    track("mapping_changed", {
+      target_field: field,
+      source_column_index: cleared ? null : (idx >= 0 ? idx : null),
+      cleared,
+    });
     setMappings((prev) => {
       const idx = prev.findIndex((m) => m.destinationField === field);
       if (sourceColumn === NO_SOURCE || !sourceColumn) {
