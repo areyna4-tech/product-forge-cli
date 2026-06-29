@@ -413,17 +413,22 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    track("export_clicked", { target, rows: exportRows.length });
+    track("export_clicked", { target_format: target, exportable_rows: exportRows.length });
     if (freeExportUsed) {
-      track("free_export_limit_reached", { target });
+      track("free_export_limit_reached", { target_format: target });
       setLimitSubmitted(false);
       setLimitEmail("");
       setLimitOpen(true);
       return;
     }
     performDownload();
-    track("beta_export_downloaded", { target, rows: exportRows.length });
-    track("free_beta_export_used", { target, rows: exportRows.length });
+    track("beta_export_downloaded", {
+      target_format: target,
+      exportable_rows: exportRows.length,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+    });
+    track("free_beta_export_used", { target_format: target });
     try { window.localStorage.setItem("productForgeFreeExportUsed", "true"); } catch {}
     setFreeExportUsed(true);
     setFeedbackSubmitted(false);
@@ -435,14 +440,18 @@ function Index() {
   };
 
   const submitFeedback = () => {
+    const worthMap: Record<string, string> = { yes: "Yes", maybe: "Maybe", no: "No" };
+    const solvedMap: Record<string, string> = { yes: "Yes", partially: "Partially", no: "No" };
+    const paymentAnswer = worthChoice ? worthMap[worthChoice] : null;
+    const solvedAnswer = solvedChoice ? solvedMap[solvedChoice] : null;
     track("post_export_feedback_submitted", {
-      worth: worthChoice,
-      solved: solvedChoice,
-      email: feedbackEmail || null,
-      note: feedbackNote || null,
+      payment_intent_answer: paymentAnswer,
+      solved_problem_answer: solvedAnswer,
+      missing_feedback_provided: Boolean(feedbackNote && feedbackNote.trim()),
+      email_provided: Boolean(feedbackEmail),
     });
-    if (worthChoice === "yes") track("payment_intent_yes", { email: feedbackEmail || null });
-    else if (worthChoice === "maybe") track("payment_intent_maybe", { email: feedbackEmail || null });
+    if (worthChoice === "yes") track("payment_intent_yes");
+    else if (worthChoice === "maybe") track("payment_intent_maybe");
     else if (worthChoice === "no") track("payment_intent_no", { email: feedbackEmail || null });
     setFeedbackSubmitted(true);
   };
