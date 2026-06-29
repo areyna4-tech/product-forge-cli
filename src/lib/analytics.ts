@@ -91,11 +91,6 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ event, ...safe, ts: Date.now() });
     if (import.meta.env.DEV) console.debug("[analytics]", event, safe);
-
-    // Emit email_submitted alongside any event that carried an email.
-    if (properties.email && event !== "email_submitted") {
-      posthog.capture("email_submitted", { source_event: event });
-    }
   } catch {
     // no-op
   }
