@@ -55,7 +55,13 @@ declare global {
 }
 
 // Strip any potentially sensitive fields before sending.
-const SENSITIVE_KEYS = new Set(["email", "filename", "file_name", "fileName", "sourceValue", "value"]);
+const SENSITIVE_KEYS = new Set([
+  "email",
+  "filename", "file_name", "fileName",
+  "sourceValue", "value",
+  "note", "feedback", "feedback_note", "feedback_text",
+  "sourceColumn", "source_column", "source_column_label",
+]);
 function scrub(props: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(props)) {
