@@ -42,10 +42,17 @@ function ensureInit() {
       capture_pageview: true,
       capture_pageleave: true,
       persistence: "localStorage+cookie",
+      disable_session_recording: true,
+      autocapture: false,
     });
   } catch {
     // no-op
   }
+}
+
+// Eager init so events fired before any track() call also work.
+if (typeof window !== "undefined") {
+  ensureInit();
 }
 
 declare global {
@@ -55,7 +62,13 @@ declare global {
 }
 
 // Strip any potentially sensitive fields before sending.
-const SENSITIVE_KEYS = new Set(["email", "filename", "file_name", "fileName", "sourceValue", "value"]);
+const SENSITIVE_KEYS = new Set([
+  "email",
+  "filename", "file_name", "fileName",
+  "sourceValue", "value",
+  "note", "feedback", "feedback_note", "feedback_text",
+  "sourceColumn", "source_column", "source_column_label",
+]);
 function scrub(props: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(props)) {
@@ -78,11 +91,6 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ event, ...safe, ts: Date.now() });
     if (import.meta.env.DEV) console.debug("[analytics]", event, safe);
-
-    // Emit email_submitted alongside any event that carried an email.
-    if (properties.email && event !== "email_submitted") {
-      posthog.capture("email_submitted", { source_event: event });
-    }
   } catch {
     // no-op
   }

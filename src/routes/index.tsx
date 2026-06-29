@@ -47,6 +47,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function bucketFileSize(bytes?: number): string | undefined {
+  if (bytes == null) return undefined;
+  if (bytes < 50_000) return "<50KB";
+  if (bytes < 250_000) return "50KB-250KB";
+  if (bytes < 1_000_000) return "250KB-1MB";
+  if (bytes < 5_000_000) return "1MB-5MB";
+  return ">5MB";
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: "Title", sku: "SKU", price: "Price", handle: "Handle",
   description: "Description", vendor: "Vendor", brand: "Brand",
@@ -224,15 +233,19 @@ function Index() {
   // Fire validation events when results change.
   useEffect(() => {
     if (!products.length) return;
+    const issueCount = products.reduce((n, p) => n + p.validationErrors.length, 0);
     track("validation_completed", {
-      total: products.length,
-      exportable: summary.exportableRows,
-      blocked: summary.blockedRows,
-      warnings: summary.warningRows,
+      target_format: target,
+      row_count: products.length,
+      column_count: headers.length,
+      exportable_rows: summary.exportableRows,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+      issue_count: issueCount,
     });
-    if (summary.blockedRows > 0) track("blocker_found", { count: summary.blockedRows });
-    if (summary.warningRows > 0) track("warning_found", { count: summary.warningRows });
-  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows]);
+    if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
+    if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, target, headers.length]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
@@ -259,7 +272,7 @@ function Index() {
     }
   }, [target, previewExportRows.length]);
 
-  const parseCsvText = useCallback((text: string, name: string) => {
+  const parseCsvText = useCallback((text: string, name: string, fileSize?: number) => {
     const cleaned = text.replace(/^\uFEFF/, "");
     Papa.parse<Record<string, string>>(cleaned, {
       header: true,
@@ -286,7 +299,11 @@ function Index() {
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
-        track("csv_uploaded", { rows: rows.length, columns: hdrs.length, filename: name });
+        track("csv_uploaded", {
+          row_count: rows.length,
+          column_count: hdrs.length,
+          file_size_bucket: bucketFileSize(fileSize),
+        });
         toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
@@ -302,13 +319,13 @@ function Index() {
 
     }
     const reader = new FileReader();
-    reader.onload = () => parseCsvText(String(reader.result || ""), file.name);
+    reader.onload = () => parseCsvText(String(reader.result || ""), file.name, file.size);
     reader.onerror = () => setError("Failed to read file.");
     reader.readAsText(file);
   }, [parseCsvText]);
 
   const loadSample = () => {
-    track("sample_file_loaded");
+    track("sample_file_loaded", { source: "sample" });
     parseCsvText(SAMPLE_CSV, "sample-products.csv");
   };
 
@@ -326,7 +343,13 @@ function Index() {
   };
 
   const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
-    track("mapping_changed", { field, sourceColumn: sourceColumn === NO_SOURCE ? null : sourceColumn });
+    const cleared = sourceColumn === NO_SOURCE || !sourceColumn;
+    const idx = cleared ? -1 : headers.indexOf(sourceColumn);
+    track("mapping_changed", {
+      target_field: field,
+      source_column_index: cleared ? null : (idx >= 0 ? idx : null),
+      cleared,
+    });
     setMappings((prev) => {
       const idx = prev.findIndex((m) => m.destinationField === field);
       if (sourceColumn === NO_SOURCE || !sourceColumn) {
@@ -390,17 +413,22 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    track("export_clicked", { target, rows: exportRows.length });
+    track("export_clicked", { target_format: target, exportable_rows: exportRows.length });
     if (freeExportUsed) {
-      track("free_export_limit_reached", { target });
+      track("free_export_limit_reached", { target_format: target });
       setLimitSubmitted(false);
       setLimitEmail("");
       setLimitOpen(true);
       return;
     }
     performDownload();
-    track("beta_export_downloaded", { target, rows: exportRows.length });
-    track("free_beta_export_used", { target, rows: exportRows.length });
+    track("beta_export_downloaded", {
+      target_format: target,
+      exportable_rows: exportRows.length,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+    });
+    track("free_beta_export_used", { target_format: target });
     try { window.localStorage.setItem("productForgeFreeExportUsed", "true"); } catch {}
     setFreeExportUsed(true);
     setFeedbackSubmitted(false);
@@ -412,15 +440,20 @@ function Index() {
   };
 
   const submitFeedback = () => {
+    const worthMap: Record<string, string> = { yes: "Yes", maybe: "Maybe", no: "No" };
+    const solvedMap: Record<string, string> = { yes: "Yes", partially: "Partially", no: "No" };
+    const paymentAnswer = worthChoice ? worthMap[worthChoice] : null;
+    const solvedAnswer = solvedChoice ? solvedMap[solvedChoice] : null;
     track("post_export_feedback_submitted", {
-      worth: worthChoice,
-      solved: solvedChoice,
-      email: feedbackEmail || null,
-      note: feedbackNote || null,
+      payment_intent_answer: paymentAnswer,
+      solved_problem_answer: solvedAnswer,
+      missing_feedback_provided: Boolean(feedbackNote && feedbackNote.trim()),
+      email_provided: Boolean(feedbackEmail),
     });
-    if (worthChoice === "yes") track("payment_intent_yes", { email: feedbackEmail || null });
-    else if (worthChoice === "maybe") track("payment_intent_maybe", { email: feedbackEmail || null });
-    else if (worthChoice === "no") track("payment_intent_no", { email: feedbackEmail || null });
+    if (worthChoice === "yes") track("payment_intent_yes");
+    else if (worthChoice === "maybe") track("payment_intent_maybe");
+    else if (worthChoice === "no") track("payment_intent_no");
+    if (feedbackEmail) track("email_submitted", { source: "post_export_feedback" });
     setFeedbackSubmitted(true);
   };
 
@@ -780,7 +813,7 @@ function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => { setTarget(id); track("target_format_selected", { target: id }); }}
+                          onClick={() => { setTarget(id); track("target_format_selected", { target_format: id }); }}
                           aria-pressed={selected}
                           className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
@@ -1422,8 +1455,8 @@ function Index() {
                   setLimitOpen(false);
                 }}>Maybe later</Button>
                 <Button onClick={() => {
-                  track("paid_beta_interest_clicked", { choice: "yes", email: limitEmail || null });
-                  if (limitEmail) track("email_submitted_after_limit", { email: limitEmail });
+                  track("paid_beta_interest_clicked", { choice: "yes" });
+                  if (limitEmail) track("email_submitted", { source: "free_export_limit" });
                   setLimitSubmitted(true);
                 }}>Yes, notify me</Button>
               </DialogFooter>
