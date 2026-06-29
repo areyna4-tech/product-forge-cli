@@ -452,7 +452,8 @@ function Index() {
     });
     if (worthChoice === "yes") track("payment_intent_yes");
     else if (worthChoice === "maybe") track("payment_intent_maybe");
-    else if (worthChoice === "no") track("payment_intent_no", { email: feedbackEmail || null });
+    else if (worthChoice === "no") track("payment_intent_no");
+    if (feedbackEmail) track("email_submitted", { source: "post_export_feedback" });
     setFeedbackSubmitted(true);
   };
 
