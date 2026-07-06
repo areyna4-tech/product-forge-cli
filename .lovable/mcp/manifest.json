@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "productcsvfixer-mcp",
+      "version": "0.1.0",
+      "title": "ProductCSVFixer"
+    },
+    "tools": [
+      {
+        "name": "check_shopify_csv",
+        "title": "Check Shopify CSV",
+        "description": "Run ProductCSVFixer's pre-flight checker on a product CSV. Returns Shopify import blocker counts (missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems) plus per-row issues. Runs on raw CSV text — no files uploaded, no data stored.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "csv": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Raw CSV text (with a header row) to validate against Shopify's product import requirements."
+            },
+            "max_row_issues": {
+              "description": "Maximum per-row issue entries to return. Defaults to 100.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          },
+          "required": [
+            "csv"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_shopify_import_blockers",
+        "title": "List Shopify import blockers",
+        "description": "Return the common Shopify product CSV import blockers ProductCSVFixer checks for, with a short explanation of each.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
