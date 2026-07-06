@@ -243,6 +243,15 @@ function Index() {
       warning_rows: summary.warningRows,
       issue_count: issueCount,
     });
+    track("report_viewed", {
+      target_format: target,
+      row_count: products.length,
+      column_count: headers.length,
+      exportable_rows: summary.exportableRows,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+      issue_count: issueCount,
+    });
     if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
     if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
   }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, target, headers.length]);
@@ -272,8 +281,10 @@ function Index() {
     }
   }, [target, previewExportRows.length]);
 
-  const parseCsvText = useCallback((text: string, name: string, fileSize?: number) => {
+  const parseCsvText = useCallback((text: string, name: string, fileSize?: number, sourceType: "sample" | "user_upload" = "user_upload") => {
     const cleaned = text.replace(/^\uFEFF/, "");
+    if (sourceType === "user_upload") track("csv_upload_started", { file_size_bucket: bucketFileSize(fileSize) });
+    else track("validation_started", { source_type: sourceType });
     Papa.parse<Record<string, string>>(cleaned, {
       header: true,
       skipEmptyLines: "greedy",
@@ -282,6 +293,10 @@ function Index() {
         const hdrs = (results.meta.fields || []).filter(Boolean);
         if (!hdrs.length) {
           setError("CSV has no headers. Make sure the first row contains column names.");
+          track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+            source_type: sourceType,
+            reason: "missing_headers",
+          });
           return;
         }
         const rows = (results.data || []).filter((r) =>
@@ -292,6 +307,10 @@ function Index() {
         );
         if (!rows.length) {
           setError("CSV is empty. No data rows found.");
+          track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+            source_type: sourceType,
+            reason: "empty_rows",
+          });
           return;
         }
         setError("");
@@ -299,15 +318,22 @@ function Index() {
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
-        track("csv_uploaded", {
+        const eventProperties = {
+          source_type: sourceType,
           row_count: rows.length,
           column_count: hdrs.length,
           file_size_bucket: bucketFileSize(fileSize),
-        });
+        };
+        track(sourceType === "sample" ? "sample_file_loaded" : "csv_upload_succeeded", eventProperties);
+        track("csv_uploaded", eventProperties);
         toast.success(`Loaded ${rows.length} rows from ${name}`);
       },
       error: (err: Error) => {
         setError(`Failed to parse CSV: ${err.message}`);
+        track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+          source_type: sourceType,
+          reason: "parse_error",
+        });
       },
     });
   }, []);
@@ -320,13 +346,16 @@ function Index() {
     }
     const reader = new FileReader();
     reader.onload = () => parseCsvText(String(reader.result || ""), file.name, file.size);
-    reader.onerror = () => setError("Failed to read file.");
+    reader.onerror = () => {
+      setError("Failed to read file.");
+      track("csv_upload_failed", { source_type: "user_upload", reason: "file_read_error" });
+    };
     reader.readAsText(file);
   }, [parseCsvText]);
 
   const loadSample = () => {
-    track("sample_file_loaded", { source: "sample" });
-    parseCsvText(SAMPLE_CSV, "sample-products.csv");
+    track("sample_file_clicked", { source_type: "sample" });
+    parseCsvText(SAMPLE_CSV, "sample-products.csv", undefined, "sample");
   };
 
   const reset = () => {
@@ -422,6 +451,12 @@ function Index() {
       return;
     }
     performDownload();
+    track("export_downloaded", {
+      target_format: target,
+      exportable_rows: exportRows.length,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+    });
     track("beta_export_downloaded", {
       target_format: target,
       exportable_rows: exportRows.length,
@@ -630,6 +665,7 @@ function Index() {
                 <Button
                   size="lg"
                   onClick={() => {
+                    track("primary_cta_clicked");
                     track("check_csv_cta_clicked");
                     fileInputRef.current?.click();
                   }}
