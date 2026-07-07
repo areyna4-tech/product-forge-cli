@@ -47,6 +47,22 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const homeJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "ProductCSVFixer",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://productcsvfixer.com/",
+  description: "Browser-based Shopify CSV import error checker for missing SKUs, invalid prices, duplicate SKUs, image URL issues, required fields, and Shopify-ready export checks.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    description: "Free beta scan and one beta export while ProductCSVFixer validates self-serve paid exports.",
+  },
+};
+
 function bucketFileSize(bytes?: number): string | undefined {
   if (bytes == null) return undefined;
   if (bytes < 50_000) return "<50KB";
@@ -697,6 +713,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
       <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
 
       {/* Header */}
@@ -1505,6 +1522,28 @@ function Index() {
               </div>
             ))}
           </dl>
+        </section>
+
+        <section aria-labelledby="seo-guides-heading" className="mt-12 border-t pt-10">
+          <h2 id="seo-guides-heading" className="text-2xl font-semibold tracking-tight text-foreground">
+            Shopify CSV guides
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground max-w-3xl">
+            Learn how to validate, fix, and convert product CSVs before Shopify import.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: "/shopify-csv-validator", label: "Shopify CSV Validator", desc: "Check product CSV import readiness." },
+              { href: "/shopify-csv-import-errors", label: "Shopify CSV Import Errors", desc: "Find common blockers before upload." },
+              { href: "/fix-shopify-product-csv", label: "Fix Shopify Product CSV", desc: "Clean supplier files for Shopify." },
+              { href: "/supplier-csv-to-shopify", label: "Supplier CSV to Shopify", desc: "Map supplier columns to Shopify fields." },
+            ].map((guide) => (
+              <a key={guide.href} href={guide.href} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40">
+                <span className="text-sm font-semibold text-foreground">{guide.label}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{guide.desc}</span>
+              </a>
+            ))}
+          </div>
         </section>
 
         <section aria-labelledby="privacy-heading" className="mt-12 border-t pt-10">

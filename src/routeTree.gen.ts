@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupplierCsvToShopifyRouteImport } from './routes/supplier-csv-to-shopify'
+import { Route as ShopifyCsvValidatorRouteImport } from './routes/shopify-csv-validator'
 import { Route as ShopifyCsvImportErrorsRouteImport } from './routes/shopify-csv-import-errors'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as FixShopifyProductCsvRouteImport } from './routes/fix-shopify-product-csv'
@@ -21,6 +22,11 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 const SupplierCsvToShopifyRoute = SupplierCsvToShopifyRouteImport.update({
   id: '/supplier-csv-to-shopify',
   path: '/supplier-csv-to-shopify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopifyCsvValidatorRoute = ShopifyCsvValidatorRouteImport.update({
+  id: '/shopify-csv-validator',
+  path: '/shopify-csv-validator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopifyCsvImportErrorsRoute = ShopifyCsvImportErrorsRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
   '/mcp': typeof McpRoute
   '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/shopify-csv-validator': typeof ShopifyCsvValidatorRoute
   '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
   '/mcp': typeof McpRoute
   '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/shopify-csv-validator': typeof ShopifyCsvValidatorRoute
   '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/fix-shopify-product-csv': typeof FixShopifyProductCsvRoute
   '/mcp': typeof McpRoute
   '/shopify-csv-import-errors': typeof ShopifyCsvImportErrorsRoute
+  '/shopify-csv-validator': typeof ShopifyCsvValidatorRoute
   '/supplier-csv-to-shopify': typeof SupplierCsvToShopifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/fix-shopify-product-csv'
     | '/mcp'
     | '/shopify-csv-import-errors'
+    | '/shopify-csv-validator'
     | '/supplier-csv-to-shopify'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/fix-shopify-product-csv'
     | '/mcp'
     | '/shopify-csv-import-errors'
+    | '/shopify-csv-validator'
     | '/supplier-csv-to-shopify'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/fix-shopify-product-csv'
     | '/mcp'
     | '/shopify-csv-import-errors'
+    | '/shopify-csv-validator'
     | '/supplier-csv-to-shopify'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   FixShopifyProductCsvRoute: typeof FixShopifyProductCsvRoute
   McpRoute: typeof McpRoute
   ShopifyCsvImportErrorsRoute: typeof ShopifyCsvImportErrorsRoute
+  ShopifyCsvValidatorRoute: typeof ShopifyCsvValidatorRoute
   SupplierCsvToShopifyRoute: typeof SupplierCsvToShopifyRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/shopify-csv-import-errors'
       fullPath: '/shopify-csv-import-errors'
       preLoaderRoute: typeof ShopifyCsvImportErrorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shopify-csv-validator': {
+      id: '/shopify-csv-validator'
+      path: '/shopify-csv-validator'
+      fullPath: '/shopify-csv-validator'
+      preLoaderRoute: typeof ShopifyCsvValidatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   FixShopifyProductCsvRoute: FixShopifyProductCsvRoute,
   McpRoute: McpRoute,
   ShopifyCsvImportErrorsRoute: ShopifyCsvImportErrorsRoute,
+  ShopifyCsvValidatorRoute: ShopifyCsvValidatorRoute,
   SupplierCsvToShopifyRoute: SupplierCsvToShopifyRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
