@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import Papa from "papaparse";
 import {
   Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
@@ -186,6 +186,7 @@ function Index() {
   const [howToFixOpen, setHowToFixOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [optionalOpen, setOptionalOpen] = useState(false);
+  const [mappingOpen, setMappingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [hideEmptyCols, setHideEmptyCols] = useState(true);
   const [copyStatus, setCopyStatus] = useState<{
@@ -206,6 +207,12 @@ function Index() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sampleButtonRef = useRef<HTMLButtonElement>(null);
+  const validationSummaryRef = useRef<HTMLElement>(null);
+  const blockersRef = useRef<HTMLElement>(null);
+  const warningsRef = useRef<HTMLElement>(null);
+  const exportRef = useRef<HTMLElement>(null);
+  const mappingRef = useRef<HTMLElement>(null);
+  const previewRef = useRef<HTMLElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
   // Track landing view once on mount; load free-export flag.
@@ -230,13 +237,35 @@ function Index() {
   }, [sourceRows, mappings, settings]);
 
   const summary = useMemo(() => summarize(products), [products]);
+  const importStatus = summary.blockedRows > 0
+    ? "import_blocked"
+    : summary.warningRows > 0
+      ? "review_recommended"
+      : "ready";
+  const importStatusLabel = importStatus === "import_blocked"
+    ? "Import blocked"
+    : importStatus === "review_recommended"
+      ? "Review recommended"
+      : "Ready for Shopify import";
+
+  const scrollToSection = useCallback((ref: RefObject<HTMLElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  useEffect(() => {
+    if (!products.length) return;
+    validationSummaryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [products.length]);
 
   // Fire validation events when results change.
   useEffect(() => {
     if (!products.length) return;
     const issueCount = products.reduce((n, p) => n + p.validationErrors.length, 0);
     track("validation_completed", {
+      status: importStatus,
+      selected_format: target,
       target_format: target,
+      total_rows: products.length,
       row_count: products.length,
       column_count: headers.length,
       exportable_rows: summary.exportableRows,
@@ -245,7 +274,10 @@ function Index() {
       issue_count: issueCount,
     });
     track("report_viewed", {
+      status: importStatus,
+      selected_format: target,
       target_format: target,
+      total_rows: products.length,
       row_count: products.length,
       column_count: headers.length,
       exportable_rows: summary.exportableRows,
@@ -255,7 +287,7 @@ function Index() {
     });
     if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
     if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
-  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, target, headers.length]);
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, importStatus, target, headers.length]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
@@ -375,7 +407,7 @@ function Index() {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
     setSettings(defaultSettings); setTarget("shopify"); setError("");
     setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
-    setOptionalOpen(false); setAdvancedOpen(false);
+    setOptionalOpen(false); setMappingOpen(false); setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     toast.info("Reset complete");
   };
@@ -455,7 +487,15 @@ function Index() {
       toast.error("No valid rows available for export.");
       return;
     }
-    track("export_clicked", { target_format: target, exportable_rows: exportRows.length });
+    track("export_clicked", {
+      status: importStatus,
+      selected_format: target,
+      target_format: target,
+      export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
+      exportable_rows: exportRows.length,
+      blocked_rows: summary.blockedRows,
+      warning_rows: summary.warningRows,
+    });
     if (freeExportUsed) {
       track("free_export_limit_reached", { target_format: target });
       setLimitSubmitted(false);
@@ -465,6 +505,9 @@ function Index() {
     }
     performDownload();
     track("export_downloaded", {
+      status: importStatus,
+      selected_format: target,
+      export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
       target_format: target,
       exportable_rows: exportRows.length,
       blocked_rows: summary.blockedRows,
@@ -851,6 +894,25 @@ function Index() {
 
         {hasFile && (
           <>
+            <section ref={validationSummaryRef} aria-labelledby="validation-summary-heading">
+              <ValidationSummaryCard
+                status={importStatus}
+                statusLabel={importStatusLabel}
+                totalRows={products.length}
+                exportableRows={summary.exportableRows}
+                blockedRows={summary.blockedRows}
+                warningRows={summary.warningRows}
+                selectedFormat={TARGET_META[target].title}
+                freeExportUsed={freeExportUsed}
+                onReviewBlockers={() => scrollToSection(blockersRef)}
+                onReviewWarnings={() => scrollToSection(warningsRef)}
+                onDownload={handleDownload}
+                onReviewMapping={() => scrollToSection(mappingRef)}
+                onPreview={() => scrollToSection(previewRef)}
+                onTryAnother={replaceFile}
+              />
+            </section>
+
             {/* Step 2 — Choose export format */}
             <section>
               <StepHeader number={2} title="Choose target import format" active />
@@ -888,34 +950,51 @@ function Index() {
             </section>
 
             {/* Step 3 — Review field mapping */}
-            <section>
+            <section ref={mappingRef}>
               <StepHeader number={3} title="Review import field mapping" active />
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Required fields</CardTitle>
-                  <CardDescription>
-                    {allRequiredMapped
-                      ? `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped.`
-                      : `${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Map all required fields before export.`}
-                  </CardDescription>
-
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {requiredFields.map((field) => (
-                    <MappingRow
-                      key={field}
-                      field={field}
-                      required
-                      headers={headers}
-                      mapping={mappings.find((m) => m.destinationField === field)}
-                      sample={sampleTransformed(field)}
-                      onUpdate={updateMapping}
-                      onTransform={updateTransform}
-                      onClear={clearMapping}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
+              <Collapsible open={!allRequiredMapped || mappingOpen} onOpenChange={setMappingOpen}>
+                <Card>
+                  <CollapsibleTrigger className="w-full text-left">
+                    <CardHeader className="cursor-pointer">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            {!allRequiredMapped || mappingOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            Field mapping
+                          </CardTitle>
+                          <CardDescription>
+                            {allRequiredMapped
+                              ? `Field mapping complete · ${requiredMappedCount} of ${REQUIRED_FIELDS.length} required Shopify fields mapped automatically.`
+                              : `Mapping needs review · ${requiredMappedCount} of ${REQUIRED_FIELDS.length} required fields mapped. Map all required fields before export.`}
+                          </CardDescription>
+                        </div>
+                        {allRequiredMapped ? (
+                          <Badge variant="secondary" className="shrink-0">Mapped</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="shrink-0">Needs review</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-3">
+                      {requiredFields.map((field) => (
+                        <MappingRow
+                          key={field}
+                          field={field}
+                          required
+                          headers={headers}
+                          mapping={mappings.find((m) => m.destinationField === field)}
+                          sample={sampleTransformed(field)}
+                          onUpdate={updateMapping}
+                          onTransform={updateTransform}
+                          onClear={clearMapping}
+                        />
+                      ))}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
 
               <Card className="mt-4">
                 <details
@@ -1175,24 +1254,30 @@ function Index() {
                     </div>
 
                     {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
-                      <IssueGroup
-                        title="Blocking errors"
-                        description="These rows will be excluded from the import file. Fix them in the source CSV and re-upload."
-                        tone="error"
-                        issues={blockingIssues}
-                        mappings={mappings}
-                        headers={headers}
-                      />
+                      <section ref={blockersRef} aria-labelledby="blockers-heading">
+                        <IssueGroup
+                          id="blockers-heading"
+                          title="Fix these blockers before Shopify upload"
+                          description="Blocked rows contain required-field problems that should be fixed before importing into Shopify. These rows will be excluded from the beta export."
+                          tone="error"
+                          issues={blockingIssues}
+                          mappings={mappings}
+                          headers={headers}
+                        />
+                      </section>
                     )}
                     {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
-                      <IssueGroup
-                        title="Warnings"
-                        description="These rows can still be imported, but may cause issues in Shopify."
-                        tone="warning"
-                        issues={warningIssues}
-                        mappings={mappings}
-                        headers={headers}
-                      />
+                      <section ref={warningsRef} aria-labelledby="warnings-heading">
+                        <IssueGroup
+                          id="warnings-heading"
+                          title="Review recommended warnings"
+                          description="These rows are exportable, but the issues below may cause product, variant, or inventory problems in Shopify."
+                          tone="warning"
+                          issues={warningIssues}
+                          mappings={mappings}
+                          headers={headers}
+                        />
+                      </section>
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4 text-center">No blocking import errors.</p>
@@ -1205,7 +1290,8 @@ function Index() {
               )}
 
               {/* Export readiness */}
-              <Card className="mt-4">
+              <section ref={exportRef}>
+                <Card className="mt-4">
                 <CardContent className="pt-6">
                   {allRequiredMapped && summary.exportableRows > 0 ? (
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
@@ -1217,7 +1303,7 @@ function Index() {
                             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                           )}
                           <p className="font-medium">
-                            {summary.blockedRows > 0 ? "Import blockers found. Review required fields before exporting." : "Ready for import"}
+                            {summary.blockedRows > 0 ? "Import blocked. Exportable rows can still be downloaded." : "Ready for Shopify import"}
                           </p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -1245,7 +1331,7 @@ function Index() {
                           <>
                             <Button onClick={handleDownload} size="lg" className="font-semibold">
                               <Download className="h-4 w-4 mr-1.5" />
-                              Download beta export free
+                              {summary.blockedRows > 0 ? "Download exportable rows" : "Download beta export"}
                             </Button>
                             <span className="text-[11px] text-muted-foreground">1 free beta export per browser · Target future price $9/file</span>
                           </>
@@ -1270,9 +1356,11 @@ function Index() {
                   )}
                 </CardContent>
               </Card>
+              </section>
 
               {/* Output Preview */}
-              <Card className="mt-4">
+              <section ref={previewRef}>
+                <Card className="mt-4">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0">
@@ -1347,6 +1435,7 @@ function Index() {
                   )}
                 </CardContent>
               </Card>
+              </section>
             </section>
           </>
         )}
@@ -1526,6 +1615,115 @@ function Index() {
   );
 }
 
+function ValidationSummaryCard({
+  status, statusLabel, totalRows, exportableRows, blockedRows, warningRows, selectedFormat,
+  freeExportUsed, onReviewBlockers, onReviewWarnings, onDownload, onReviewMapping, onPreview, onTryAnother,
+}: {
+  status: "import_blocked" | "review_recommended" | "ready";
+  statusLabel: string;
+  totalRows: number;
+  exportableRows: number;
+  blockedRows: number;
+  warningRows: number;
+  selectedFormat: string;
+  freeExportUsed: boolean;
+  onReviewBlockers: () => void;
+  onReviewWarnings: () => void;
+  onDownload: () => void;
+  onReviewMapping: () => void;
+  onPreview: () => void;
+  onTryAnother: () => void;
+}) {
+  const isBlocked = status === "import_blocked";
+  const isWarning = status === "review_recommended";
+  const Icon = isBlocked ? AlertCircle : isWarning ? AlertTriangle : CheckCircle2;
+  const cardClass = isBlocked
+    ? "border-red-200 bg-red-50/80"
+    : isWarning
+      ? "border-amber-200 bg-amber-50/80"
+      : "border-emerald-200 bg-emerald-50/80";
+  const badgeClass = isBlocked
+    ? "bg-red-600 text-white"
+    : isWarning
+      ? "bg-amber-500 text-white"
+      : "bg-emerald-600 text-white";
+  const iconClass = isBlocked ? "text-red-700" : isWarning ? "text-amber-700" : "text-emerald-700";
+  const summaryCopy = isBlocked
+    ? `Your CSV has ${blockedRows} blocked ${blockedRows === 1 ? "row" : "rows"} that should be fixed before Shopify upload.`
+    : isWarning
+      ? `Your CSV can be exported, but ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings that may cause Shopify import issues.`
+      : "No required-field blockers found.";
+  const supportingCopy = isBlocked
+    ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings.`
+    : "All rows are exportable.";
+  const primaryLabel = isBlocked ? "Review blockers" : freeExportUsed ? "Request more exports" : "Download beta export";
+  const primaryAction = isBlocked ? onReviewBlockers : onDownload;
+  const secondaryExportLabel = isBlocked ? "Download exportable rows" : "Show output preview";
+  const secondaryExportAction = isBlocked ? onDownload : onPreview;
+  const metrics = [
+    ["Total rows", totalRows],
+    ["Exportable rows", exportableRows],
+    ["Blocked rows", blockedRows],
+    ["Rows with warnings", warningRows],
+  ];
+
+  return (
+    <Card className={`border-2 shadow-sm ${cardClass}`}>
+      <CardContent className="pt-6 space-y-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Icon className={`h-5 w-5 ${iconClass}`} />
+              <Badge className={badgeClass}>{statusLabel}</Badge>
+              <span className="text-xs text-muted-foreground">Selected format: {selectedFormat}</span>
+            </div>
+            <h2 id="validation-summary-heading" className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+              {statusLabel}
+            </h2>
+            <p className="mt-1 text-sm font-medium text-foreground">{summaryCopy}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{supportingCopy}</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end shrink-0">
+            <Button size="lg" onClick={primaryAction} className="font-semibold">
+              {isBlocked ? <AlertCircle className="h-4 w-4 mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
+              {primaryLabel}
+            </Button>
+            <Button size="lg" variant="outline" onClick={secondaryExportAction} disabled={isBlocked && exportableRows === 0}>
+              {secondaryExportLabel}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {metrics.map(([label, value]) => (
+            <div key={label} className="rounded-lg border bg-background/80 p-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {isBlocked && warningRows > 0 && (
+            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>Review warnings</Button>
+          )}
+          {!isBlocked && isWarning && (
+            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>Review warnings</Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={onReviewMapping}>Review mapping</Button>
+          <Button variant="ghost" size="sm" onClick={onPreview}>Show output preview</Button>
+          <Button variant="ghost" size="sm" onClick={onTryAnother}>Try another CSV</Button>
+        </div>
+
+        <p className="rounded-md border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+          <Shield className="mr-1.5 inline h-3.5 w-3.5" />
+          Your CSV is checked in your browser for import readiness only. ProductCSVFixer is a pre-flight checker, not a bulk editor.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function StepHeader({ number, title, active }: { number: number; title: string; active?: boolean }) {
   return (
     <div className="flex items-center gap-3 mb-3">
@@ -1628,8 +1826,9 @@ function MappingRow({
 }
 
 function IssueGroup({
-  title, description, tone, issues, mappings, headers,
+  id, title, description, tone, issues, mappings, headers,
 }: {
+  id?: string;
   title: string;
   description: string;
   tone: "error" | "warning";
@@ -1647,7 +1846,7 @@ function IssueGroup({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${iconColor}`} />
-        <p className="font-medium text-sm">{title}</p>
+        <p id={id} className="font-medium text-sm">{title}</p>
         <Badge variant="secondary" className="text-[10px] h-4">{issues.length}</Badge>
       </div>
       <p className="text-xs text-muted-foreground">{description}</p>
@@ -1655,9 +1854,6 @@ function IssueGroup({
         {issues.slice(0, 100).map(({ p, e }, i) => {
           const d = describeIssue(p, e, mappings, headers);
           const fieldLabel = FIELD_LABELS[e.field] || e.field;
-          const sourceLine = d.sourceColumn
-            ? `Source: ${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}`
-            : "Source: not mapped";
           return (
             <div key={i} className="rounded-md border bg-card p-3 sm:p-4">
               <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -1671,20 +1867,35 @@ function IssueGroup({
                   <span className="text-xs text-muted-foreground font-mono">SKU: {p.sku}</span>
                 )}
               </div>
-              <dl className="space-y-1 text-xs sm:text-sm">
-                <div className="text-muted-foreground">{sourceLine}</div>
+              <dl className="grid gap-2 text-xs sm:grid-cols-2 sm:text-sm">
                 <div>
-                  <span className="text-muted-foreground">Value: </span>
-                  {d.current ? (
-                    <span className="font-mono text-foreground break-all">{d.current}</span>
-                  ) : (
-                    <span className="italic text-muted-foreground">blank</span>
-                  )}
+                  <dt className="font-medium text-muted-foreground">Problem</dt>
+                  <dd className="text-foreground">{d.problem}</dd>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Suggested fix: </span>
-                  <span className="text-foreground">{d.fix}</span>
+                  <dt className="font-medium text-muted-foreground">Where</dt>
+                  <dd className="text-foreground">{d.sourceColumn ? `${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}` : "Source not mapped"}</dd>
                 </div>
+                <div>
+                  <dt className="font-medium text-muted-foreground">Current value</dt>
+                  <dd>
+                    {d.current ? (
+                      <span className="font-mono text-foreground break-all">{d.current}</span>
+                    ) : (
+                      <span className="italic text-muted-foreground">blank</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-muted-foreground">{tone === "error" ? "Fix" : "Suggested fix"}</dt>
+                  <dd className="text-foreground">{d.fix}</dd>
+                </div>
+                {tone === "warning" && (
+                  <div className="sm:col-span-2">
+                    <dt className="font-medium text-muted-foreground">Why it matters</dt>
+                    <dd className="text-foreground">This row is exportable, but the value may create product, variant, inventory, or merchandising issues in Shopify.</dd>
+                  </div>
+                )}
               </dl>
             </div>
           );
