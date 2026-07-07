@@ -1651,10 +1651,10 @@ function ValidationSummaryCard({
   const summaryCopy = isBlocked
     ? `Your CSV has ${blockedRows} blocked ${blockedRows === 1 ? "row" : "rows"} that should be fixed before Shopify upload.`
     : isWarning
-      ? `Your CSV can be exported, but ${warningRows} ${warningRows === 1 ? "warning" : "warnings"} may cause Shopify import issues.`
+      ? `Your CSV can be exported, but ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings that may cause Shopify import issues.`
       : "No required-field blockers found.";
   const supportingCopy = isBlocked
-    ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "warning" : "warnings"} found.`
+    ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings.`
     : "All rows are exportable.";
   const primaryLabel = isBlocked ? "Review blockers" : freeExportUsed ? "Request more exports" : "Download beta export";
   const primaryAction = isBlocked ? onReviewBlockers : onDownload;
@@ -1664,7 +1664,7 @@ function ValidationSummaryCard({
     ["Total rows", totalRows],
     ["Exportable rows", exportableRows],
     ["Blocked rows", blockedRows],
-    ["Warnings", warningRows],
+    ["Rows with warnings", warningRows],
   ];
 
   return (
