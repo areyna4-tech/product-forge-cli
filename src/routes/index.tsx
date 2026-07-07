@@ -205,6 +205,7 @@ function Index() {
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sampleButtonRef = useRef<HTMLButtonElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
   // Track landing view once on mount; load free-export flag.
@@ -357,6 +358,18 @@ function Index() {
     track("sample_file_clicked", { source_type: "sample" });
     parseCsvText(SAMPLE_CSV, "sample-products.csv", undefined, "sample");
   };
+
+  // Native click fallback for deployed TanStack Start/Lovable hydration edge cases.
+  // In production QA, React props hydrated onto the button, but synthetic click
+  // delegation did not consistently fire for automation/browser clicks. Attaching
+  // a direct DOM listener keeps the critical sample path reliable without
+  // sending CSV contents anywhere.
+  useEffect(() => {
+    const button = sampleButtonRef.current;
+    if (!button) return;
+    button.addEventListener("click", loadSample);
+    return () => button.removeEventListener("click", loadSample);
+  }, [loadSample]);
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
@@ -663,6 +676,7 @@ function Index() {
               </p>
               <div className="mt-5 flex justify-center">
                 <Button
+                  type="button"
                   size="lg"
                   onClick={() => {
                     track("primary_cta_clicked");
@@ -745,10 +759,10 @@ function Index() {
                       Upload a CSV with product names, SKUs, prices, inventory, images, or variants.
                     </p>
                     <div className="mt-4 flex justify-center gap-2 flex-wrap">
-                      <Button onClick={() => fileInputRef.current?.click()}>
+                      <Button type="button" onClick={() => fileInputRef.current?.click()}>
                         <Upload className="h-4 w-4 mr-1.5" />Browse CSV file
                       </Button>
-                      <Button variant="outline" onClick={loadSample}>
+                      <Button ref={sampleButtonRef} type="button" variant="outline">
                         <Sparkles className="h-4 w-4 mr-1.5" />Try sample file
                       </Button>
                     </div>
