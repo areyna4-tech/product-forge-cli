@@ -902,6 +902,7 @@ function Index() {
                 exportableRows={summary.exportableRows}
                 blockedRows={summary.blockedRows}
                 warningRows={summary.warningRows}
+                warningIssueCount={warningIssues.length}
                 selectedFormat={TARGET_META[target].title}
                 freeExportUsed={freeExportUsed}
                 onReviewBlockers={() => scrollToSection(blockersRef)}
@@ -1617,7 +1618,7 @@ function Index() {
 
 function ValidationSummaryCard({
   status, statusLabel, totalRows, exportableRows, blockedRows, warningRows, selectedFormat,
-  freeExportUsed, onReviewBlockers, onReviewWarnings, onDownload, onReviewMapping, onPreview, onTryAnother,
+  warningIssueCount, freeExportUsed, onReviewBlockers, onReviewWarnings, onDownload, onReviewMapping, onPreview, onTryAnother,
 }: {
   status: "import_blocked" | "review_recommended" | "ready";
   statusLabel: string;
@@ -1625,6 +1626,7 @@ function ValidationSummaryCard({
   exportableRows: number;
   blockedRows: number;
   warningRows: number;
+  warningIssueCount: number;
   selectedFormat: string;
   freeExportUsed: boolean;
   onReviewBlockers: () => void;
@@ -1654,7 +1656,7 @@ function ValidationSummaryCard({
       ? `Your CSV can be exported, but ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings that may cause Shopify import issues.`
       : "No required-field blockers found.";
   const supportingCopy = isBlocked
-    ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings.`
+    ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings; ${warningIssueCount} total warning ${warningIssueCount === 1 ? "issue" : "issues"} found.`
     : "All rows are exportable.";
   const primaryLabel = isBlocked ? "Review blockers" : freeExportUsed ? "Request more exports" : "Download beta export";
   const primaryAction = isBlocked ? onReviewBlockers : onDownload;
@@ -1665,6 +1667,7 @@ function ValidationSummaryCard({
     ["Exportable rows", exportableRows],
     ["Blocked rows", blockedRows],
     ["Rows with warnings", warningRows],
+    ["Warning issues", warningIssueCount],
   ];
 
   return (
@@ -1694,7 +1697,7 @@ function ValidationSummaryCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {metrics.map(([label, value]) => (
             <div key={label} className="rounded-lg border bg-background/80 p-3">
               <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
