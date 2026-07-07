@@ -35,6 +35,11 @@ export type AnalyticsEvent =
   | "free_beta_export_used"
   | "free_export_limit_reached"
   | "paid_beta_interest_clicked"
+  | "paid_export_gate_viewed"
+  | "paid_export_interest_yes"
+  | "paid_export_interest_maybe"
+  | "paid_export_interest_no"
+  | "paid_export_email_submitted"
   | "email_submitted_after_limit"
   | "email_submitted";
 

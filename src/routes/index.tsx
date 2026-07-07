@@ -226,9 +226,13 @@ function Index() {
     } catch {}
   }, []);
 
+  useEffect(() => {
+    if (feedbackOpen) track("paid_export_gate_viewed", { gate: "post_export_feedback" });
+  }, [feedbackOpen]);
 
-
-
+  useEffect(() => {
+    if (limitOpen) track("paid_export_gate_viewed", { gate: "free_export_limit" });
+  }, [limitOpen]);
 
   const hasFile = sourceRows.length > 0;
 
@@ -554,10 +558,20 @@ function Index() {
       missing_feedback_provided: Boolean(feedbackNote && feedbackNote.trim()),
       email_provided: Boolean(feedbackEmail),
     });
-    if (worthChoice === "yes") track("payment_intent_yes");
-    else if (worthChoice === "maybe") track("payment_intent_maybe");
-    else if (worthChoice === "no") track("payment_intent_no");
-    if (feedbackEmail) track("email_submitted", { source: "post_export_feedback" });
+    if (worthChoice === "yes") {
+      track("payment_intent_yes");
+      track("paid_export_interest_yes", { source: "post_export_feedback" });
+    } else if (worthChoice === "maybe") {
+      track("payment_intent_maybe");
+      track("paid_export_interest_maybe", { source: "post_export_feedback" });
+    } else if (worthChoice === "no") {
+      track("payment_intent_no");
+      track("paid_export_interest_no", { source: "post_export_feedback" });
+    }
+    if (feedbackEmail) {
+      track("email_submitted", { source: "post_export_feedback" });
+      track("paid_export_email_submitted", { source: "post_export_feedback" });
+    }
     setFeedbackSubmitted(true);
   };
 
@@ -1507,9 +1521,9 @@ function Index() {
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Was this export useful?</DialogTitle>
+            <DialogTitle>Would a self-serve paid export be useful?</DialogTitle>
             <DialogDescription>
-              Would this fixed Shopify-ready export be worth $9/file if it worked reliably on your real CSVs?
+              ProductCSVFixer is testing self-serve paid exports at $9/file. CSVs stay browser-based; no emailed file workflow required.
             </DialogDescription>
           </DialogHeader>
 
@@ -1545,7 +1559,7 @@ function Index() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-email" className="text-xs">Email optional — we’ll notify you when paid export launches.</Label>
+                <Label htmlFor="feedback-email" className="text-xs">Email optional — get notified when self-serve paid exports launch.</Label>
                 <Input
                   id="feedback-email"
                   type="email"
@@ -1556,10 +1570,10 @@ function Index() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-note" className="text-xs">What was missing?</Label>
+                <Label htmlFor="feedback-note" className="text-xs">What should the self-serve export support next?</Label>
                 <Input
                   id="feedback-note"
-                  placeholder="Anything that didn't work or felt off"
+                  placeholder="Example: better variant rows, image columns, or supplier templates"
                   value={feedbackNote}
                   onChange={(e) => setFeedbackNote(e.target.value)}
                 />
@@ -1587,7 +1601,7 @@ function Index() {
           <DialogHeader>
             <DialogTitle>You’ve used your free beta export</DialogTitle>
             <DialogDescription>
-              We’re validating paid exports at $9/file. Want to be notified when more exports are available?
+              We’re validating paid self-serve exports at $9/file. Want to be notified when more exports are available?
             </DialogDescription>
           </DialogHeader>
           {!limitSubmitted ? (
@@ -1603,20 +1617,30 @@ function Index() {
                 />
               </div>
               <DialogFooter>
+                <Button variant="ghost" onClick={() => {
+                  track("paid_beta_interest_clicked", { choice: "no" });
+                  track("paid_export_interest_no", { source: "free_export_limit" });
+                  setLimitOpen(false);
+                }}>No thanks</Button>
                 <Button variant="outline" onClick={() => {
                   track("paid_beta_interest_clicked", { choice: "maybe" });
+                  track("paid_export_interest_maybe", { source: "free_export_limit" });
                   setLimitOpen(false);
                 }}>Maybe later</Button>
                 <Button onClick={() => {
                   track("paid_beta_interest_clicked", { choice: "yes" });
-                  if (limitEmail) track("email_submitted", { source: "free_export_limit" });
+                  track("paid_export_interest_yes", { source: "free_export_limit" });
+                  if (limitEmail) {
+                    track("email_submitted", { source: "free_export_limit" });
+                    track("paid_export_email_submitted", { source: "free_export_limit" });
+                  }
                   setLimitSubmitted(true);
                 }}>Yes, notify me</Button>
               </DialogFooter>
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-emerald-700">Thanks — we’ll be in touch when paid exports launch.</p>
+              <p className="text-sm text-emerald-700">Thanks — you’re on the notification list for self-serve paid exports.</p>
               <DialogFooter>
                 <Button onClick={() => setLimitOpen(false)}>Close</Button>
               </DialogFooter>
