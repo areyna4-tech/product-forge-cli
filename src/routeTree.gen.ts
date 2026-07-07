@@ -159,18 +159,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupplierCsvToShopifyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shopify-csv-import-errors': {
-      id: '/shopify-csv-import-errors'
-      path: '/shopify-csv-import-errors'
-      fullPath: '/shopify-csv-import-errors'
-      preLoaderRoute: typeof ShopifyCsvImportErrorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/shopify-csv-validator': {
       id: '/shopify-csv-validator'
       path: '/shopify-csv-validator'
       fullPath: '/shopify-csv-validator'
       preLoaderRoute: typeof ShopifyCsvValidatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shopify-csv-import-errors': {
+      id: '/shopify-csv-import-errors'
+      path: '/shopify-csv-import-errors'
+      fullPath: '/shopify-csv-import-errors'
+      preLoaderRoute: typeof ShopifyCsvImportErrorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
