@@ -177,6 +177,7 @@ function Index() {
   const [filename, setFilename] = useState<string>("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [sourceRows, setSourceRows] = useState<Record<string, string>[]>([]);
+  const [fileSourceType, setFileSourceType] = useState<"sample" | "user_upload" | null>(null);
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [settings, setSettings] = useState<MapperSettings>(defaultSettings);
   const [target, setTarget] = useState<ExportTemplate>("shopify");
@@ -263,6 +264,8 @@ function Index() {
     const issueCount = products.reduce((n, p) => n + p.validationErrors.length, 0);
     track("validation_completed", {
       status: importStatus,
+      validation_result: importStatus,
+      source_type: fileSourceType,
       selected_format: target,
       target_format: target,
       total_rows: products.length,
@@ -275,6 +278,8 @@ function Index() {
     });
     track("report_viewed", {
       status: importStatus,
+      validation_result: importStatus,
+      source_type: fileSourceType,
       selected_format: target,
       target_format: target,
       total_rows: products.length,
@@ -287,7 +292,7 @@ function Index() {
     });
     if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
     if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
-  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, importStatus, target, headers.length]);
+  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, importStatus, fileSourceType, target, headers.length]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
@@ -348,6 +353,7 @@ function Index() {
         }
         setError("");
         setFilename(name);
+        setFileSourceType(sourceType);
         setHeaders(hdrs);
         setSourceRows(rows);
         setMappings(autoMapHeaders(hdrs));
@@ -405,6 +411,7 @@ function Index() {
 
   const reset = () => {
     setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
+    setFileSourceType(null);
     setSettings(defaultSettings); setTarget("shopify"); setError("");
     setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
     setOptionalOpen(false); setMappingOpen(false); setAdvancedOpen(false);
@@ -489,6 +496,8 @@ function Index() {
     }
     track("export_clicked", {
       status: importStatus,
+      validation_result: importStatus,
+      source_type: fileSourceType,
       selected_format: target,
       target_format: target,
       export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
@@ -506,6 +515,8 @@ function Index() {
     performDownload();
     track("export_downloaded", {
       status: importStatus,
+      validation_result: importStatus,
+      source_type: fileSourceType,
       selected_format: target,
       export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
       target_format: target,
@@ -515,6 +526,8 @@ function Index() {
     });
     track("beta_export_downloaded", {
       target_format: target,
+      validation_result: importStatus,
+      source_type: fileSourceType,
       exportable_rows: exportRows.length,
       blocked_rows: summary.blockedRows,
       warning_rows: summary.warningRows,
