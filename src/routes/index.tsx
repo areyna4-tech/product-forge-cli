@@ -78,13 +78,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export.",
+          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and unlock a Shopify-ready export.",
       },
       { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },
       {
         property: "og:description",
         content:
-          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export.",
+          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and unlock a Shopify-ready export.",
       },
       { property: "og:url", content: "https://productcsvfixer.com/" },
     ],
@@ -107,7 +107,7 @@ const homeJsonLd = {
     price: "0",
     priceCurrency: "USD",
     description:
-      "Free beta scan and one beta export while ProductCSVFixer validates self-serve paid exports.",
+      "Free Shopify CSV preview with a $9 unlock for the full validation report and Shopify-ready export.",
   },
 };
 
@@ -803,7 +803,7 @@ function Index() {
       source_type: fileSourceType,
       selected_format: target,
       target_format: target,
-      export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
+      export_type: summary.blockedRows > 0 ? "exportable_rows" : "shopify_ready_export",
       exportable_rows: exportRows.length,
       blocked_rows: summary.blockedRows,
       warning_rows: summary.warningRows,
@@ -821,13 +821,13 @@ function Index() {
       validation_result: importStatus,
       source_type: fileSourceType,
       selected_format: target,
-      export_type: summary.blockedRows > 0 ? "exportable_rows" : "beta_export",
+      export_type: summary.blockedRows > 0 ? "exportable_rows" : "shopify_ready_export",
       target_format: target,
       exportable_rows: exportRows.length,
       blocked_rows: summary.blockedRows,
       warning_rows: summary.warningRows,
     });
-    track("beta_export_downloaded", {
+    track("shopify_ready_export_downloaded", {
       target_format: target,
       validation_result: importStatus,
       source_type: fileSourceType,
@@ -849,7 +849,7 @@ function Index() {
       } catch {}
       setPaidExportUnlocked(false);
     } else {
-      track("free_beta_export_used", { target_format: target });
+      track("free_sample_export_used", { target_format: target });
       try {
         window.localStorage.setItem("productForgeFreeExportUsed", "true");
       } catch {}
@@ -1164,9 +1164,11 @@ function Index() {
                   <CardTitle className="text-base">Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p className="text-foreground font-medium">Free beta scan available now.</p>
-                  <p>Beta export is free while we validate quality.</p>
-                  <p className="text-xs">Target future price: $9 per fixed export.</p>
+                  <p className="text-foreground font-medium">Free preview available now.</p>
+                  <p>Scan your CSV free and preview the first import issues.</p>
+                  <p className="text-xs">
+                    Unlock the full validation report + Shopify-ready export for $9.
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -1211,10 +1213,10 @@ function Index() {
                     </div>
                   </div>
 
-                  {/* Beta notice */}
+                  {/* Privacy notice */}
                   <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                    <strong>Beta notice:</strong> Please use a non-sensitive CSV during beta. Your
-                    file is processed in your browser and is not stored by ProductCSVFixer.
+                    <strong>Privacy notice:</strong> Please use a non-sensitive CSV. Your file is
+                    processed in your browser and is not stored by ProductCSVFixer.
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
                     <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not
@@ -1765,7 +1767,7 @@ function Index() {
                           <IssueGroup
                             id="blockers-heading"
                             title="Fix these blockers before Shopify upload"
-                            description="Blocked rows contain required-field problems that should be fixed before importing into Shopify. These rows will be excluded from the beta export."
+                            description="Blocked rows contain required-field problems that should be fixed before importing into Shopify. These rows will be excluded from the Shopify-ready export."
                             tone="error"
                             issues={visibleBlockingIssues}
                             mappings={mappings}
@@ -2024,7 +2026,7 @@ function Index() {
             {[
               {
                 q: "Is my CSV uploaded to a server?",
-                a: "Your CSV is processed in your browser. We do not store your uploaded file. Please use non-sensitive files during beta.",
+                a: "Your CSV is processed in your browser. We do not store your uploaded file. Please use non-sensitive files.",
               },
               {
                 q: "Does this import directly into Shopify?",
@@ -2036,15 +2038,15 @@ function Index() {
               },
               {
                 q: "What happens to blocked rows?",
-                a: "Blocked rows are excluded from the beta export so they do not create bad imports. The validation report shows what to fix.",
+                a: "Blocked rows are excluded from the Shopify-ready export so they do not create bad imports. The validation report shows what to fix.",
               },
               {
                 q: "Is this free?",
-                a: "During beta, scanning and one beta export are free while we validate quality. The target future price is $9 per fixed export.",
+                a: "Scanning and a limited issue preview are free. Unlock the full validation report and Shopify-ready export for $9.",
               },
               {
                 q: "Can I use this with WooCommerce?",
-                a: "Shopify is the primary beta focus. WooCommerce export is available for early testing but may change based on feedback.",
+                a: "Shopify is the primary focus. WooCommerce export is available for early testing but may change based on feedback.",
               },
             ].map(({ q, a }) => (
               <div key={q}>
@@ -2109,10 +2111,10 @@ function Index() {
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-3xl">
             ProductCSVFixer is designed as a browser-based CSV checker. Your CSV file is processed
-            locally in your browser for mapping, validation, preview, and beta export. We do not
-            store uploaded CSV files. We only collect anonymous product analytics events, such as
-            whether a file was uploaded, validation completed, or a beta export was downloaded. We
-            do not collect product names, SKUs, prices, image URLs, row values, or CSV contents.
+            locally in your browser for mapping, validation, preview, and export. We do not store
+            uploaded CSV files. We only collect anonymous product analytics events, such as whether
+            a file was uploaded, validation completed, or an export was downloaded. We do not
+            collect product names, SKUs, prices, image URLs, row values, or CSV contents.
           </p>
         </section>
       </main>
@@ -2204,14 +2206,14 @@ function Index() {
         </DialogContent>
       </Dialog>
 
-      {/* Free export limit reached */}
+      {/* Paid export fallback */}
       <Dialog open={limitOpen} onOpenChange={setLimitOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>You’ve used your free beta export</DialogTitle>
+            <DialogTitle>Unlock full validation report + Shopify-ready export</DialogTitle>
             <DialogDescription>
-              We’re validating paid self-serve exports at $9/file. Want to be notified when more
-              exports are available?
+              Checkout is not active in this environment. Want to be notified when the $9 self-serve
+              unlock is available?
             </DialogDescription>
           </DialogHeader>
           {!limitSubmitted ? (
@@ -2232,7 +2234,7 @@ function Index() {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    track("paid_beta_interest_clicked", { choice: "no" });
+                    track("paid_export_interest_clicked", { choice: "no" });
                     track("paid_export_interest_no", { source: "free_export_limit" });
                     setLimitOpen(false);
                   }}
@@ -2242,7 +2244,7 @@ function Index() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    track("paid_beta_interest_clicked", { choice: "maybe" });
+                    track("paid_export_interest_clicked", { choice: "maybe" });
                     track("paid_export_interest_maybe", { source: "free_export_limit" });
                     setLimitOpen(false);
                   }}
@@ -2251,7 +2253,7 @@ function Index() {
                 </Button>
                 <Button
                   onClick={() => {
-                    track("paid_beta_interest_clicked", { choice: "yes" });
+                    track("paid_export_interest_clicked", { choice: "yes" });
                     track("paid_export_interest_yes", { source: "free_export_limit" });
                     if (limitEmail) {
                       track("email_submitted", { source: "free_export_limit" });

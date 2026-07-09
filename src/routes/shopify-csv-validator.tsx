@@ -33,7 +33,7 @@ const jsonLd = {
     price: "0",
     priceCurrency: "USD",
     description:
-      "Free beta scan with one beta export while ProductCSVFixer validates self-serve paid exports.",
+      "Free Shopify CSV preview with a $9 unlock for the full validation report and Shopify-ready export.",
   },
   featureList: [
     "Shopify product CSV validation",
@@ -110,8 +110,7 @@ function ShopifyCsvValidatorPage() {
             </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            No signup required. Runs locally in your browser. One free beta export during
-            validation.
+            No signup required. Runs locally in your browser. Free preview, $9 full unlock.
           </p>
         </section>
 
@@ -177,7 +176,7 @@ function ShopifyCsvValidatorPage() {
             },
             {
               title: "3. Export clean rows",
-              desc: "Preview and download a Shopify-ready beta export with blocked rows excluded during the free beta.",
+              desc: "Preview import readiness and unlock a Shopify-ready export with blocked rows excluded.",
             },
           ].map((step) => (
             <Card key={step.title}>
