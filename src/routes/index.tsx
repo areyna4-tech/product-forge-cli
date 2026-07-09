@@ -2,9 +2,24 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import Papa from "papaparse";
 import {
-  Upload, FileText, Download, Copy, RotateCcw, AlertCircle, CheckCircle2,
-  AlertTriangle, FileSpreadsheet, Sparkles, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, Shield, Check, ListFilter, Wrench,
+  Upload,
+  FileText,
+  Download,
+  Copy,
+  RotateCcw,
+  AlertCircle,
+  CheckCircle2,
+  AlertTriangle,
+  FileSpreadsheet,
+  Sparkles,
+  Settings as SettingsIcon,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Check,
+  ListFilter,
+  Wrench,
+  Lock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -14,21 +29,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { track } from "@/lib/analytics";
 import {
-  ALL_DEST_FIELDS, REQUIRED_FIELDS, TRANSFORM_OPTIONS, SAMPLE_CSV,
-  autoMapHeaders, applyTransform, buildGenericRows, buildShopifyRows, buildWooCommerceRows,
-  defaultSettings, defaultTransformFor, summarize, transformRows, validateProducts,
-  type ColumnMapping, type ExportTemplate, type MapperSettings, type ProductRecord,
+  ALL_DEST_FIELDS,
+  REQUIRED_FIELDS,
+  TRANSFORM_OPTIONS,
+  SAMPLE_CSV,
+  autoMapHeaders,
+  applyTransform,
+  buildGenericRows,
+  buildShopifyRows,
+  buildWooCommerceRows,
+  defaultSettings,
+  defaultTransformFor,
+  summarize,
+  transformRows,
+  validateProducts,
+  type ColumnMapping,
+  type ExportTemplate,
+  type MapperSettings,
+  type ProductRecord,
   type TransformRule,
 } from "@/lib/csv-mapper";
 
@@ -37,9 +75,17 @@ export const Route = createFileRoute("/")({
     meta: [
       { name: "robots", content: "index, follow" },
       { title: "Fix Shopify CSV Import Errors | Product Forge" },
-      { name: "description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      {
+        name: "description",
+        content:
+          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export.",
+      },
       { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },
-      { property: "og:description", content: "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export." },
+      {
+        property: "og:description",
+        content:
+          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and download a free beta Shopify-ready export.",
+      },
       { property: "og:url", content: "https://productcsvfixer.com/" },
     ],
     links: [{ rel: "canonical", href: "https://productcsvfixer.com/" }],
@@ -54,12 +100,14 @@ const homeJsonLd = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: "https://productcsvfixer.com/",
-  description: "Browser-based Shopify CSV import error checker for missing SKUs, invalid prices, duplicate SKUs, image URL issues, required fields, and Shopify-ready export checks.",
+  description:
+    "Browser-based Shopify CSV import error checker for missing SKUs, invalid prices, duplicate SKUs, image URL issues, required fields, and Shopify-ready export checks.",
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
-    description: "Free beta scan and one beta export while ProductCSVFixer validates self-serve paid exports.",
+    description:
+      "Free beta scan and one beta export while ProductCSVFixer validates self-serve paid exports.",
   },
 };
 
@@ -73,16 +121,32 @@ function bucketFileSize(bytes?: number): string | undefined {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  title: "Title", sku: "SKU", price: "Price", handle: "Handle",
-  description: "Description", vendor: "Vendor", brand: "Brand",
-  category: "Category", productType: "Product Type", tags: "Tags",
-  compareAtPrice: "Compare At Price", cost: "Cost", quantity: "Quantity",
-  weight: "Weight", barcode: "Barcode", imageUrl: "Image URL",
+  title: "Title",
+  sku: "SKU",
+  price: "Price",
+  handle: "Handle",
+  description: "Description",
+  vendor: "Vendor",
+  brand: "Brand",
+  category: "Category",
+  productType: "Product Type",
+  tags: "Tags",
+  compareAtPrice: "Compare At Price",
+  cost: "Cost",
+  quantity: "Quantity",
+  weight: "Weight",
+  barcode: "Barcode",
+  imageUrl: "Image URL",
   additionalImageUrls: "Additional Image URLs",
-  option1Name: "Option 1 Name", option1Value: "Option 1 Value",
-  option2Name: "Option 2 Name", option2Value: "Option 2 Value",
-  option3Name: "Option 3 Name", option3Value: "Option 3 Value",
-  isActive: "Active", seoTitle: "SEO Title", seoDescription: "SEO Description",
+  option1Name: "Option 1 Name",
+  option1Value: "Option 1 Value",
+  option2Name: "Option 2 Name",
+  option2Value: "Option 2 Value",
+  option3Name: "Option 3 Name",
+  option3Value: "Option 3 Value",
+  isActive: "Active",
+  seoTitle: "SEO Title",
+  seoDescription: "SEO Description",
 };
 
 const TRANSFORM_LABELS: Record<TransformRule, string> = {
@@ -100,21 +164,59 @@ const TRANSFORM_LABELS: Record<TransformRule, string> = {
   boolean_active: "Convert to active/inactive",
 };
 
-const TARGET_META: Record<ExportTemplate, { title: string; desc: string; ctaLabel: string; filename: string }> = {
-  generic: { title: "Clean CSV", desc: "For normalized product data, marketplace uploads, or custom imports.", ctaLabel: "Download Clean CSV", filename: "products.csv" },
-  shopify: { title: "Shopify Product CSV", desc: "Shopify-compatible product import structure with required fields pre-mapped.", ctaLabel: "Download Shopify CSV", filename: "shopify-products.csv" },
-  woocommerce: { title: "WooCommerce Product CSV", desc: "WooCommerce-compatible product import structure.", ctaLabel: "Download WooCommerce CSV", filename: "woocommerce-products.csv" },
+const TARGET_META: Record<
+  ExportTemplate,
+  { title: string; desc: string; ctaLabel: string; filename: string }
+> = {
+  generic: {
+    title: "Clean CSV",
+    desc: "For normalized product data, marketplace uploads, or custom imports.",
+    ctaLabel: "Download Clean CSV",
+    filename: "products.csv",
+  },
+  shopify: {
+    title: "Shopify Product CSV",
+    desc: "Shopify-compatible product import structure with required fields pre-mapped.",
+    ctaLabel: "Download Shopify CSV",
+    filename: "shopify-products.csv",
+  },
+  woocommerce: {
+    title: "WooCommerce Product CSV",
+    desc: "WooCommerce-compatible product import structure.",
+    ctaLabel: "Download WooCommerce CSV",
+    filename: "woocommerce-products.csv",
+  },
 };
 
 const NO_SOURCE = "__none__";
+const ISSUE_PREVIEW_LIMIT = 5;
+const STRIPE_PAYMENT_LINK = (import.meta.env.VITE_STRIPE_PAYMENT_LINK as string | undefined) || "";
+const PAID_EXPORT_SUCCESS_QUERY = "paid_export=success";
+const PAID_EXPORT_CANCELLED_QUERY = "paid_export=cancelled";
 
 type DestField = keyof ProductRecord;
 
 const OPTIONAL_GROUPS: { title: string; fields: DestField[] }[] = [
-  { title: "Product details", fields: ["description", "vendor", "brand", "category", "productType", "tags"] },
-  { title: "Pricing & inventory", fields: ["compareAtPrice", "cost", "quantity", "weight", "barcode", "isActive"] },
+  {
+    title: "Product details",
+    fields: ["description", "vendor", "brand", "category", "productType", "tags"],
+  },
+  {
+    title: "Pricing & inventory",
+    fields: ["compareAtPrice", "cost", "quantity", "weight", "barcode", "isActive"],
+  },
   { title: "Images", fields: ["imageUrl", "additionalImageUrls"] },
-  { title: "Variants", fields: ["option1Name", "option1Value", "option2Name", "option2Value", "option3Name", "option3Value"] },
+  {
+    title: "Variants",
+    fields: [
+      "option1Name",
+      "option1Value",
+      "option2Name",
+      "option2Value",
+      "option3Name",
+      "option3Value",
+    ],
+  },
   { title: "SEO", fields: ["seoTitle", "seoDescription"] },
 ];
 
@@ -149,7 +251,7 @@ function describeIssue(
   const sourceColumn = m?.sourceColumn ?? "";
   const raw = m ? (p.rawSource[m.sourceColumn] ?? "") : "";
   const fieldVal = (p as any)[e.field];
-  const currentRaw = raw !== "" ? raw : (fieldVal == null || fieldVal === "" ? "" : String(fieldVal));
+  const currentRaw = raw !== "" ? raw : fieldVal == null || fieldVal === "" ? "" : String(fieldVal);
   const colIdx = sourceColumn ? headers.indexOf(sourceColumn) : -1;
   // Spreadsheet row = data row + 1 (header occupies row 1)
   const cellRef = colIdx >= 0 ? `${columnIndexToLetter(colIdx)}${p.sourceRowId + 1}` : "";
@@ -157,36 +259,102 @@ function describeIssue(
   const base = { current: currentRaw, sourceColumn, cellRef };
 
   if (e.field === "title" && e.message === "Title is required") {
-    return { ...base, shortIssue: "Missing required value", problem: "Required field is missing.", expected: "Product title", fix: "Add a product title before import." };
+    return {
+      ...base,
+      shortIssue: "Missing required value",
+      problem: "Required field is missing.",
+      expected: "Product title",
+      fix: "Add a product title before import.",
+    };
   }
   if (e.field === "sku" && e.message === "SKU is required") {
-    return { ...base, shortIssue: "Missing required value", problem: "Required field is missing.", expected: "A unique product code like ABC-123", fix: "Add a unique SKU before import." };
+    return {
+      ...base,
+      shortIssue: "Missing required value",
+      problem: "Required field is missing.",
+      expected: "A unique product code like ABC-123",
+      fix: "Add a unique SKU before import.",
+    };
   }
   if (e.field === "sku" && e.message === "Duplicate SKU") {
-    return { ...base, shortIssue: "Duplicate SKU detected", problem: "SKU is used by more than one row.", expected: "A unique SKU per row", fix: "Confirm whether this is a variant or assign a unique SKU." };
+    return {
+      ...base,
+      shortIssue: "Duplicate SKU detected",
+      problem: "SKU is used by more than one row.",
+      expected: "A unique SKU per row",
+      fix: "Confirm whether this is a variant or assign a unique SKU.",
+    };
   }
   if (e.field === "price" && e.message === "Price is invalid or missing") {
-    return { ...base, shortIssue: "Invalid price format", problem: "Price is not a valid number.", expected: "A number like 29.99", fix: "Convert to a numeric value (for example, 44,95 → 44.95) before export." };
+    return {
+      ...base,
+      shortIssue: "Invalid price format",
+      problem: "Price is not a valid number.",
+      expected: "A number like 29.99",
+      fix: "Convert to a numeric value (for example, 44,95 → 44.95) before export.",
+    };
   }
   if (e.field === "price" && e.message === "Price is zero or negative") {
-    return { ...base, shortIssue: "Price is zero or negative", problem: "Price is zero or negative.", expected: "A positive number like 29.99", fix: "Set a positive price greater than zero." };
+    return {
+      ...base,
+      shortIssue: "Price is zero or negative",
+      problem: "Price is zero or negative.",
+      expected: "A positive number like 29.99",
+      fix: "Set a positive price greater than zero.",
+    };
   }
   if (e.field === "compareAtPrice") {
-    return { ...base, shortIssue: "Compare-at price lower than price", problem: "Compare-at price is lower than price.", expected: "A value higher than the price, or leave it blank", fix: "Increase the compare-at price or remove it." };
+    return {
+      ...base,
+      shortIssue: "Compare-at price lower than price",
+      problem: "Compare-at price is lower than price.",
+      expected: "A value higher than the price, or leave it blank",
+      fix: "Increase the compare-at price or remove it.",
+    };
   }
   if (e.field === "cost") {
-    return { ...base, shortIssue: "Cost exceeds price", problem: "Cost is higher than the price.", expected: "A cost lower than the price", fix: "Lower the cost or raise the price." };
+    return {
+      ...base,
+      shortIssue: "Cost exceeds price",
+      problem: "Cost is higher than the price.",
+      expected: "A cost lower than the price",
+      fix: "Lower the cost or raise the price.",
+    };
   }
   if (e.field === "quantity") {
-    return { ...base, shortIssue: "Negative quantity", problem: "Quantity is negative.", expected: "Zero or a positive whole number", fix: "Set quantity to 0 or higher." };
+    return {
+      ...base,
+      shortIssue: "Negative quantity",
+      problem: "Quantity is negative.",
+      expected: "Zero or a positive whole number",
+      fix: "Set quantity to 0 or higher.",
+    };
   }
   if (e.field === "imageUrl") {
-    return { ...base, shortIssue: "Invalid image URL", problem: "Image URL may not be valid.", expected: "A full URL starting with https://", fix: "Use a full https:// image URL." };
+    return {
+      ...base,
+      shortIssue: "Invalid image URL",
+      problem: "Image URL may not be valid.",
+      expected: "A full URL starting with https://",
+      fix: "Use a full https:// image URL.",
+    };
   }
   if (e.field === "barcode") {
-    return { ...base, shortIssue: "Barcode contains letters", problem: "Barcode contains letters.", expected: "Digits only (UPC, EAN, or GTIN)", fix: "Remove letters so only digits remain." };
+    return {
+      ...base,
+      shortIssue: "Barcode contains letters",
+      problem: "Barcode contains letters.",
+      expected: "Digits only (UPC, EAN, or GTIN)",
+      fix: "Remove letters so only digits remain.",
+    };
   }
-  return { ...base, shortIssue: e.message, problem: e.message, expected: "Valid value for this field", fix: "Update the value in the source CSV and re-upload." };
+  return {
+    ...base,
+    shortIssue: e.message,
+    problem: e.message,
+    expected: "Valid value for this field",
+    fix: "Update the value in the source CSV and re-upload.",
+  };
 }
 
 function Index() {
@@ -198,7 +366,9 @@ function Index() {
   const [settings, setSettings] = useState<MapperSettings>(defaultSettings);
   const [target, setTarget] = useState<ExportTemplate>("shopify");
   const [error, setError] = useState<string>("");
-  const [previewFilter, setPreviewFilter] = useState<"all" | "exportable" | "warning" | "error">("exportable");
+  const [previewFilter, setPreviewFilter] = useState<"all" | "exportable" | "warning" | "error">(
+    "exportable",
+  );
   const [issueFilter, setIssueFilter] = useState<"all" | "blocking" | "warnings">("all");
   const [howToFixOpen, setHowToFixOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -220,7 +390,7 @@ function Index() {
   const [limitOpen, setLimitOpen] = useState(false);
   const [limitEmail, setLimitEmail] = useState("");
   const [limitSubmitted, setLimitSubmitted] = useState(false);
-
+  const [paidExportUnlocked, setPaidExportUnlocked] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sampleButtonRef = useRef<HTMLButtonElement>(null);
@@ -236,8 +406,29 @@ function Index() {
   useEffect(() => {
     track("landing_page_view");
     try {
-      if (typeof window !== "undefined" && window.localStorage.getItem("productForgeFreeExportUsed") === "true") {
+      if (
+        typeof window !== "undefined" &&
+        window.localStorage.getItem("productForgeFreeExportUsed") === "true"
+      ) {
         setFreeExportUsed(true);
+      }
+      if (
+        typeof window !== "undefined" &&
+        window.localStorage.getItem("productForgePaidExportUnlocked") === "true"
+      ) {
+        setPaidExportUnlocked(true);
+      }
+      if (typeof window !== "undefined") {
+        const paidExport = new URLSearchParams(window.location.search).get("paid_export");
+        if (paidExport === PAID_EXPORT_SUCCESS_QUERY.split("=")[1]) {
+          window.localStorage.setItem("productForgePaidExportUnlocked", "true");
+          setPaidExportUnlocked(true);
+          track("paid_checkout_returned_success");
+          toast.success("Full report unlocked. You can now download the Shopify-ready export.");
+        } else if (paidExport === PAID_EXPORT_CANCELLED_QUERY.split("=")[1]) {
+          track("paid_checkout_returned_cancelled");
+          toast.info("Checkout cancelled. Your free preview is still available.");
+        }
       }
     } catch {}
   }, []);
@@ -251,6 +442,8 @@ function Index() {
   }, [limitOpen]);
 
   const hasFile = sourceRows.length > 0;
+  const isSampleFile = fileSourceType === "sample";
+  const hasPaidAccess = isSampleFile || paidExportUnlocked;
 
   const products = useMemo(() => {
     if (!sourceRows.length) return [];
@@ -258,16 +451,18 @@ function Index() {
   }, [sourceRows, mappings, settings]);
 
   const summary = useMemo(() => summarize(products), [products]);
-  const importStatus = summary.blockedRows > 0
-    ? "import_blocked"
-    : summary.warningRows > 0
-      ? "review_recommended"
-      : "ready";
-  const importStatusLabel = importStatus === "import_blocked"
-    ? "Import blocked"
-    : importStatus === "review_recommended"
-      ? "Review recommended"
-      : "Ready for Shopify import";
+  const importStatus =
+    summary.blockedRows > 0
+      ? "import_blocked"
+      : summary.warningRows > 0
+        ? "review_recommended"
+        : "ready";
+  const importStatusLabel =
+    importStatus === "import_blocked"
+      ? "Import blocked"
+      : importStatus === "review_recommended"
+        ? "Review recommended"
+        : "Ready for Shopify import";
 
   const scrollToSection = useCallback((ref: RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -310,9 +505,27 @@ function Index() {
       warning_rows: summary.warningRows,
       issue_count: issueCount,
     });
+    if (fileSourceType === "user_upload") {
+      track("free_preview_viewed", {
+        validation_result: importStatus,
+        source_type: fileSourceType,
+        issue_count: issueCount,
+        preview_issue_limit: ISSUE_PREVIEW_LIMIT,
+        exportable_rows: summary.exportableRows,
+      });
+    }
     if (summary.blockedRows > 0) track("blocker_found", { blocker_count: summary.blockedRows });
     if (summary.warningRows > 0) track("warning_found", { warning_count: summary.warningRows });
-  }, [products, summary.exportableRows, summary.blockedRows, summary.warningRows, importStatus, fileSourceType, target, headers.length]);
+  }, [
+    products,
+    summary.exportableRows,
+    summary.blockedRows,
+    summary.warningRows,
+    importStatus,
+    fileSourceType,
+    target,
+    headers.length,
+  ]);
 
   const exportRows = useMemo(() => {
     const valid = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
@@ -323,12 +536,22 @@ function Index() {
 
   const previewExportRows = useMemo(() => {
     let filtered = products;
-    if (previewFilter === "exportable") filtered = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
-    else if (previewFilter === "warning") filtered = products.filter((p) => p.validationErrors.some((e) => e.severity === "warning") && !p.validationErrors.some((e) => e.severity === "error"));
-    else if (previewFilter === "error") filtered = products.filter((p) => p.validationErrors.some((e) => e.severity === "error"));
-    const rows = target === "shopify" ? buildShopifyRows(filtered)
-      : target === "woocommerce" ? buildWooCommerceRows(filtered)
-      : buildGenericRows(filtered);
+    if (previewFilter === "exportable")
+      filtered = products.filter((p) => !p.validationErrors.some((e) => e.severity === "error"));
+    else if (previewFilter === "warning")
+      filtered = products.filter(
+        (p) =>
+          p.validationErrors.some((e) => e.severity === "warning") &&
+          !p.validationErrors.some((e) => e.severity === "error"),
+      );
+    else if (previewFilter === "error")
+      filtered = products.filter((p) => p.validationErrors.some((e) => e.severity === "error"));
+    const rows =
+      target === "shopify"
+        ? buildShopifyRows(filtered)
+        : target === "woocommerce"
+          ? buildWooCommerceRows(filtered)
+          : buildGenericRows(filtered);
     return rows.slice(0, 25).map((r, i) => ({ row: r, product: filtered[i] }));
   }, [products, target, previewFilter]);
 
@@ -339,78 +562,92 @@ function Index() {
     }
   }, [target, previewExportRows.length]);
 
-  const parseCsvText = useCallback((text: string, name: string, fileSize?: number, sourceType: "sample" | "user_upload" = "user_upload") => {
-    const cleaned = text.replace(/^\uFEFF/, "");
-    if (sourceType === "user_upload") track("csv_upload_started", { file_size_bucket: bucketFileSize(fileSize) });
-    else track("validation_started", { source_type: sourceType });
-    Papa.parse<Record<string, string>>(cleaned, {
-      header: true,
-      skipEmptyLines: "greedy",
-      transform: (v) => (v == null ? "" : String(v)),
-      complete: (results) => {
-        const hdrs = (results.meta.fields || []).filter(Boolean);
-        if (!hdrs.length) {
-          setError("CSV has no headers. Make sure the first row contains column names.");
+  const parseCsvText = useCallback(
+    (
+      text: string,
+      name: string,
+      fileSize?: number,
+      sourceType: "sample" | "user_upload" = "user_upload",
+    ) => {
+      const cleaned = text.replace(/^\uFEFF/, "");
+      if (sourceType === "user_upload")
+        track("csv_upload_started", { file_size_bucket: bucketFileSize(fileSize) });
+      else track("validation_started", { source_type: sourceType });
+      Papa.parse<Record<string, string>>(cleaned, {
+        header: true,
+        skipEmptyLines: "greedy",
+        transform: (v) => (v == null ? "" : String(v)),
+        complete: (results) => {
+          const hdrs = (results.meta.fields || []).filter(Boolean);
+          if (!hdrs.length) {
+            setError("CSV has no headers. Make sure the first row contains column names.");
+            track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+              source_type: sourceType,
+              reason: "missing_headers",
+            });
+            return;
+          }
+          const rows = (results.data || []).filter((r) =>
+            hdrs.some((h) => {
+              const v = r?.[h];
+              return v != null && String(v).trim() !== "";
+            }),
+          );
+          if (!rows.length) {
+            setError("CSV is empty. No data rows found.");
+            track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+              source_type: sourceType,
+              reason: "empty_rows",
+            });
+            return;
+          }
+          setError("");
+          setFilename(name);
+          setFileSourceType(sourceType);
+          setHeaders(hdrs);
+          setSourceRows(rows);
+          setMappings(autoMapHeaders(hdrs));
+          const eventProperties = {
+            source_type: sourceType,
+            row_count: rows.length,
+            column_count: hdrs.length,
+            file_size_bucket: bucketFileSize(fileSize),
+          };
+          track(
+            sourceType === "sample" ? "sample_file_loaded" : "csv_upload_succeeded",
+            eventProperties,
+          );
+          track("csv_uploaded", eventProperties);
+          toast.success(`Loaded ${rows.length} rows from ${name}`);
+        },
+        error: (err: Error) => {
+          setError(`Failed to parse CSV: ${err.message}`);
           track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
             source_type: sourceType,
-            reason: "missing_headers",
+            reason: "parse_error",
           });
-          return;
-        }
-        const rows = (results.data || []).filter((r) =>
-          hdrs.some((h) => {
-            const v = r?.[h];
-            return v != null && String(v).trim() !== "";
-          }),
-        );
-        if (!rows.length) {
-          setError("CSV is empty. No data rows found.");
-          track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
-            source_type: sourceType,
-            reason: "empty_rows",
-          });
-          return;
-        }
-        setError("");
-        setFilename(name);
-        setFileSourceType(sourceType);
-        setHeaders(hdrs);
-        setSourceRows(rows);
-        setMappings(autoMapHeaders(hdrs));
-        const eventProperties = {
-          source_type: sourceType,
-          row_count: rows.length,
-          column_count: hdrs.length,
-          file_size_bucket: bucketFileSize(fileSize),
-        };
-        track(sourceType === "sample" ? "sample_file_loaded" : "csv_upload_succeeded", eventProperties);
-        track("csv_uploaded", eventProperties);
-        toast.success(`Loaded ${rows.length} rows from ${name}`);
-      },
-      error: (err: Error) => {
-        setError(`Failed to parse CSV: ${err.message}`);
-        track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
-          source_type: sourceType,
-          reason: "parse_error",
-        });
-      },
-    });
-  }, []);
+        },
+      });
+    },
+    [],
+  );
 
-  const handleFile = useCallback((file: File) => {
-    if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
-      setError("We could not read this file. Upload a valid .csv file with a header row.");
-      return;
-
-    }
-    const reader = new FileReader();
-    reader.onload = () => parseCsvText(String(reader.result || ""), file.name, file.size);
-    reader.onerror = () => {
-      setError("Failed to read file.");
-      track("csv_upload_failed", { source_type: "user_upload", reason: "file_read_error" });
-    };
-    reader.readAsText(file);
-  }, [parseCsvText]);
+  const handleFile = useCallback(
+    (file: File) => {
+      if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
+        setError("We could not read this file. Upload a valid .csv file with a header row.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => parseCsvText(String(reader.result || ""), file.name, file.size);
+      reader.onerror = () => {
+        setError("Failed to read file.");
+        track("csv_upload_failed", { source_type: "user_upload", reason: "file_read_error" });
+      };
+      reader.readAsText(file);
+    },
+    [parseCsvText],
+  );
 
   const loadSample = () => {
     track("sample_file_clicked", { source_type: "sample" });
@@ -430,11 +667,20 @@ function Index() {
   }, [loadSample]);
 
   const reset = () => {
-    setFilename(""); setHeaders([]); setSourceRows([]); setMappings([]);
+    setFilename("");
+    setHeaders([]);
+    setSourceRows([]);
+    setMappings([]);
     setFileSourceType(null);
-    setSettings(defaultSettings); setTarget("shopify"); setError("");
-    setPreviewFilter("exportable"); setIssueFilter("all"); setHowToFixOpen(false);
-    setOptionalOpen(false); setMappingOpen(false); setAdvancedOpen(false);
+    setSettings(defaultSettings);
+    setTarget("shopify");
+    setError("");
+    setPreviewFilter("exportable");
+    setIssueFilter("all");
+    setHowToFixOpen(false);
+    setOptionalOpen(false);
+    setMappingOpen(false);
+    setAdvancedOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     toast.info("Reset complete");
   };
@@ -443,12 +689,16 @@ function Index() {
     fileInputRef.current?.click();
   };
 
-  const updateMapping = (field: keyof ProductRecord, sourceColumn: string, transform?: TransformRule) => {
+  const updateMapping = (
+    field: keyof ProductRecord,
+    sourceColumn: string,
+    transform?: TransformRule,
+  ) => {
     const cleared = sourceColumn === NO_SOURCE || !sourceColumn;
     const idx = cleared ? -1 : headers.indexOf(sourceColumn);
     track("mapping_changed", {
       target_field: field,
-      source_column_index: cleared ? null : (idx >= 0 ? idx : null),
+      source_column_index: cleared ? null : idx >= 0 ? idx : null,
       cleared,
     });
     setMappings((prev) => {
@@ -469,7 +719,9 @@ function Index() {
 
   const updateTransform = (field: keyof ProductRecord, transform: TransformRule) => {
     track("mapping_changed", { field, transform });
-    setMappings((prev) => prev.map((m) => m.destinationField === field ? { ...m, transform } : m));
+    setMappings((prev) =>
+      prev.map((m) => (m.destinationField === field ? { ...m, transform } : m)),
+    );
   };
 
   const clearMapping = (field: keyof ProductRecord) => {
@@ -495,7 +747,9 @@ function Index() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
+    a.href = url;
+    a.download = name;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -504,14 +758,41 @@ function Index() {
     toast.success(`Exported ${exportRows.length} rows`);
   };
 
+  const handlePaidUnlock = () => {
+    track("paid_unlock_clicked", {
+      source_type: fileSourceType,
+      validation_result: importStatus,
+      issue_count: gatedIssueCount,
+      exportable_rows: exportRows.length,
+      blocked_rows: summary.blockedRows,
+      stripe_link_configured: Boolean(STRIPE_PAYMENT_LINK),
+    });
+    if (STRIPE_PAYMENT_LINK) {
+      window.location.href = STRIPE_PAYMENT_LINK;
+      return;
+    }
+    setLimitSubmitted(false);
+    setLimitEmail("");
+    setLimitOpen(true);
+    toast.info(
+      "Paid unlock is ready for Stripe. Add the Stripe Payment Link to activate checkout.",
+    );
+  };
+
   const handleDownload = () => {
-    const requiredMapped = REQUIRED_FIELDS.every((f) => mappings.some((m) => m.destinationField === f));
+    const requiredMapped = REQUIRED_FIELDS.every((f) =>
+      mappings.some((m) => m.destinationField === f),
+    );
     if (!requiredMapped) {
       toast.error("Map required fields (Title, SKU, Price) before exporting.");
       return;
     }
     if (!exportRows.length) {
       toast.error("No valid rows available for export.");
+      return;
+    }
+    if (!hasPaidAccess) {
+      handlePaidUnlock();
       return;
     }
     track("export_clicked", {
@@ -525,7 +806,7 @@ function Index() {
       blocked_rows: summary.blockedRows,
       warning_rows: summary.warningRows,
     });
-    if (freeExportUsed) {
+    if (!isSampleFile && !paidExportUnlocked && freeExportUsed) {
       track("free_export_limit_reached", { target_format: target });
       setLimitSubmitted(false);
       setLimitEmail("");
@@ -552,9 +833,26 @@ function Index() {
       blocked_rows: summary.blockedRows,
       warning_rows: summary.warningRows,
     });
-    track("free_beta_export_used", { target_format: target });
-    try { window.localStorage.setItem("productForgeFreeExportUsed", "true"); } catch {}
-    setFreeExportUsed(true);
+    if (paidExportUnlocked && !isSampleFile) {
+      track("paid_export_downloaded", {
+        target_format: target,
+        validation_result: importStatus,
+        source_type: fileSourceType,
+        exportable_rows: exportRows.length,
+        blocked_rows: summary.blockedRows,
+        warning_rows: summary.warningRows,
+      });
+      try {
+        window.localStorage.removeItem("productForgePaidExportUnlocked");
+      } catch {}
+      setPaidExportUnlocked(false);
+    } else {
+      track("free_beta_export_used", { target_format: target });
+      try {
+        window.localStorage.setItem("productForgeFreeExportUsed", "true");
+      } catch {}
+      setFreeExportUsed(true);
+    }
     setFeedbackSubmitted(false);
     setWorthChoice(null);
     setSolvedChoice(null);
@@ -591,9 +889,18 @@ function Index() {
     setFeedbackSubmitted(true);
   };
 
-
-
   const handleValidationReport = () => {
+    if (!hasPaidAccess) {
+      handlePaidUnlock();
+      return;
+    }
+    if (paidExportUnlocked && !isSampleFile) {
+      track("paid_report_viewed", {
+        issue_count: gatedIssueCount,
+        source_type: fileSourceType,
+        validation_result: importStatus,
+      });
+    }
     const rows: Record<string, any>[] = [];
     for (const p of products) {
       for (const e of p.validationErrors) {
@@ -613,28 +920,38 @@ function Index() {
         });
       }
     }
-    if (!rows.length) { toast.info("No validation issues to report."); return; }
+    if (!rows.length) {
+      toast.info("No validation issues to report.");
+      return;
+    }
     track("validation_report_downloaded", { issues: rows.length });
     downloadCsv(rows, "validation-report.csv");
   };
 
-  const buildMappingJson = () => JSON.stringify({
-    target,
-    sourceHeaders: headers,
-    mappings: mappings.map((m) => ({
-      destinationField: m.destinationField,
-      sourceColumn: m.sourceColumn,
-      transform: m.transform,
-    })),
-    settings,
-  }, null, 2);
+  const buildMappingJson = () =>
+    JSON.stringify(
+      {
+        target,
+        sourceHeaders: headers,
+        mappings: mappings.map((m) => ({
+          destinationField: m.destinationField,
+          sourceColumn: m.sourceColumn,
+          transform: m.transform,
+        })),
+        settings,
+      },
+      null,
+      2,
+    );
 
   const downloadMappingJson = () => {
     const data = buildMappingJson();
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "mapping-template.json"; a.click();
+    a.href = url;
+    a.download = "mapping-template.json";
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -664,7 +981,10 @@ function Index() {
     let copied = false;
     if (navigator.clipboard?.writeText) {
       copied = await Promise.race<boolean>([
-        navigator.clipboard.writeText(data).then(() => true, () => false),
+        navigator.clipboard.writeText(data).then(
+          () => true,
+          () => false,
+        ),
         new Promise<boolean>((resolve) => window.setTimeout(() => resolve(false), 300)),
       ]);
     }
@@ -676,8 +996,13 @@ function Index() {
       toast.success("Mapping template copied.");
     } else {
       downloadMappingJson();
-      setCopyStatus({ type: "warning", message: "Clipboard unavailable. Downloading mapping template instead." });
-      toast.warning("Clipboard unavailable. Downloading mapping template instead.", { duration: 4000 });
+      setCopyStatus({
+        type: "warning",
+        message: "Clipboard unavailable. Downloading mapping template instead.",
+      });
+      toast.warning("Clipboard unavailable. Downloading mapping template instead.", {
+        duration: 4000,
+      });
     }
     copyStatusTimeoutRef.current = window.setTimeout(() => {
       setCopyStatus(null);
@@ -699,21 +1024,43 @@ function Index() {
 
   const requiredFields = ALL_DEST_FIELDS.filter((f) => REQUIRED_FIELDS.includes(f));
   const optionalFields = ALL_DEST_FIELDS.filter((f) => !REQUIRED_FIELDS.includes(f));
-  const requiredMappedCount = REQUIRED_FIELDS.filter((f) => mappings.some((m) => m.destinationField === f)).length;
+  const requiredMappedCount = REQUIRED_FIELDS.filter((f) =>
+    mappings.some((m) => m.destinationField === f),
+  ).length;
   const allRequiredMapped = requiredMappedCount === REQUIRED_FIELDS.length;
 
   const blockingIssues = useMemo(
-    () => products.flatMap((p) => p.validationErrors.filter((e) => e.severity === "error").map((e) => ({ p, e }))),
+    () =>
+      products.flatMap((p) =>
+        p.validationErrors.filter((e) => e.severity === "error").map((e) => ({ p, e })),
+      ),
     [products],
   );
   const warningIssues = useMemo(
-    () => products.flatMap((p) => p.validationErrors.filter((e) => e.severity === "warning").map((e) => ({ p, e }))),
+    () =>
+      products.flatMap((p) =>
+        p.validationErrors.filter((e) => e.severity === "warning").map((e) => ({ p, e })),
+      ),
     [products],
   );
+  const gatedIssueCount = blockingIssues.length + warningIssues.length;
+  const visibleBlockingIssues = hasPaidAccess
+    ? blockingIssues
+    : blockingIssues.slice(0, ISSUE_PREVIEW_LIMIT);
+  const remainingPreviewSlots = Math.max(ISSUE_PREVIEW_LIMIT - visibleBlockingIssues.length, 0);
+  const visibleWarningIssues = hasPaidAccess
+    ? warningIssues
+    : warningIssues.slice(0, remainingPreviewSlots);
+  const hiddenIssueCount = hasPaidAccess
+    ? 0
+    : Math.max(gatedIssueCount - visibleBlockingIssues.length - visibleWarningIssues.length, 0);
 
   return (
     <div className="min-h-screen bg-background">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+      />
       <Toaster position="top-right" duration={3500} richColors closeButton offset={16} />
 
       {/* Header */}
@@ -726,7 +1073,8 @@ function Index() {
             Shopify CSV Import Error Checker &amp; Pre-Flight Validator
           </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Find import blockers in messy supplier product CSVs before Shopify upload. This is a pre-flight checker, not a bulk editor.
+            Find import blockers in messy supplier product CSVs before Shopify upload. This is a
+            pre-flight checker, not a bulk editor.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
@@ -747,7 +1095,6 @@ function Index() {
       </header>
 
       <main className="mx-auto max-w-[1120px] px-6 py-8 pb-12 space-y-6">
-
         {/* Landing hero — public-facing intro shown until a file is uploaded */}
         {!hasFile && (
           <section aria-labelledby="landing-headline" className="space-y-6">
@@ -759,7 +1106,8 @@ function Index() {
                 Check Shopify CSV import errors before upload.
               </h1>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                Upload a messy supplier product CSV and find import blockers before Shopify upload. This is a pre-flight checker, not a bulk product editor.
+                Upload a messy supplier product CSV and find import blockers before Shopify upload.
+                This is a pre-flight checker, not a bulk product editor.
               </p>
               <div className="mt-5 flex justify-center">
                 <Button
@@ -776,7 +1124,8 @@ function Index() {
                 </Button>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                No signup required. Runs locally in your browser. Pre-flight checker, not a bulk editor.
+                No signup required. Runs locally in your browser. Pre-flight checker, not a bulk
+                editor.
               </p>
             </div>
 
@@ -816,7 +1165,6 @@ function Index() {
                   <p className="text-foreground font-medium">Free beta scan available now.</p>
                   <p>Beta export is free while we validate quality.</p>
                   <p className="text-xs">Target future price: $9 per fixed export.</p>
-
                 </CardContent>
               </Card>
             </div>
@@ -831,10 +1179,14 @@ function Index() {
               {!hasFile ? (
                 <>
                   <div
-                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver(true);
+                    }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={(e) => {
-                      e.preventDefault(); setDragOver(false);
+                      e.preventDefault();
+                      setDragOver(false);
                       const f = e.dataTransfer.files?.[0];
                       if (f) handleFile(f);
                     }}
@@ -847,21 +1199,25 @@ function Index() {
                     </p>
                     <div className="mt-4 flex justify-center gap-2 flex-wrap">
                       <Button type="button" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="h-4 w-4 mr-1.5" />Browse CSV file
+                        <Upload className="h-4 w-4 mr-1.5" />
+                        Browse CSV file
                       </Button>
                       <Button ref={sampleButtonRef} type="button" variant="outline">
-                        <Sparkles className="h-4 w-4 mr-1.5" />Try sample file
+                        <Sparkles className="h-4 w-4 mr-1.5" />
+                        Try sample file
                       </Button>
                     </div>
-
                   </div>
 
                   {/* Beta notice */}
                   <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                    <strong>Beta notice:</strong> Please use a non-sensitive CSV during beta. Your file is processed in your browser and is not stored by ProductCSVFixer.
+                    <strong>Beta notice:</strong> Please use a non-sensitive CSV during beta. Your
+                    file is processed in your browser and is not stored by ProductCSVFixer.
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
-                    <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not store your uploaded file. We may collect anonymous usage events such as page views, upload, validation, and export clicks, but not your CSV contents.
+                    <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not
+                    store your uploaded file. We may collect anonymous usage events such as page
+                    views, upload, validation, and export clicks, but not your CSV contents.
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
                     ProductCSVFixer is a CSV import pre-flight checker, not a bulk product editor.
@@ -869,7 +1225,9 @@ function Index() {
 
                   {/* How it works */}
                   <div className="mt-6 rounded-md border bg-card p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">How it works</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                      How it works
+                    </p>
                     <ol className="grid gap-3 sm:grid-cols-4 text-sm">
                       {["Upload", "Auto-map", "Validate", "Export"].map((step, i) => (
                         <li key={step} className="flex items-center gap-2">
@@ -899,20 +1257,31 @@ function Index() {
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {headers.slice(0, 8).map((h) => (
-                          <Badge key={h} variant="outline" className="font-mono text-[10px] py-0">{h}</Badge>
+                          <Badge key={h} variant="outline" className="font-mono text-[10px] py-0">
+                            {h}
+                          </Badge>
                         ))}
                         {headers.length > 8 && (
-                          <Badge variant="outline" className="text-[10px] py-0">+{headers.length - 8} more</Badge>
+                          <Badge variant="outline" className="text-[10px] py-0">
+                            +{headers.length - 8} more
+                          </Badge>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Button size="sm" variant="outline" onClick={replaceFile}>
-                      <Upload className="h-3.5 w-3.5 mr-1.5" />Replace file
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      Replace file
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
-                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={reset}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                      Reset
                     </Button>
                   </div>
                 </div>
@@ -923,7 +1292,10 @@ function Index() {
                 type="file"
                 accept=".csv,text/csv"
                 className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
               />
 
               {error && (
@@ -949,6 +1321,9 @@ function Index() {
                 warningIssueCount={warningIssues.length}
                 selectedFormat={TARGET_META[target].title}
                 freeExportUsed={freeExportUsed}
+                hasPaidAccess={hasPaidAccess}
+                isSampleFile={isSampleFile}
+                onPaidUnlock={handlePaidUnlock}
                 onReviewBlockers={() => scrollToSection(blockersRef)}
                 onReviewWarnings={() => scrollToSection(warningsRef)}
                 onDownload={handleDownload}
@@ -970,7 +1345,10 @@ function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => { setTarget(id); track("target_format_selected", { target_format: id }); }}
+                          onClick={() => {
+                            setTarget(id);
+                            track("target_format_selected", { target_format: id });
+                          }}
                           aria-pressed={selected}
                           className={`relative text-left rounded-lg border p-4 transition-colors ${selected ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "hover:border-foreground/30"}`}
                         >
@@ -1004,7 +1382,11 @@ function Index() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <CardTitle className="text-base flex items-center gap-2">
-                            {!allRequiredMapped || mappingOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            {!allRequiredMapped || mappingOpen ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                             Field mapping
                           </CardTitle>
                           <CardDescription>
@@ -1014,9 +1396,13 @@ function Index() {
                           </CardDescription>
                         </div>
                         {allRequiredMapped ? (
-                          <Badge variant="secondary" className="shrink-0">Mapped</Badge>
+                          <Badge variant="secondary" className="shrink-0">
+                            Mapped
+                          </Badge>
                         ) : (
-                          <Badge variant="destructive" className="shrink-0">Needs review</Badge>
+                          <Badge variant="destructive" className="shrink-0">
+                            Needs review
+                          </Badge>
                         )}
                       </div>
                     </CardHeader>
@@ -1057,7 +1443,9 @@ function Index() {
                           </CardTitle>
                           <CardDescription>
                             {(() => {
-                              const mappedCount = mappings.filter((m) => !REQUIRED_FIELDS.includes(m.destinationField)).length;
+                              const mappedCount = mappings.filter(
+                                (m) => !REQUIRED_FIELDS.includes(m.destinationField),
+                              ).length;
                               const unmappedCount = optionalFields.length - mappedCount;
                               return `${mappedCount} mapped · ${unmappedCount} unmapped · images, variants, inventory, SEO`;
                             })()}
@@ -1068,12 +1456,18 @@ function Index() {
                   </summary>
                   <CardContent className="space-y-6">
                     {OPTIONAL_GROUPS.map((group) => {
-                      const groupMapped = group.fields.filter((f) => mappings.some((m) => m.destinationField === f)).length;
+                      const groupMapped = group.fields.filter((f) =>
+                        mappings.some((m) => m.destinationField === f),
+                      ).length;
                       return (
                         <div key={group.title}>
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
-                            <span className="text-[10px] text-muted-foreground">{groupMapped}/{group.fields.length} mapped</span>
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              {group.title}
+                            </h3>
+                            <span className="text-[10px] text-muted-foreground">
+                              {groupMapped}/{group.fields.length} mapped
+                            </span>
                           </div>
                           <div className="space-y-3">
                             {group.fields.map((field) => (
@@ -1102,7 +1496,11 @@ function Index() {
                   <CollapsibleTrigger className="w-full text-left">
                     <CardHeader className="cursor-pointer">
                       <CardTitle className="text-base flex items-center gap-2">
-                        {advancedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        {advancedOpen ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
                         <SettingsIcon className="h-4 w-4" />
                         Advanced settings
                       </CardTitle>
@@ -1116,7 +1514,9 @@ function Index() {
                           <Label className="text-xs">Default currency</Label>
                           <Input
                             value={settings.defaultCurrency}
-                            onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
+                            onChange={(e) =>
+                              setSettings({ ...settings, defaultCurrency: e.target.value })
+                            }
                             className="h-8"
                           />
                         </div>
@@ -1124,7 +1524,9 @@ function Index() {
                           <Label className="text-xs">Default vendor</Label>
                           <Input
                             value={settings.defaultVendor}
-                            onChange={(e) => setSettings({ ...settings, defaultVendor: e.target.value })}
+                            onChange={(e) =>
+                              setSettings({ ...settings, defaultVendor: e.target.value })
+                            }
                             className="h-8"
                             placeholder="Leave blank if none"
                           />
@@ -1133,12 +1535,18 @@ function Index() {
                           <Label className="text-xs">Default weight unit</Label>
                           <Select
                             value={settings.defaultWeightUnit}
-                            onValueChange={(v) => setSettings({ ...settings, defaultWeightUnit: v as any })}
+                            onValueChange={(v) =>
+                              setSettings({ ...settings, defaultWeightUnit: v as any })
+                            }
                           >
-                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="h-8">
+                              <SelectValue />
+                            </SelectTrigger>
                             <SelectContent>
                               {(["g", "kg", "lb", "oz"] as const).map((u) => (
-                                <SelectItem key={u} value={u}>{u}</SelectItem>
+                                <SelectItem key={u} value={u}>
+                                  {u}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -1153,10 +1561,15 @@ function Index() {
                           ["removeBlankRows", "Remove duplicate blank rows"],
                           ["warnDuplicateSkus", "Warn on duplicate SKUs"],
                         ].map(([key, label]) => (
-                          <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm cursor-pointer"
+                          >
                             <Checkbox
                               checked={(settings as any)[key]}
-                              onCheckedChange={(v) => setSettings({ ...settings, [key]: !!v } as MapperSettings)}
+                              onCheckedChange={(v) =>
+                                setSettings({ ...settings, [key]: !!v } as MapperSettings)
+                              }
                             />
                             <span>{label}</span>
                           </label>
@@ -1169,7 +1582,8 @@ function Index() {
 
               <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
-                  Copy this supplier mapping so you can save it and reuse it with similar CSVs later.
+                  Copy this supplier mapping so you can save it and reuse it with similar CSVs
+                  later.
                 </p>
                 <div className="flex items-center gap-2">
                   <div
@@ -1191,8 +1605,14 @@ function Index() {
                       </>
                     )}
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleCopyMapping} disabled={!mappings.length}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />Copy mapping template
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyMapping}
+                    disabled={!mappings.length}
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />
+                    Copy mapping template
                   </Button>
                 </div>
               </div>
@@ -1205,7 +1625,9 @@ function Index() {
               {/* What this checks */}
               <Card className="mb-4">
                 <CardContent className="pt-6">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    What this checks
+                  </p>
                   <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
                     <li>Required field mappings</li>
                     <li>Price formatting</li>
@@ -1226,17 +1648,48 @@ function Index() {
                         <div className="min-w-0">
                           <CardTitle className="text-base">Import blockers found</CardTitle>
                           <CardDescription>
-                            {summary.blockedRows} rows blocked · {summary.warningRows} rows with warnings
+                            {summary.blockedRows} rows blocked · {summary.warningRows} rows with
+                            warnings
                           </CardDescription>
                           <p className="mt-2 text-xs text-muted-foreground">
                             {summary.blockedRows > 0
                               ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
                               : "All rows are import-ready. Warning rows are included."}
                           </p>
+                          {!hasPaidAccess && (
+                            <p className="mt-2 text-xs font-medium text-foreground">
+                              Previewing the first {ISSUE_PREVIEW_LIMIT} issues. Unlock full
+                              validation report + Shopify-ready export for exact row/cell issue
+                              details.
+                            </p>
+                          )}
+                          {hasPaidAccess && !isSampleFile && (
+                            <p className="mt-2 text-xs font-medium text-emerald-700">
+                              Full report unlocked.
+                            </p>
+                          )}
+                          {isSampleFile && (
+                            <p className="mt-2 text-xs font-medium text-emerald-700">
+                              The sample file remains fully free so you can verify the workflow.
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" onClick={handleValidationReport} disabled={!products.length} className="shrink-0">
-                        <Download className="h-3.5 w-3.5 mr-1.5" />Download validation report
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleValidationReport}
+                        disabled={!products.length}
+                        className="shrink-0"
+                      >
+                        {hasPaidAccess ? (
+                          <Download className="h-3.5 w-3.5 mr-1.5" />
+                        ) : (
+                          <Lock className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        {hasPaidAccess
+                          ? "Download validation report"
+                          : "Unlock full report + export — $9"}
                       </Button>
                     </div>
                   </CardHeader>
@@ -1255,7 +1708,9 @@ function Index() {
                         <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-90" />
                       </summary>
                       <ol className="px-3 pb-3 pl-10 list-decimal text-sm text-muted-foreground space-y-1">
-                        <li>Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.</li>
+                        <li>
+                          Open your original CSV in Excel, Google Sheets, or your spreadsheet tool.
+                        </li>
                         <li>Find the row number shown in each issue below.</li>
                         <li>Update the field using the suggested fix.</li>
                         <li>Save the CSV and re-upload it here.</li>
@@ -1264,7 +1719,9 @@ function Index() {
 
                     {/* What this checks */}
                     <div className="rounded-md border bg-muted/30 p-3">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">What this checks</p>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                        What this checks
+                      </p>
                       <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
                         <li>Missing titles</li>
                         <li>Missing SKUs</li>
@@ -1278,11 +1735,13 @@ function Index() {
                     {/* Filters */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <ListFilter className="h-3.5 w-3.5 text-muted-foreground" />
-                      {([
-                        ["all", `All issues (${blockingIssues.length + warningIssues.length})`],
-                        ["blocking", `Blocking only (${blockingIssues.length})`],
-                        ["warnings", `Warnings only (${warningIssues.length})`],
-                      ] as const).map(([id, label]) => {
+                      {(
+                        [
+                          ["all", `All issues (${blockingIssues.length + warningIssues.length})`],
+                          ["blocking", `Blocking only (${blockingIssues.length})`],
+                          ["warnings", `Warnings only (${warningIssues.length})`],
+                        ] as const
+                      ).map(([id, label]) => {
                         const active = issueFilter === id;
                         return (
                           <button
@@ -1298,34 +1757,55 @@ function Index() {
                       })}
                     </div>
 
-                    {(issueFilter === "all" || issueFilter === "blocking") && blockingIssues.length > 0 && (
-                      <section ref={blockersRef} aria-labelledby="blockers-heading">
-                        <IssueGroup
-                          id="blockers-heading"
-                          title="Fix these blockers before Shopify upload"
-                          description="Blocked rows contain required-field problems that should be fixed before importing into Shopify. These rows will be excluded from the beta export."
-                          tone="error"
-                          issues={blockingIssues}
-                          mappings={mappings}
-                          headers={headers}
-                        />
-                      </section>
-                    )}
-                    {(issueFilter === "all" || issueFilter === "warnings") && warningIssues.length > 0 && (
-                      <section ref={warningsRef} aria-labelledby="warnings-heading">
-                        <IssueGroup
-                          id="warnings-heading"
-                          title="Review recommended warnings"
-                          description="These rows are exportable, but the issues below may cause product, variant, or inventory problems in Shopify."
-                          tone="warning"
-                          issues={warningIssues}
-                          mappings={mappings}
-                          headers={headers}
-                        />
-                      </section>
+                    {(issueFilter === "all" || issueFilter === "blocking") &&
+                      blockingIssues.length > 0 && (
+                        <section ref={blockersRef} aria-labelledby="blockers-heading">
+                          <IssueGroup
+                            id="blockers-heading"
+                            title="Fix these blockers before Shopify upload"
+                            description="Blocked rows contain required-field problems that should be fixed before importing into Shopify. These rows will be excluded from the beta export."
+                            tone="error"
+                            issues={visibleBlockingIssues}
+                            mappings={mappings}
+                            headers={headers}
+                          />
+                        </section>
+                      )}
+                    {(issueFilter === "all" || issueFilter === "warnings") &&
+                      warningIssues.length > 0 && (
+                        <section ref={warningsRef} aria-labelledby="warnings-heading">
+                          <IssueGroup
+                            id="warnings-heading"
+                            title="Review recommended warnings"
+                            description="These rows are exportable, but the issues below may cause product, variant, or inventory problems in Shopify."
+                            tone="warning"
+                            issues={visibleWarningIssues}
+                            mappings={mappings}
+                            headers={headers}
+                          />
+                        </section>
+                      )}
+                    {!hasPaidAccess && hiddenIssueCount > 0 && (
+                      <div className="rounded-lg border bg-background p-4 text-sm">
+                        <p className="font-semibold">
+                          Unlock full validation report + Shopify-ready export — $9
+                        </p>
+                        <p className="mt-1 text-muted-foreground">
+                          {hiddenIssueCount} additional issue{hiddenIssueCount === 1 ? "" : "s"}{" "}
+                          hidden. Paid unlock includes all issue details, exact row/cell issue
+                          details, downloadable validation report, and Download Shopify-ready
+                          export.
+                        </p>
+                        <Button className="mt-3" onClick={handlePaidUnlock}>
+                          <Lock className="h-4 w-4 mr-1.5" />
+                          Unlock full report + export
+                        </Button>
+                      </div>
                     )}
                     {issueFilter === "blocking" && blockingIssues.length === 0 && (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No blocking import errors.</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        No blocking import errors.
+                      </p>
                     )}
                     {issueFilter === "warnings" && warningIssues.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4 text-center">No warnings.</p>
@@ -1337,149 +1817,198 @@ function Index() {
               {/* Export readiness */}
               <section ref={exportRef}>
                 <Card className="mt-4">
-                <CardContent className="pt-6">
-                  {allRequiredMapped && summary.exportableRows > 0 ? (
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          {summary.blockedRows > 0 ? (
-                            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                          ) : (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                          )}
-                          <p className="font-medium">
-                            {summary.blockedRows > 0 ? "Import blocked. Exportable rows can still be downloaded." : "Ready for Shopify import"}
+                  <CardContent className="pt-6">
+                    {allRequiredMapped && summary.exportableRows > 0 ? (
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            {summary.blockedRows > 0 ? (
+                              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                            )}
+                            <p className="font-medium">
+                              {summary.blockedRows > 0
+                                ? "Import blocked. Exportable rows can still be downloaded."
+                                : "Ready for Shopify import"}
+                            </p>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {summary.exportableRows} rows validated · {summary.blockedRows} blocked
+                            · {TARGET_META[target].title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {summary.blockedRows > 0
+                              ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
+                              : target === "shopify"
+                                ? "No import blockers found for required Shopify fields."
+                                : target === "woocommerce"
+                                  ? "No import blockers found for required WooCommerce fields."
+                                  : "No blockers found for required clean product fields."}
                           </p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {summary.exportableRows} rows validated · {summary.blockedRows} blocked · {TARGET_META[target].title}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {summary.blockedRows > 0
-                            ? "Blocked rows will be excluded from the import file. Fix them in the source CSV and re-upload."
-                            : target === "shopify"
-                              ? "No import blockers found for required Shopify fields."
-                              : target === "woocommerce"
-                                ? "No import blockers found for required WooCommerce fields."
-                                : "No blockers found for required clean product fields."}
-                        </p>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          {hasPaidAccess ? (
+                            <>
+                              <Button onClick={handleDownload} size="lg" className="font-semibold">
+                                <Download className="h-4 w-4 mr-1.5" />
+                                {isSampleFile
+                                  ? summary.blockedRows > 0
+                                    ? "Download sample exportable rows"
+                                    : "Download sample export"
+                                  : "Download Shopify-ready export"}
+                              </Button>
+                              <span className="text-[11px] text-muted-foreground">
+                                {isSampleFile
+                                  ? "Sample file remains fully free"
+                                  : "Full report unlocked · one paid export"}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                onClick={handlePaidUnlock}
+                                size="lg"
+                                className="font-semibold"
+                              >
+                                <Lock className="h-4 w-4 mr-1.5" />
+                                Unlock full report + export — $9
+                              </Button>
+                              <span className="text-[11px] text-muted-foreground">
+                                Includes exact row/cell issue details and Shopify-ready exportable
+                                rows
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        {freeExportUsed ? (
-                          <>
-                            <Button onClick={handleDownload} size="lg" variant="outline" className="font-semibold">
-                              Request more exports
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">You’ve used your free beta export · Target price $9/file</span>
-                          </>
-                        ) : (
-                          <>
-                            <Button onClick={handleDownload} size="lg" className="font-semibold">
-                              <Download className="h-4 w-4 mr-1.5" />
-                              {summary.blockedRows > 0 ? "Download exportable rows" : "Download beta export"}
-                            </Button>
-                            <span className="text-[11px] text-muted-foreground">1 free beta export per browser · Target future price $9/file</span>
-                          </>
-                        )}
+                    ) : (
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium">Not ready for import</p>
+                          <p className="text-muted-foreground">
+                            {!allRequiredMapped
+                              ? "Required fields need mapping before export."
+                              : "No importable rows yet — every row has a blocking error."}
+                          </p>
+                        </div>
                       </div>
-
-
-
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="text-sm">
-                        <p className="font-medium">Not ready for import</p>
-                        <p className="text-muted-foreground">
-                          {!allRequiredMapped
-                            ? "Required fields need mapping before export."
-                            : "No importable rows yet — every row has a blocking error."}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    )}
+                  </CardContent>
+                </Card>
               </section>
 
               {/* Output Preview */}
               <section ref={previewRef}>
                 <Card className="mt-4">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="min-w-0">
-                      <CardTitle className="text-base">Output preview</CardTitle>
-                      <CardDescription>Preview the first 25 rows exactly as they will appear in the exported import file.</CardDescription>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base">Output preview</CardTitle>
+                        <CardDescription>
+                          Preview the first 25 rows exactly as they will appear in the exported
+                          import file.
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Label className="text-xs text-muted-foreground">Show</Label>
+                        <Select
+                          value={previewFilter}
+                          onValueChange={(v) => setPreviewFilter(v as any)}
+                        >
+                          <SelectTrigger className="h-8 w-[180px] text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="exportable">Exportable rows</SelectItem>
+                            <SelectItem value="all">All rows</SelectItem>
+                            <SelectItem value="warning">With warnings</SelectItem>
+                            <SelectItem value="error">Blocked rows</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                          <Switch checked={hideEmptyCols} onCheckedChange={setHideEmptyCols} />
+                          Hide empty columns
+                        </label>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <Label className="text-xs text-muted-foreground">Show</Label>
-                      <Select value={previewFilter} onValueChange={(v) => setPreviewFilter(v as any)}>
-                        <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="exportable">Exportable rows</SelectItem>
-                          <SelectItem value="all">All rows</SelectItem>
-                          <SelectItem value="warning">With warnings</SelectItem>
-                          <SelectItem value="error">Blocked rows</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                        <Switch checked={hideEmptyCols} onCheckedChange={setHideEmptyCols} />
-                        Hide empty columns
-                      </label>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Previewing first 25 rows. Download includes all exportable rows. Scroll to review all columns.
-                  </p>
-
-                </CardHeader>
-                <CardContent>
-                  {previewExportRows.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-8 text-center">No rows match this filter.</p>
-                  ) : (
-                    <div className="overflow-x-auto rounded-md border max-h-[500px]">
-                      <table className="w-full text-xs">
-                        <thead className="bg-[#f8fafc] sticky top-0 z-10">
-                          <tr>
-                            <th className="px-2 py-2 text-left font-medium border-b w-16 text-muted-foreground">Row</th>
-                            <th className="px-2 py-2 text-left font-medium border-b w-24 text-muted-foreground">Status</th>
-                            {previewHeaders.map((h) => (
-                              <th key={h} className="px-3 py-2 text-left font-medium border-b whitespace-nowrap text-muted-foreground">{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {previewExportRows.map(({ row, product }, i) => {
-                            const hasErr = product.validationErrors.some((e) => e.severity === "error");
-                            const hasWarn = product.validationErrors.some((e) => e.severity === "warning");
-                            return (
-                              <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
-                                <td className="px-2 py-1.5 text-muted-foreground border-b">{product.sourceRowId}</td>
-                                <td className="px-2 py-1.5 border-b">
-                                  {hasErr ? (
-                                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">Must fix before import</span>
-                                  ) : hasWarn ? (
-                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">Review recommended</span>
-                                  ) : (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">Exportable</span>
-                                  )}
-                                </td>
-                                {previewHeaders.map((h) => (
-                                  <td key={h} className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b">
-                                    {String(row[h] ?? "")}
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Previewing first 25 rows. Download includes all exportable rows. Scroll to
+                      review all columns.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {previewExportRows.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-8 text-center">
+                        No rows match this filter.
+                      </p>
+                    ) : (
+                      <div className="overflow-x-auto rounded-md border max-h-[500px]">
+                        <table className="w-full text-xs">
+                          <thead className="bg-[#f8fafc] sticky top-0 z-10">
+                            <tr>
+                              <th className="px-2 py-2 text-left font-medium border-b w-16 text-muted-foreground">
+                                Row
+                              </th>
+                              <th className="px-2 py-2 text-left font-medium border-b w-24 text-muted-foreground">
+                                Status
+                              </th>
+                              {previewHeaders.map((h) => (
+                                <th
+                                  key={h}
+                                  className="px-3 py-2 text-left font-medium border-b whitespace-nowrap text-muted-foreground"
+                                >
+                                  {h}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewExportRows.map(({ row, product }, i) => {
+                              const hasErr = product.validationErrors.some(
+                                (e) => e.severity === "error",
+                              );
+                              const hasWarn = product.validationErrors.some(
+                                (e) => e.severity === "warning",
+                              );
+                              return (
+                                <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
+                                  <td className="px-2 py-1.5 text-muted-foreground border-b">
+                                    {product.sourceRowId}
                                   </td>
-                                ))}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                  )}
-                </CardContent>
-              </Card>
+                                  <td className="px-2 py-1.5 border-b">
+                                    {hasErr ? (
+                                      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 border border-red-200">
+                                        Must fix before import
+                                      </span>
+                                    ) : hasWarn ? (
+                                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">
+                                        Review recommended
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">
+                                        Exportable
+                                      </span>
+                                    )}
+                                  </td>
+                                  {previewHeaders.map((h) => (
+                                    <td
+                                      key={h}
+                                      className="px-3 py-1.5 whitespace-nowrap max-w-[240px] truncate border-b"
+                                    >
+                                      {String(row[h] ?? "")}
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </section>
             </section>
           </>
@@ -1525,7 +2054,10 @@ function Index() {
         </section>
 
         <section aria-labelledby="seo-guides-heading" className="mt-12 border-t pt-10">
-          <h2 id="seo-guides-heading" className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2
+            id="seo-guides-heading"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
             Shopify CSV guides
           </h2>
           <p className="mt-3 text-sm text-muted-foreground max-w-3xl">
@@ -1533,12 +2065,32 @@ function Index() {
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { href: "/shopify-csv-validator", label: "Shopify CSV Validator", desc: "Check product CSV import readiness." },
-              { href: "/shopify-csv-import-errors", label: "Shopify CSV Import Errors", desc: "Find common blockers before upload." },
-              { href: "/fix-shopify-product-csv", label: "Fix Shopify Product CSV", desc: "Clean supplier files for Shopify." },
-              { href: "/supplier-csv-to-shopify", label: "Supplier CSV to Shopify", desc: "Map supplier columns to Shopify fields." },
+              {
+                href: "/shopify-csv-validator",
+                label: "Shopify CSV Validator",
+                desc: "Check product CSV import readiness.",
+              },
+              {
+                href: "/shopify-csv-import-errors",
+                label: "Shopify CSV Import Errors",
+                desc: "Find common blockers before upload.",
+              },
+              {
+                href: "/fix-shopify-product-csv",
+                label: "Fix Shopify Product CSV",
+                desc: "Clean supplier files for Shopify.",
+              },
+              {
+                href: "/supplier-csv-to-shopify",
+                label: "Supplier CSV to Shopify",
+                desc: "Map supplier columns to Shopify fields.",
+              },
             ].map((guide) => (
-              <a key={guide.href} href={guide.href} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40">
+              <a
+                key={guide.href}
+                href={guide.href}
+                className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40"
+              >
                 <span className="text-sm font-semibold text-foreground">{guide.label}</span>
                 <span className="mt-1 block text-xs text-muted-foreground">{guide.desc}</span>
               </a>
@@ -1547,11 +2099,18 @@ function Index() {
         </section>
 
         <section aria-labelledby="privacy-heading" className="mt-12 border-t pt-10">
-          <h2 id="privacy-heading" className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2
+            id="privacy-heading"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
             File privacy
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-3xl">
-            ProductCSVFixer is designed as a browser-based CSV checker. Your CSV file is processed locally in your browser for mapping, validation, preview, and beta export. We do not store uploaded CSV files. We only collect anonymous product analytics events, such as whether a file was uploaded, validation completed, or a beta export was downloaded. We do not collect product names, SKUs, prices, image URLs, row values, or CSV contents.
+            ProductCSVFixer is designed as a browser-based CSV checker. Your CSV file is processed
+            locally in your browser for mapping, validation, preview, and beta export. We do not
+            store uploaded CSV files. We only collect anonymous product analytics events, such as
+            whether a file was uploaded, validation completed, or a beta export was downloaded. We
+            do not collect product names, SKUs, prices, image URLs, row values, or CSV contents.
           </p>
         </section>
       </main>
@@ -1562,7 +2121,8 @@ function Index() {
           <DialogHeader>
             <DialogTitle>Would a self-serve paid export be useful?</DialogTitle>
             <DialogDescription>
-              ProductCSVFixer is testing self-serve paid exports at $9/file. CSVs stay browser-based; no emailed file workflow required.
+              ProductCSVFixer is testing self-serve paid exports at $9/file. CSVs stay
+              browser-based; no emailed file workflow required.
             </DialogDescription>
           </DialogHeader>
 
@@ -1598,7 +2158,9 @@ function Index() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-email" className="text-xs">Email optional — get notified when self-serve paid exports launch.</Label>
+                <Label htmlFor="feedback-email" className="text-xs">
+                  Email optional — get notified when self-serve paid exports launch.
+                </Label>
                 <Input
                   id="feedback-email"
                   type="email"
@@ -1609,7 +2171,9 @@ function Index() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="feedback-note" className="text-xs">What should the self-serve export support next?</Label>
+                <Label htmlFor="feedback-note" className="text-xs">
+                  What should the self-serve export support next?
+                </Label>
                 <Input
                   id="feedback-note"
                   placeholder="Example: better variant rows, image columns, or supplier templates"
@@ -1619,8 +2183,12 @@ function Index() {
               </div>
 
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>Skip</Button>
-                <Button onClick={submitFeedback} disabled={!worthChoice && !solvedChoice}>Send feedback</Button>
+                <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>
+                  Skip
+                </Button>
+                <Button onClick={submitFeedback} disabled={!worthChoice && !solvedChoice}>
+                  Send feedback
+                </Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1640,13 +2208,16 @@ function Index() {
           <DialogHeader>
             <DialogTitle>You’ve used your free beta export</DialogTitle>
             <DialogDescription>
-              We’re validating paid self-serve exports at $9/file. Want to be notified when more exports are available?
+              We’re validating paid self-serve exports at $9/file. Want to be notified when more
+              exports are available?
             </DialogDescription>
           </DialogHeader>
           {!limitSubmitted ? (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="limit-email" className="text-xs">Email optional</Label>
+                <Label htmlFor="limit-email" className="text-xs">
+                  Email optional
+                </Label>
                 <Input
                   id="limit-email"
                   type="email"
@@ -1656,30 +2227,46 @@ function Index() {
                 />
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => {
-                  track("paid_beta_interest_clicked", { choice: "no" });
-                  track("paid_export_interest_no", { source: "free_export_limit" });
-                  setLimitOpen(false);
-                }}>No thanks</Button>
-                <Button variant="outline" onClick={() => {
-                  track("paid_beta_interest_clicked", { choice: "maybe" });
-                  track("paid_export_interest_maybe", { source: "free_export_limit" });
-                  setLimitOpen(false);
-                }}>Maybe later</Button>
-                <Button onClick={() => {
-                  track("paid_beta_interest_clicked", { choice: "yes" });
-                  track("paid_export_interest_yes", { source: "free_export_limit" });
-                  if (limitEmail) {
-                    track("email_submitted", { source: "free_export_limit" });
-                    track("paid_export_email_submitted", { source: "free_export_limit" });
-                  }
-                  setLimitSubmitted(true);
-                }}>Yes, notify me</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    track("paid_beta_interest_clicked", { choice: "no" });
+                    track("paid_export_interest_no", { source: "free_export_limit" });
+                    setLimitOpen(false);
+                  }}
+                >
+                  No thanks
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    track("paid_beta_interest_clicked", { choice: "maybe" });
+                    track("paid_export_interest_maybe", { source: "free_export_limit" });
+                    setLimitOpen(false);
+                  }}
+                >
+                  Maybe later
+                </Button>
+                <Button
+                  onClick={() => {
+                    track("paid_beta_interest_clicked", { choice: "yes" });
+                    track("paid_export_interest_yes", { source: "free_export_limit" });
+                    if (limitEmail) {
+                      track("email_submitted", { source: "free_export_limit" });
+                      track("paid_export_email_submitted", { source: "free_export_limit" });
+                    }
+                    setLimitSubmitted(true);
+                  }}
+                >
+                  Yes, notify me
+                </Button>
               </DialogFooter>
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-emerald-700">Thanks — you’re on the notification list for self-serve paid exports.</p>
+              <p className="text-sm text-emerald-700">
+                Thanks — you’re on the notification list for self-serve paid exports.
+              </p>
               <DialogFooter>
                 <Button onClick={() => setLimitOpen(false)}>Close</Button>
               </DialogFooter>
@@ -1687,14 +2274,29 @@ function Index() {
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
 
 function ValidationSummaryCard({
-  status, statusLabel, totalRows, exportableRows, blockedRows, warningRows, selectedFormat,
-  warningIssueCount, freeExportUsed, onReviewBlockers, onReviewWarnings, onDownload, onReviewMapping, onPreview, onTryAnother,
+  status,
+  statusLabel,
+  totalRows,
+  exportableRows,
+  blockedRows,
+  warningRows,
+  selectedFormat,
+  warningIssueCount,
+  freeExportUsed,
+  hasPaidAccess,
+  isSampleFile,
+  onPaidUnlock,
+  onReviewBlockers,
+  onReviewWarnings,
+  onDownload,
+  onReviewMapping,
+  onPreview,
+  onTryAnother,
 }: {
   status: "import_blocked" | "review_recommended" | "ready";
   statusLabel: string;
@@ -1705,6 +2307,9 @@ function ValidationSummaryCard({
   warningIssueCount: number;
   selectedFormat: string;
   freeExportUsed: boolean;
+  hasPaidAccess: boolean;
+  isSampleFile: boolean;
+  onPaidUnlock: () => void;
   onReviewBlockers: () => void;
   onReviewWarnings: () => void;
   onDownload: () => void;
@@ -1734,10 +2339,20 @@ function ValidationSummaryCard({
   const supportingCopy = isBlocked
     ? `${exportableRows} ${exportableRows === 1 ? "row is" : "rows are"} exportable. ${warningRows} ${warningRows === 1 ? "row has" : "rows have"} warnings; ${warningIssueCount} total warning ${warningIssueCount === 1 ? "issue" : "issues"} found.`
     : "All rows are exportable.";
-  const primaryLabel = isBlocked ? "Review blockers" : freeExportUsed ? "Request more exports" : "Download beta export";
-  const primaryAction = isBlocked ? onReviewBlockers : onDownload;
-  const secondaryExportLabel = isBlocked ? "Download exportable rows" : "Show output preview";
-  const secondaryExportAction = isBlocked ? onDownload : onPreview;
+  const primaryLabel = isBlocked
+    ? "Review blockers"
+    : hasPaidAccess
+      ? isSampleFile
+        ? "Download sample export"
+        : "Download Shopify-ready export"
+      : "Unlock full report + export — $9";
+  const primaryAction = isBlocked ? onReviewBlockers : hasPaidAccess ? onDownload : onPaidUnlock;
+  const secondaryExportLabel = isBlocked
+    ? hasPaidAccess
+      ? "Download exportable rows"
+      : "Unlock full report + export — $9"
+    : "Show output preview";
+  const secondaryExportAction = isBlocked ? (hasPaidAccess ? onDownload : onPaidUnlock) : onPreview;
   const metrics = [
     ["Total rows", totalRows],
     ["Exportable rows", exportableRows],
@@ -1754,9 +2369,14 @@ function ValidationSummaryCard({
             <div className="flex flex-wrap items-center gap-2">
               <Icon className={`h-5 w-5 ${iconClass}`} />
               <Badge className={badgeClass}>{statusLabel}</Badge>
-              <span className="text-xs text-muted-foreground">Selected format: {selectedFormat}</span>
+              <span className="text-xs text-muted-foreground">
+                Selected format: {selectedFormat}
+              </span>
             </div>
-            <h2 id="validation-summary-heading" className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+            <h2
+              id="validation-summary-heading"
+              className="mt-3 text-2xl font-semibold tracking-tight text-foreground"
+            >
               {statusLabel}
             </h2>
             <p className="mt-1 text-sm font-medium text-foreground">{summaryCopy}</p>
@@ -1764,10 +2384,19 @@ function ValidationSummaryCard({
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end shrink-0">
             <Button size="lg" onClick={primaryAction} className="font-semibold">
-              {isBlocked ? <AlertCircle className="h-4 w-4 mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
+              {isBlocked ? (
+                <AlertCircle className="h-4 w-4 mr-1.5" />
+              ) : (
+                <Download className="h-4 w-4 mr-1.5" />
+              )}
               {primaryLabel}
             </Button>
-            <Button size="lg" variant="outline" onClick={secondaryExportAction} disabled={isBlocked && exportableRows === 0}>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={secondaryExportAction}
+              disabled={isBlocked && exportableRows === 0}
+            >
               {secondaryExportLabel}
             </Button>
           </div>
@@ -1776,7 +2405,9 @@ function ValidationSummaryCard({
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {metrics.map(([label, value]) => (
             <div key={label} className="rounded-lg border bg-background/80 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                {label}
+              </p>
               <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
             </div>
           ))}
@@ -1784,29 +2415,50 @@ function ValidationSummaryCard({
 
         <div className="flex flex-wrap gap-2">
           {isBlocked && warningRows > 0 && (
-            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>Review warnings</Button>
+            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>
+              Review warnings
+            </Button>
           )}
           {!isBlocked && isWarning && (
-            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>Review warnings</Button>
+            <Button variant="ghost" size="sm" onClick={onReviewWarnings}>
+              Review warnings
+            </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onReviewMapping}>Review mapping</Button>
-          <Button variant="ghost" size="sm" onClick={onPreview}>Show output preview</Button>
-          <Button variant="ghost" size="sm" onClick={onTryAnother}>Try another CSV</Button>
+          <Button variant="ghost" size="sm" onClick={onReviewMapping}>
+            Review mapping
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onPreview}>
+            Show output preview
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onTryAnother}>
+            Try another CSV
+          </Button>
         </div>
 
         <p className="rounded-md border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
           <Shield className="mr-1.5 inline h-3.5 w-3.5" />
-          Your CSV is checked in your browser for import readiness only. ProductCSVFixer is a pre-flight checker, not a bulk editor.
+          Your CSV is checked in your browser for import readiness only. ProductCSVFixer is a
+          pre-flight checker, not a bulk editor.
         </p>
       </CardContent>
     </Card>
   );
 }
 
-function StepHeader({ number, title, active }: { number: number; title: string; active?: boolean }) {
+function StepHeader({
+  number,
+  title,
+  active,
+}: {
+  number: number;
+  title: string;
+  active?: boolean;
+}) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className={`grid place-items-center h-7 w-7 rounded-full text-xs font-semibold shrink-0 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+      <span
+        className={`grid place-items-center h-7 w-7 rounded-full text-xs font-semibold shrink-0 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+      >
         {number}
       </span>
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
@@ -1815,7 +2467,14 @@ function StepHeader({ number, title, active }: { number: number; title: string; 
 }
 
 function MappingRow({
-  field, required, headers, mapping, sample, onUpdate, onTransform, onClear,
+  field,
+  required,
+  headers,
+  mapping,
+  sample,
+  onUpdate,
+  onTransform,
+  onClear,
 }: {
   field: keyof ProductRecord;
   required?: boolean;
@@ -1829,14 +2488,20 @@ function MappingRow({
   const notMapped = required && !mapping;
   const fieldLabel = FIELD_LABELS[field] || field;
   return (
-    <div className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}>
-
+    <div
+      className={`rounded-md border p-3 ${notMapped ? "border-red-300 bg-red-50/60 border-l-4 border-l-red-500" : required ? "bg-card border-l-4 border-l-primary" : "bg-card"}`}
+    >
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{fieldLabel}</span>
             {required && (
-              <Badge variant={notMapped ? "destructive" : "default"} className="text-[10px] py-0 h-4">Required</Badge>
+              <Badge
+                variant={notMapped ? "destructive" : "default"}
+                className="text-[10px] py-0 h-4"
+              >
+                Required
+              </Badge>
             )}
             {notMapped && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
           </div>
@@ -1853,7 +2518,9 @@ function MappingRow({
           )}
         </div>
         <div>
-          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Source column</Label>
+          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">
+            Source column
+          </Label>
           <Select
             value={mapping?.sourceColumn || NO_SOURCE}
             onValueChange={(v) => onUpdate(field, v)}
@@ -1864,13 +2531,17 @@ function MappingRow({
             <SelectContent>
               <SelectItem value={NO_SOURCE}>Select source column</SelectItem>
               {headers.map((h) => (
-                <SelectItem key={h} value={h}>{h}</SelectItem>
+                <SelectItem key={h} value={h}>
+                  {h}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Transform</Label>
+          <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">
+            Transform
+          </Label>
           <Select
             value={mapping?.transform || defaultTransformFor(field)}
             onValueChange={(v) => onTransform(field, v as TransformRule)}
@@ -1881,7 +2552,9 @@ function MappingRow({
             </SelectTrigger>
             <SelectContent>
               {TRANSFORM_OPTIONS.map((t) => (
-                <SelectItem key={t} value={t}>{TRANSFORM_LABELS[t]}</SelectItem>
+                <SelectItem key={t} value={t}>
+                  {TRANSFORM_LABELS[t]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -1905,7 +2578,13 @@ function MappingRow({
 }
 
 function IssueGroup({
-  id, title, description, tone, issues, mappings, headers,
+  id,
+  title,
+  description,
+  tone,
+  issues,
+  mappings,
+  headers,
 }: {
   id?: string;
   title: string;
@@ -1918,15 +2597,18 @@ function IssueGroup({
   const Icon = tone === "error" ? AlertCircle : AlertTriangle;
   const iconColor = tone === "error" ? "text-destructive" : "text-amber-600";
   const badgeLabel = tone === "error" ? "Blocked" : "Warning";
-  const badgeClass = tone === "error"
-    ? "bg-destructive text-destructive-foreground"
-    : "bg-amber-500 text-white";
+  const badgeClass =
+    tone === "error" ? "bg-destructive text-destructive-foreground" : "bg-amber-500 text-white";
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${iconColor}`} />
-        <p id={id} className="font-medium text-sm">{title}</p>
-        <Badge variant="secondary" className="text-[10px] h-4">{issues.length}</Badge>
+        <p id={id} className="font-medium text-sm">
+          {title}
+        </p>
+        <Badge variant="secondary" className="text-[10px] h-4">
+          {issues.length}
+        </Badge>
       </div>
       <p className="text-xs text-muted-foreground">{description}</p>
       <div className="space-y-2">
@@ -1936,7 +2618,9 @@ function IssueGroup({
           return (
             <div key={i} className="rounded-md border bg-card p-3 sm:p-4">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}>
+                <span
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}
+                >
                   {badgeLabel}
                 </span>
                 <span className="text-sm font-medium">
@@ -1953,7 +2637,11 @@ function IssueGroup({
                 </div>
                 <div>
                   <dt className="font-medium text-muted-foreground">Where</dt>
-                  <dd className="text-foreground">{d.sourceColumn ? `${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}` : "Source not mapped"}</dd>
+                  <dd className="text-foreground">
+                    {d.sourceColumn
+                      ? `${d.sourceColumn}${d.cellRef ? `, Cell ${d.cellRef}` : ""}`
+                      : "Source not mapped"}
+                  </dd>
                 </div>
                 <div>
                   <dt className="font-medium text-muted-foreground">Current value</dt>
@@ -1966,13 +2654,18 @@ function IssueGroup({
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-muted-foreground">{tone === "error" ? "Fix" : "Suggested fix"}</dt>
+                  <dt className="font-medium text-muted-foreground">
+                    {tone === "error" ? "Fix" : "Suggested fix"}
+                  </dt>
                   <dd className="text-foreground">{d.fix}</dd>
                 </div>
                 {tone === "warning" && (
                   <div className="sm:col-span-2">
                     <dt className="font-medium text-muted-foreground">Why it matters</dt>
-                    <dd className="text-foreground">This row is exportable, but the value may create product, variant, inventory, or merchandising issues in Shopify.</dd>
+                    <dd className="text-foreground">
+                      This row is exportable, but the value may create product, variant, inventory,
+                      or merchandising issues in Shopify.
+                    </dd>
                   </div>
                 )}
               </dl>

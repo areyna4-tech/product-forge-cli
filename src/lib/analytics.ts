@@ -36,6 +36,12 @@ export type AnalyticsEvent =
   | "free_export_limit_reached"
   | "paid_beta_interest_clicked"
   | "paid_export_gate_viewed"
+  | "free_preview_viewed"
+  | "paid_unlock_clicked"
+  | "paid_checkout_returned_success"
+  | "paid_checkout_returned_cancelled"
+  | "paid_report_viewed"
+  | "paid_export_downloaded"
   | "paid_export_interest_yes"
   | "paid_export_interest_maybe"
   | "paid_export_interest_no"
@@ -78,10 +84,18 @@ declare global {
 // Strip any potentially sensitive fields before sending.
 const SENSITIVE_KEYS = new Set([
   "email",
-  "filename", "file_name", "fileName",
-  "sourceValue", "value",
-  "note", "feedback", "feedback_note", "feedback_text",
-  "sourceColumn", "source_column", "source_column_label",
+  "filename",
+  "file_name",
+  "fileName",
+  "sourceValue",
+  "value",
+  "note",
+  "feedback",
+  "feedback_note",
+  "feedback_text",
+  "sourceColumn",
+  "source_column",
+  "source_column_label",
 ]);
 function scrub(props: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
