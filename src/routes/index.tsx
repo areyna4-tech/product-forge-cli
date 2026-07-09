@@ -1214,14 +1214,11 @@ function Index() {
                   </div>
 
                   {/* Privacy notice */}
-                  <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                    <strong>Privacy notice:</strong> Please use a non-sensitive CSV. Your file is
-                    processed in your browser and is not stored by ProductCSVFixer.
-                  </p>
-                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
-                    <strong>Privacy note:</strong> Your CSV is processed in your browser. We do not
-                    store your uploaded file. We may collect anonymous usage events such as page
-                    views, upload, validation, and export clicks, but not your CSV contents.
+                  <p className="mt-4 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
+                    <strong>Privacy note:</strong> Use a non-sensitive CSV. Your file is processed
+                    in your browser and is not stored by ProductCSVFixer. We may collect anonymous
+                    usage events such as page views, upload, validation, and export clicks, but not
+                    your CSV contents.
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
                     ProductCSVFixer is a CSV import pre-flight checker, not a bulk product editor.
