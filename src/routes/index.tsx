@@ -192,7 +192,7 @@ const NO_SOURCE = "__none__";
 const ISSUE_PREVIEW_LIMIT = 5;
 const STRIPE_PAYMENT_LINK =
   (import.meta.env.VITE_STRIPE_PAYMENT_LINK as string | undefined) ||
-  "https://buy.stripe.com/test_3cIfZh60wcC3cvO6By2Ji00";
+  "https://buy.stripe.com/28E00j0FBcUq9RF2uI1VK00";
 const PAID_EXPORT_SUCCESS_QUERY = "paid_export=success";
 const PAID_EXPORT_CANCELLED_QUERY = "paid_export=cancelled";
 
