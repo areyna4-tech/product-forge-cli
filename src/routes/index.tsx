@@ -74,13 +74,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { name: "robots", content: "index, follow" },
-      { title: "Fix Shopify CSV Import Errors | Product Forge" },
+      { title: "Fix Shopify CSV Import Errors Before Upload | ProductCSVFixer" },
       {
         name: "description",
         content:
           "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and unlock a Shopify-ready export.",
       },
-      { property: "og:title", content: "Fix Shopify CSV Import Errors | Product Forge" },
+      {
+        property: "og:title",
+        content: "Fix Shopify CSV Import Errors Before Upload | ProductCSVFixer",
+      },
       {
         property: "og:description",
         content:
@@ -1069,14 +1072,14 @@ function Index() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
           <div className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
-            Product Forge
+            ProductCSVFixer
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Shopify CSV Import Error Checker &amp; Pre-Flight Validator
+            Shopify CSV Import Error Checker
           </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Find import blockers in messy supplier product CSVs before Shopify upload. This is a
-            pre-flight checker, not a bulk editor.
+            Check whether Shopify is likely to accept your product CSV before you upload it. Find
+            missing fields, duplicate SKUs, invalid prices, image URL problems, and blocked rows.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
@@ -1105,11 +1108,11 @@ function Index() {
                 id="landing-headline"
                 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground"
               >
-                Check Shopify CSV import errors before upload.
+                Will Shopify accept this product CSV? Check before you upload.
               </h1>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                Upload a messy supplier product CSV and find import blockers before Shopify upload.
-                This is a pre-flight checker, not a bulk product editor.
+                Upload a Shopify or supplier product CSV and get a clear import-readiness report:
+                rows ready for Shopify, rows with warnings, and rows that should be fixed first.
               </p>
               <div className="mt-5 flex justify-center">
                 <Button
@@ -1126,12 +1129,12 @@ function Index() {
                 </Button>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                No signup required. Runs locally in your browser. Pre-flight checker, not a bulk
-                editor.
+                No signup required. No Shopify login required. One-time $9 unlock for the full report
+                and Shopify-ready export.
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">How the pre-flight check works</CardTitle>
@@ -1161,13 +1164,26 @@ function Index() {
               </Card>
               <Card>
                 <CardHeader>
+                  <CardTitle className="text-base">What your report shows</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <ul className="space-y-1.5 list-disc pl-4">
+                    <li>Import status: ready, review, or blocked</li>
+                    <li>Total, exportable, warning, and blocked rows</li>
+                    <li>Top issue categories and example rows</li>
+                    <li>Shopify-ready export option</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
                   <CardTitle className="text-base">Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
                   <p className="text-foreground font-medium">Free preview available now.</p>
                   <p>Scan your CSV free and preview the first import issues.</p>
                   <p className="text-xs">
-                    Unlock the full validation report + Shopify-ready export for $9.
+                    Unlock every row/cell issue plus the Shopify-ready export for a one-time $9.
                   </p>
                 </CardContent>
               </Card>
@@ -1213,15 +1229,12 @@ function Index() {
                     </div>
                   </div>
 
-                  {/* Privacy notice */}
+                  {/* Trust and scope notice */}
                   <p className="mt-4 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
-                    <strong>Privacy note:</strong> Use a non-sensitive CSV. Your file is processed
-                    in your browser and is not stored by ProductCSVFixer. We may collect anonymous
-                    usage events such as page views, upload, validation, and export clicks, but not
-                    your CSV contents.
-                  </p>
-                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-md px-3 py-2">
-                    ProductCSVFixer is a CSV import pre-flight checker, not a bulk product editor.
+                    <strong>Simple pre-import check:</strong> No Shopify login required. Your CSV is
+                    processed in your browser and is not stored by ProductCSVFixer. We may collect
+                    anonymous usage events such as upload, validation, and export clicks, but not
+                    your CSV contents. This is a pre-flight checker, not a bulk product editor.
                   </p>
 
                   {/* How it works */}
@@ -1241,11 +1254,21 @@ function Index() {
                     </ol>
                   </div>
 
-                  {/* Trust note */}
-                  <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                    <Shield className="h-3.5 w-3.5" />
-                    Your file stays in your browser.
-                  </p>
+                  {/* Report preview */}
+                  <div className="mt-4 grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
+                    <div className="rounded-md border bg-background px-3 py-2">
+                      <p className="font-medium text-foreground">Free scan</p>
+                      <p>See import status, row counts, and first issue examples.</p>
+                    </div>
+                    <div className="rounded-md border bg-background px-3 py-2">
+                      <p className="font-medium text-foreground">Full report</p>
+                      <p>Unlock every issue with exact row and cell details.</p>
+                    </div>
+                    <div className="rounded-md border bg-background px-3 py-2">
+                      <p className="font-medium text-foreground">Shopify export</p>
+                      <p>Download exportable rows with blockers excluded.</p>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
