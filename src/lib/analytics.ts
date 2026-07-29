@@ -3,6 +3,11 @@ import posthog from "posthog-js";
 
 export type AnalyticsEvent =
   | "landing_page_view"
+  | "seo_page_viewed"
+  | "seo_cta_clicked"
+  | "upload_area_viewed"
+  | "file_picker_opened"
+  | "file_drop_received"
   | "primary_cta_clicked"
   | "check_csv_cta_clicked"
   | "sample_file_clicked"
@@ -38,6 +43,7 @@ export type AnalyticsEvent =
   | "paid_export_gate_viewed"
   | "free_preview_viewed"
   | "paid_unlock_clicked"
+  | "paid_checkout_started"
   | "paid_checkout_returned_success"
   | "paid_checkout_returned_cancelled"
   | "paid_report_viewed"

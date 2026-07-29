@@ -123,6 +123,15 @@ function bucketFileSize(bytes?: number): string | undefined {
   return ">5MB";
 }
 
+function getPageTrackingContext() {
+  if (typeof window === "undefined") return { landing_path: "/", source_page: "/" };
+  return {
+    landing_path: window.location.pathname,
+    source_page: window.location.pathname,
+    referrer_domain: document.referrer ? new URL(document.referrer).hostname : "direct",
+  };
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: "Title",
   sku: "SKU",
@@ -407,9 +416,15 @@ function Index() {
   const previewRef = useRef<HTMLElement>(null);
   const copyStatusTimeoutRef = useRef<number | null>(null);
 
+  const openFilePicker = useCallback((ctaLocation: string) => {
+    track("file_picker_opened", { ...getPageTrackingContext(), cta_location: ctaLocation });
+    fileInputRef.current?.click();
+  }, []);
+
   // Track landing view once on mount; load free-export flag.
   useEffect(() => {
-    track("landing_page_view");
+    track("landing_page_view", getPageTrackingContext());
+    track("upload_area_viewed", { ...getPageTrackingContext(), cta_location: "upload_area" });
     try {
       if (
         typeof window !== "undefined" &&
@@ -428,10 +443,10 @@ function Index() {
         if (paidExport === PAID_EXPORT_SUCCESS_QUERY.split("=")[1]) {
           window.localStorage.setItem("productForgePaidExportUnlocked", "true");
           setPaidExportUnlocked(true);
-          track("paid_checkout_returned_success");
+          track("paid_checkout_returned_success", getPageTrackingContext());
           toast.success("Full report unlocked. You can now download the Shopify-ready export.");
         } else if (paidExport === PAID_EXPORT_CANCELLED_QUERY.split("=")[1]) {
-          track("paid_checkout_returned_cancelled");
+          track("paid_checkout_returned_cancelled", getPageTrackingContext());
           toast.info("Checkout cancelled. Your free preview is still available.");
         }
       }
@@ -576,8 +591,11 @@ function Index() {
     ) => {
       const cleaned = text.replace(/^\uFEFF/, "");
       if (sourceType === "user_upload")
-        track("csv_upload_started", { file_size_bucket: bucketFileSize(fileSize) });
-      else track("validation_started", { source_type: sourceType });
+        track("csv_upload_started", {
+          ...getPageTrackingContext(),
+          file_size_bucket: bucketFileSize(fileSize),
+        });
+      else track("validation_started", { ...getPageTrackingContext(), source_type: sourceType });
       Papa.parse<Record<string, string>>(cleaned, {
         header: true,
         skipEmptyLines: "greedy",
@@ -613,6 +631,7 @@ function Index() {
           setSourceRows(rows);
           setMappings(autoMapHeaders(hdrs));
           const eventProperties = {
+            ...getPageTrackingContext(),
             source_type: sourceType,
             row_count: rows.length,
             column_count: hdrs.length,
@@ -655,7 +674,11 @@ function Index() {
   );
 
   const loadSample = () => {
-    track("sample_file_clicked", { source_type: "sample" });
+    track("sample_file_clicked", {
+      ...getPageTrackingContext(),
+      source_type: "sample",
+      cta_location: "upload_sample_file",
+    });
     parseCsvText(SAMPLE_CSV, "sample-products.csv", undefined, "sample");
   };
 
@@ -691,7 +714,7 @@ function Index() {
   };
 
   const replaceFile = () => {
-    fileInputRef.current?.click();
+    openFilePicker("replace_file");
   };
 
   const updateMapping = (
@@ -763,8 +786,10 @@ function Index() {
     toast.success(`Exported ${exportRows.length} rows`);
   };
 
-  const handlePaidUnlock = () => {
+  const handlePaidUnlock = (ctaLocation = "result_unlock") => {
     track("paid_unlock_clicked", {
+      ...getPageTrackingContext(),
+      cta_location: ctaLocation,
       source_type: fileSourceType,
       validation_result: importStatus,
       issue_count: gatedIssueCount,
@@ -773,6 +798,13 @@ function Index() {
       stripe_link_configured: Boolean(STRIPE_PAYMENT_LINK),
     });
     if (STRIPE_PAYMENT_LINK) {
+      track("paid_checkout_started", {
+        ...getPageTrackingContext(),
+        cta_location: ctaLocation,
+        source_type: fileSourceType,
+        validation_result: importStatus,
+        target_format: target,
+      });
       window.location.href = STRIPE_PAYMENT_LINK;
       return;
     }
@@ -797,7 +829,7 @@ function Index() {
       return;
     }
     if (!hasPaidAccess) {
-      handlePaidUnlock();
+      handlePaidUnlock("download_locked");
       return;
     }
     track("export_clicked", {
@@ -896,7 +928,7 @@ function Index() {
 
   const handleValidationReport = () => {
     if (!hasPaidAccess) {
-      handlePaidUnlock();
+      handlePaidUnlock("validation_report_locked");
       return;
     }
     if (paidExportUnlocked && !isSampleFile) {
@@ -1119,9 +1151,15 @@ function Index() {
                   type="button"
                   size="lg"
                   onClick={() => {
-                    track("primary_cta_clicked");
-                    track("check_csv_cta_clicked");
-                    fileInputRef.current?.click();
+                    track("primary_cta_clicked", {
+                      ...getPageTrackingContext(),
+                      cta_location: "hero_check_csv",
+                    });
+                    track("check_csv_cta_clicked", {
+                      ...getPageTrackingContext(),
+                      cta_location: "hero_check_csv",
+                    });
+                    openFilePicker("hero_check_csv");
                   }}
                 >
                   <Upload className="h-4 w-4 mr-1.5" />
@@ -1129,8 +1167,8 @@ function Index() {
                 </Button>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                No signup required. No Shopify login required. One-time $9 unlock for the full report
-                and Shopify-ready export.
+                No signup required. No Shopify login required. One-time $9 unlock for the full
+                report and Shopify-ready export.
               </p>
             </div>
 
@@ -1208,7 +1246,13 @@ function Index() {
                       e.preventDefault();
                       setDragOver(false);
                       const f = e.dataTransfer.files?.[0];
-                      if (f) handleFile(f);
+                      if (f) {
+                        track("file_drop_received", {
+                          ...getPageTrackingContext(),
+                          cta_location: "upload_dropzone",
+                        });
+                        handleFile(f);
+                      }
                     }}
                     className={`rounded-lg border-2 border-dashed p-10 text-center transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border"}`}
                   >
@@ -1218,7 +1262,7 @@ function Index() {
                       Upload a CSV with product names, SKUs, prices, inventory, images, or variants.
                     </p>
                     <div className="mt-4 flex justify-center gap-2 flex-wrap">
-                      <Button type="button" onClick={() => fileInputRef.current?.click()}>
+                      <Button type="button" onClick={() => openFilePicker("upload_browse_csv")}>
                         <Upload className="h-4 w-4 mr-1.5" />
                         Browse CSV file
                       </Button>
@@ -1820,7 +1864,10 @@ function Index() {
                           details, downloadable validation report, and Download Shopify-ready
                           export.
                         </p>
-                        <Button className="mt-3" onClick={handlePaidUnlock}>
+                        <Button
+                          className="mt-3"
+                          onClick={() => handlePaidUnlock("hidden_issues_gate")}
+                        >
                           <Lock className="h-4 w-4 mr-1.5" />
                           Unlock full report + export
                         </Button>
@@ -1891,7 +1938,7 @@ function Index() {
                           ) : (
                             <>
                               <Button
-                                onClick={handlePaidUnlock}
+                                onClick={() => handlePaidUnlock("export_card_unlock")}
                                 size="lg"
                                 className="font-semibold"
                               >
