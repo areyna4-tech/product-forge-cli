@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   AlertTriangle,
   Check,
@@ -135,6 +136,13 @@ export const Route = createFileRoute("/shopify-csv-import-errors")({
 });
 
 function ShopifyCsvImportErrorsPage() {
+  useEffect(() => {
+    track("seo_page_viewed", {
+      landing_path: "/shopify-csv-import-errors",
+      source_page: "/shopify-csv-import-errors",
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <script
@@ -171,9 +179,19 @@ function ShopifyCsvImportErrorsPage() {
             <Button
               size="lg"
               asChild
-              onClick={() =>
-                track("check_csv_cta_clicked", { source: "shopify-csv-import-errors-hero" })
-              }
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/shopify-csv-import-errors",
+                  source_page: "/shopify-csv-import-errors",
+                  cta_location: "shopify-csv-import-errors-hero",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/shopify-csv-import-errors",
+                  source_page: "/shopify-csv-import-errors",
+                  cta_location: "shopify-csv-import-errors-hero",
+                  source: "shopify-csv-import-errors-hero",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -196,9 +214,9 @@ function ShopifyCsvImportErrorsPage() {
             needs certain fields, clean formatting, and valid product data.
           </p>
           <p className="mt-3 text-sm text-muted-foreground max-w-3xl">
-            Common problems include missing product titles, duplicate handles, invalid prices, broken
-            image links, and variant rows that do not line up correctly. When one of these issues is
-            hidden inside a large product file, it can be hard to find manually.
+            Common problems include missing product titles, duplicate handles, invalid prices,
+            broken image links, and variant rows that do not line up correctly. When one of these
+            issues is hidden inside a large product file, it can be hard to find manually.
           </p>
         </section>
 
@@ -261,8 +279,8 @@ function ShopifyCsvImportErrorsPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
             ProductCSVFixer checks your product CSV and shows issues that may block or damage a
-            Shopify import. Instead of guessing why Shopify rejected your file, you can check the CSV
-            first and fix the obvious problems before uploading.
+            Shopify import. Instead of guessing why Shopify rejected your file, you can check the
+            CSV first and fix the obvious problems before uploading.
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {[
@@ -324,9 +342,19 @@ function ShopifyCsvImportErrorsPage() {
             <Button
               size="lg"
               asChild
-              onClick={() =>
-                track("check_csv_cta_clicked", { source: "shopify-csv-import-errors-bottom" })
-              }
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/shopify-csv-import-errors",
+                  source_page: "/shopify-csv-import-errors",
+                  cta_location: "shopify-csv-import-errors-bottom",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/shopify-csv-import-errors",
+                  source_page: "/shopify-csv-import-errors",
+                  cta_location: "shopify-csv-import-errors-bottom",
+                  source: "shopify-csv-import-errors-bottom",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -339,9 +367,9 @@ function ShopifyCsvImportErrorsPage() {
         <section className="mt-8 border-t pt-8">
           <h2 className="text-lg font-semibold tracking-tight text-foreground">File privacy</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
-            You do not need to connect your Shopify store to check your CSV. ProductCSVFixer is built
-            for store owners who want a quick way to review product import problems before uploading
-            a file.
+            You do not need to connect your Shopify store to check your CSV. ProductCSVFixer is
+            built for store owners who want a quick way to review product import problems before
+            uploading a file.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {[
@@ -383,7 +411,10 @@ function ShopifyCsvImportErrorsPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             {relatedGuides.map((guide) => (
               <li key={guide.to}>
-                <Link to={guide.to} className="font-medium text-foreground underline underline-offset-4">
+                <Link
+                  to={guide.to}
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
                   {guide.title}
                 </Link>{" "}
                 — {guide.desc}

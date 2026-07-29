@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   AlertTriangle,
   Check,
@@ -28,7 +29,8 @@ const faqItems = [
   },
   {
     question: "Do I need to log in to Shopify?",
-    answer: "No. You do not need to connect your Shopify store or log in with Shopify to check your CSV.",
+    answer:
+      "No. You do not need to connect your Shopify store or log in with Shopify to check your CSV.",
   },
   {
     question: "What product CSV fields does Shopify require?",
@@ -59,7 +61,8 @@ const softwareJsonLd = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: pageUrl,
-  description: "A web tool that checks Shopify product CSV files for common import errors before upload.",
+  description:
+    "A web tool that checks Shopify product CSV files for common import errors before upload.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -141,6 +144,13 @@ export const Route = createFileRoute("/shopify-csv-validator")({
 });
 
 function ShopifyCsvValidatorPage() {
+  useEffect(() => {
+    track("seo_page_viewed", {
+      landing_path: "/shopify-csv-validator",
+      source_page: "/shopify-csv-validator",
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <script
@@ -182,7 +192,19 @@ function ShopifyCsvValidatorPage() {
             <Button
               size="lg"
               asChild
-              onClick={() => track("check_csv_cta_clicked", { source: "shopify-csv-validator-hero" })}
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/shopify-csv-validator",
+                  source_page: "/shopify-csv-validator",
+                  cta_location: "shopify-csv-validator-hero",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/shopify-csv-validator",
+                  source_page: "/shopify-csv-validator",
+                  cta_location: "shopify-csv-validator-hero",
+                  source: "shopify-csv-validator-hero",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -201,8 +223,8 @@ function ShopifyCsvValidatorPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
             Shopify product CSV imports can fail because of small problems hidden inside your
-            spreadsheet. ProductCSVFixer checks the most common CSV issues before you upload the file
-            to Shopify.
+            spreadsheet. ProductCSVFixer checks the most common CSV issues before you upload the
+            file to Shopify.
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -257,8 +279,8 @@ function ShopifyCsvValidatorPage() {
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
             A Shopify product CSV can look fine in Excel or Google Sheets and still fail during
             import. Shopify expects product data to follow a specific format. If required fields are
-            missing, prices are formatted incorrectly, or image URLs are broken, your import may fail
-            or create incomplete products.
+            missing, prices are formatted incorrectly, or image URLs are broken, your import may
+            fail or create incomplete products.
           </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {[
@@ -344,16 +366,26 @@ function ShopifyCsvValidatorPage() {
             Validate your Shopify CSV before your next import
           </h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-            Avoid failed imports and messy product uploads. Check your Shopify product CSV for common
-            problems before you upload it.
+            Avoid failed imports and messy product uploads. Check your Shopify product CSV for
+            common problems before you upload it.
           </p>
           <div className="mt-4 flex justify-center">
             <Button
               size="lg"
               asChild
-              onClick={() =>
-                track("check_csv_cta_clicked", { source: "shopify-csv-validator-bottom" })
-              }
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/shopify-csv-validator",
+                  source_page: "/shopify-csv-validator",
+                  cta_location: "shopify-csv-validator-bottom",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/shopify-csv-validator",
+                  source_page: "/shopify-csv-validator",
+                  cta_location: "shopify-csv-validator-bottom",
+                  source: "shopify-csv-validator-bottom",
+                });
+              }}
             >
               <Link to="/">
                 <Download className="h-4 w-4 mr-1.5" />
@@ -412,7 +444,10 @@ function ShopifyCsvValidatorPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             {relatedGuides.map((guide) => (
               <li key={guide.to}>
-                <Link to={guide.to} className="font-medium text-foreground underline underline-offset-4">
+                <Link
+                  to={guide.to}
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
                   {guide.title}
                 </Link>{" "}
                 — {guide.desc}

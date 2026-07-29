@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Upload, Shield, Check, FileSpreadsheet, Wrench, ListFilter, ArrowRightLeft, Download } from "lucide-react";
+import { useEffect } from "react";
+import {
+  Upload,
+  Shield,
+  Check,
+  FileSpreadsheet,
+  Wrench,
+  ListFilter,
+  ArrowRightLeft,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
@@ -9,9 +19,17 @@ export const Route = createFileRoute("/fix-shopify-product-csv")({
     meta: [
       { name: "robots", content: "index, follow" },
       { title: "Fix Shopify Product CSV Files | Product Forge" },
-      { name: "description", content: "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export." },
+      {
+        name: "description",
+        content:
+          "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export.",
+      },
       { property: "og:title", content: "Fix Shopify Product CSV Files | Product Forge" },
-      { property: "og:description", content: "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export." },
+      {
+        property: "og:description",
+        content:
+          "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export.",
+      },
       { property: "og:url", content: "https://productcsvfixer.com/fix-shopify-product-csv" },
     ],
     links: [{ rel: "canonical", href: "https://productcsvfixer.com/fix-shopify-product-csv" }],
@@ -20,6 +38,13 @@ export const Route = createFileRoute("/fix-shopify-product-csv")({
 });
 
 function FixShopifyProductCsvPage() {
+  useEffect(() => {
+    track("seo_page_viewed", {
+      landing_path: "/fix-shopify-product-csv",
+      source_page: "/fix-shopify-product-csv",
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -32,7 +57,8 @@ function FixShopifyProductCsvPage() {
             Shopify CSV Pre-Flight Checker &amp; Converter
           </p>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Find import blockers in messy supplier product CSVs, fix field mappings, and export a Shopify-ready file before upload.
+            Find import blockers in messy supplier product CSVs, fix field mappings, and export a
+            Shopify-ready file before upload.
           </p>
         </div>
       </header>
@@ -44,13 +70,26 @@ function FixShopifyProductCsvPage() {
             Fix product CSV problems before importing to Shopify
           </h1>
           <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Supplier spreadsheets are rarely Shopify-ready. Map fields, clean data, validate every row, and export a file Shopify will actually accept.
+            Supplier spreadsheets are rarely Shopify-ready. Map fields, clean data, validate every
+            row, and export a file Shopify will actually accept.
           </p>
           <div className="mt-5 flex justify-center">
             <Button
               size="lg"
               asChild
-              onClick={() => track("check_csv_cta_clicked", { source: "fix-shopify-product-csv" })}
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/fix-shopify-product-csv",
+                  source_page: "/fix-shopify-product-csv",
+                  cta_location: "fix-shopify-product-csv-hero",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/fix-shopify-product-csv",
+                  source_page: "/fix-shopify-product-csv",
+                  cta_location: "fix-shopify-product-csv-hero",
+                  source: "fix-shopify-product-csv",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -69,7 +108,10 @@ function FixShopifyProductCsvPage() {
             The supplier CSV problem
           </h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
-            Most supplier files use custom column names, mixed formats, and inconsistent pricing. Before you can import to Shopify, you need to map those columns to Shopify&rsquo;s expected fields, validate the data, and remove rows that would break the import. ProductCSVFixer does that in one flow.
+            Most supplier files use custom column names, mixed formats, and inconsistent pricing.
+            Before you can import to Shopify, you need to map those columns to Shopify&rsquo;s
+            expected fields, validate the data, and remove rows that would break the import.
+            ProductCSVFixer does that in one flow.
           </p>
         </section>
 
@@ -114,9 +156,7 @@ function FixShopifyProductCsvPage() {
                   {title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {desc}
-              </CardContent>
+              <CardContent className="text-sm text-muted-foreground">{desc}</CardContent>
             </Card>
           ))}
         </section>
@@ -128,9 +168,18 @@ function FixShopifyProductCsvPage() {
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {[
-              { title: "Field mapping", desc: "Your columns are matched to Shopify fields like Title, SKU, Price, Handle, and Image URL." },
-              { title: "Data cleanup", desc: "Whitespace trimming, case normalization, handle generation, and currency-to-number conversion." },
-              { title: "Row validation", desc: "Critical errors block export. Warnings are shown so you can decide what to fix." },
+              {
+                title: "Field mapping",
+                desc: "Your columns are matched to Shopify fields like Title, SKU, Price, Handle, and Image URL.",
+              },
+              {
+                title: "Data cleanup",
+                desc: "Whitespace trimming, case normalization, handle generation, and currency-to-number conversion.",
+              },
+              {
+                title: "Row validation",
+                desc: "Critical errors block export. Warnings are shown so you can decide what to fix.",
+              },
             ].map((s) => (
               <Card key={s.title}>
                 <CardHeader className="pb-2">
@@ -154,7 +203,19 @@ function FixShopifyProductCsvPage() {
             <Button
               size="lg"
               asChild
-              onClick={() => track("check_csv_cta_clicked", { source: "fix-shopify-product-csv-bottom" })}
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/fix-shopify-product-csv",
+                  source_page: "/fix-shopify-product-csv",
+                  cta_location: "fix-shopify-product-csv-bottom",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/fix-shopify-product-csv",
+                  source_page: "/fix-shopify-product-csv",
+                  cta_location: "fix-shopify-product-csv-bottom",
+                  source: "fix-shopify-product-csv-bottom",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -166,11 +227,11 @@ function FixShopifyProductCsvPage() {
 
         {/* Privacy */}
         <section className="mt-8 border-t pt-8">
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">
-            File privacy
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">File privacy</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
-            Your CSV is processed in your browser. We do not store uploaded files. We may collect anonymous usage events such as page views, upload, validation, and export clicks, but not your CSV contents.
+            Your CSV is processed in your browser. We do not store uploaded files. We may collect
+            anonymous usage events such as page views, upload, validation, and export clicks, but
+            not your CSV contents.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {[

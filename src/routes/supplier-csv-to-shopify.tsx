@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   Upload,
   Shield,
@@ -37,6 +38,13 @@ export const Route = createFileRoute("/supplier-csv-to-shopify")({
 });
 
 function SupplierCsvToShopifyPage() {
+  useEffect(() => {
+    track("seo_page_viewed", {
+      landing_path: "/supplier-csv-to-shopify",
+      source_page: "/supplier-csv-to-shopify",
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -69,7 +77,19 @@ function SupplierCsvToShopifyPage() {
             <Button
               size="lg"
               asChild
-              onClick={() => track("check_csv_cta_clicked", { source: "supplier-csv-to-shopify" })}
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/supplier-csv-to-shopify",
+                  source_page: "/supplier-csv-to-shopify",
+                  cta_location: "supplier-csv-to-shopify-hero",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/supplier-csv-to-shopify",
+                  source_page: "/supplier-csv-to-shopify",
+                  cta_location: "supplier-csv-to-shopify-hero",
+                  source: "supplier-csv-to-shopify",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -183,9 +203,19 @@ function SupplierCsvToShopifyPage() {
             <Button
               size="lg"
               asChild
-              onClick={() =>
-                track("check_csv_cta_clicked", { source: "supplier-csv-to-shopify-bottom" })
-              }
+              onClick={() => {
+                track("seo_cta_clicked", {
+                  landing_path: "/supplier-csv-to-shopify",
+                  source_page: "/supplier-csv-to-shopify",
+                  cta_location: "supplier-csv-to-shopify-bottom",
+                });
+                track("check_csv_cta_clicked", {
+                  landing_path: "/supplier-csv-to-shopify",
+                  source_page: "/supplier-csv-to-shopify",
+                  cta_location: "supplier-csv-to-shopify-bottom",
+                  source: "supplier-csv-to-shopify-bottom",
+                });
+              }}
             >
               <Link to="/">
                 <Upload className="h-4 w-4 mr-1.5" />
