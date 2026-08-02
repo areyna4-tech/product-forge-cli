@@ -421,6 +421,23 @@ function Index() {
     fileInputRef.current?.click();
   }, []);
 
+  const startCsvCheck = useCallback(
+    (ctaLocation: string, source: "hero" | "upload_browse" | "sample") => {
+      track("primary_cta_clicked", {
+        ...getPageTrackingContext(),
+        cta_location: ctaLocation,
+        source,
+      });
+      track("check_csv_cta_clicked", {
+        ...getPageTrackingContext(),
+        cta_location: ctaLocation,
+        source,
+      });
+      openFilePicker(ctaLocation);
+    },
+    [openFilePicker],
+  );
+
   // Track landing view once on mount; load free-export flag.
   useEffect(() => {
     track("landing_page_view", getPageTrackingContext());
@@ -590,12 +607,17 @@ function Index() {
       sourceType: "sample" | "user_upload" = "user_upload",
     ) => {
       const cleaned = text.replace(/^\uFEFF/, "");
+      const startedProperties = {
+        ...getPageTrackingContext(),
+        source_type: sourceType,
+        file_size_bucket: bucketFileSize(fileSize),
+      };
+      track("validation_started", startedProperties);
       if (sourceType === "user_upload")
         track("csv_upload_started", {
-          ...getPageTrackingContext(),
+          ...startedProperties,
           file_size_bucket: bucketFileSize(fileSize),
         });
-      else track("validation_started", { ...getPageTrackingContext(), source_type: sourceType });
       Papa.parse<Record<string, string>>(cleaned, {
         header: true,
         skipEmptyLines: "greedy",
@@ -674,6 +696,18 @@ function Index() {
   );
 
   const loadSample = () => {
+    track("primary_cta_clicked", {
+      ...getPageTrackingContext(),
+      source_type: "sample",
+      cta_location: "upload_sample_file",
+      source: "sample",
+    });
+    track("check_csv_cta_clicked", {
+      ...getPageTrackingContext(),
+      source_type: "sample",
+      cta_location: "upload_sample_file",
+      source: "sample",
+    });
     track("sample_file_clicked", {
       ...getPageTrackingContext(),
       source_type: "sample",
@@ -1150,17 +1184,7 @@ function Index() {
                 <Button
                   type="button"
                   size="lg"
-                  onClick={() => {
-                    track("primary_cta_clicked", {
-                      ...getPageTrackingContext(),
-                      cta_location: "hero_check_csv",
-                    });
-                    track("check_csv_cta_clicked", {
-                      ...getPageTrackingContext(),
-                      cta_location: "hero_check_csv",
-                    });
-                    openFilePicker("hero_check_csv");
-                  }}
+                  onClick={() => startCsvCheck("hero_check_csv", "hero")}
                 >
                   <Upload className="h-4 w-4 mr-1.5" />
                   Check my CSV free
@@ -1262,7 +1286,10 @@ function Index() {
                       Upload a CSV with product names, SKUs, prices, inventory, images, or variants.
                     </p>
                     <div className="mt-4 flex justify-center gap-2 flex-wrap">
-                      <Button type="button" onClick={() => openFilePicker("upload_browse_csv")}>
+                      <Button
+                        type="button"
+                        onClick={() => startCsvCheck("upload_browse_csv", "upload_browse")}
+                      >
                         <Upload className="h-4 w-4 mr-1.5" />
                         Browse CSV file
                       </Button>
