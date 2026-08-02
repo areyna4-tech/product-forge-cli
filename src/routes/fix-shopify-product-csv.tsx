@@ -18,13 +18,16 @@ export const Route = createFileRoute("/fix-shopify-product-csv")({
   head: () => ({
     meta: [
       { name: "robots", content: "index, follow" },
-      { title: "Fix Shopify Product CSV Files | Product Forge" },
+      { title: "Fix Shopify Product CSV Files Before Upload | ProductCSVFixer" },
       {
         name: "description",
         content:
           "Clean up supplier product CSVs for Shopify. Fix field mappings, validate data, remove blocked rows, and download a beta Shopify-ready export.",
       },
-      { property: "og:title", content: "Fix Shopify Product CSV Files | Product Forge" },
+      {
+        property: "og:title",
+        content: "Fix Shopify Product CSV Files Before Upload | ProductCSVFixer",
+      },
       {
         property: "og:description",
         content:
@@ -51,7 +54,7 @@ function FixShopifyProductCsvPage() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
           <div className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
-            Product Forge
+            ProductCSVFixer
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Shopify CSV Pre-Flight Checker &amp; Converter

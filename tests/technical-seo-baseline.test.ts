@@ -61,4 +61,41 @@ for (const href of [
   ok(homepage.includes(href), `homepage should internally link to ${href}`);
 }
 
+for (const path of [
+  "src/routes/index.tsx",
+  "src/routes/fix-shopify-product-csv.tsx",
+  "src/routes/supplier-csv-to-shopify.tsx",
+  "src/routes/shopify-csv-import-errors.tsx",
+  "src/routes/shopify-csv-validator.tsx",
+]) {
+  const source = read(path);
+  equal(source.includes("Product Forge"), false, `${path} should use ProductCSVFixer branding`);
+  ok(source.includes('content: "index, follow"'), `${path} should be indexable`);
+}
+
+const fixCsv = read("src/routes/fix-shopify-product-csv.tsx");
+ok(
+  fixCsv.includes("Fix Shopify Product CSV Files Before Upload | ProductCSVFixer"),
+  "fix CSV route should target before-upload search intent with ProductCSVFixer branding",
+);
+
+const supplierCsv = read("src/routes/supplier-csv-to-shopify.tsx");
+ok(
+  supplierCsv.includes("Supplier CSV to Shopify Checker | ProductCSVFixer"),
+  "supplier route should use ProductCSVFixer SERP metadata",
+);
+
+ok(
+  homepage.includes('track("validation_started", startedProperties)'),
+  "homepage should track validation_started for both sample and user-upload paths",
+);
+ok(
+  homepage.includes('startCsvCheck("upload_browse_csv", "upload_browse")'),
+  "browse upload CTA should emit primary/check CSV intent before opening the file picker",
+);
+ok(
+  homepage.includes('track("sample_file_clicked"'),
+  "sample CTA should retain sample-specific tracking",
+);
+
 console.log("Technical SEO baseline assertions passed");

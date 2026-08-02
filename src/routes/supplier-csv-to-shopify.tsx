@@ -18,13 +18,13 @@ export const Route = createFileRoute("/supplier-csv-to-shopify")({
   head: () => ({
     meta: [
       { name: "robots", content: "index, follow" },
-      { title: "Supplier CSV to Shopify Checker | Product Forge" },
+      { title: "Supplier CSV to Shopify Checker | ProductCSVFixer" },
       {
         name: "description",
         content:
           "Convert supplier product spreadsheets into Shopify-ready CSVs. Map columns, validate data, block bad rows, and export a clean file for Shopify import.",
       },
-      { property: "og:title", content: "Supplier CSV to Shopify Checker | Product Forge" },
+      { property: "og:title", content: "Supplier CSV to Shopify Checker | ProductCSVFixer" },
       {
         property: "og:description",
         content:
@@ -51,7 +51,7 @@ function SupplierCsvToShopifyPage() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-[1120px] px-6 py-8">
           <div className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
-            Product Forge
+            ProductCSVFixer
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Shopify CSV Pre-Flight Checker &amp; Converter
