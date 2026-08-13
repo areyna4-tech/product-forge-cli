@@ -2169,6 +2169,21 @@ function Index() {
                 desc: "Check product CSV import readiness.",
               },
               {
+                href: "/shopify-csv-import-not-working",
+                label: "Shopify CSV Import Not Working",
+                desc: "Troubleshoot failed product CSV imports.",
+              },
+              {
+                href: "/shopify-inventory-policy-csv-error",
+                label: "Inventory Policy CSV Error",
+                desc: "Check inventory policy import issues.",
+              },
+              {
+                href: "/shopify-csv-required-columns",
+                label: "Shopify CSV Required Columns",
+                desc: "Validate required fields before upload.",
+              },
+              {
                 href: "/shopify-csv-import-errors",
                 label: "Shopify CSV Import Errors",
                 desc: "Find common blockers before upload.",
