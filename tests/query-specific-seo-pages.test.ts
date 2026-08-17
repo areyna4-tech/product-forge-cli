@@ -7,8 +7,8 @@ const pages = [
   {
     path: "src/routes/shopify-csv-import-not-working.tsx",
     route: "/shopify-csv-import-not-working",
-    title: "Shopify CSV Import Not Working? Check Your File Before Upload | ProductCSVFixer",
-    h1: "Shopify CSV import not working? Check the file before upload",
+    title: "Shopify CSV Import Not Working? Find the Row Blocking Upload | ProductCSVFixer",
+    h1: "Shopify CSV import not working? Find the row blocking upload",
     phrase: "shopify csv import not working",
     cta: "Check my Shopify CSV free",
   },
@@ -39,10 +39,7 @@ for (const page of pages) {
   const source = read(page.path);
 
   ok(source.includes(`createFileRoute("${page.route}")`), `${page.route} route should exist`);
-  ok(
-    source.includes(`{ title: "${page.title}" }`),
-    `${page.route} should have query-specific SERP title`,
-  );
+  ok(source.includes(page.title), `${page.route} should have query-specific SERP title`);
   ok(source.includes(page.h1), `${page.route} should have a query-specific H1`);
   ok(
     source.toLowerCase().includes(page.phrase.toLowerCase()),

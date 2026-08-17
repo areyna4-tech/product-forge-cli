@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
 
 const pageUrl = "https://productcsvfixer.com/shopify-csv-import-not-working";
-const pageTitle = "Shopify CSV Import Not Working? Check Your File Before Upload | ProductCSVFixer";
+const pageTitle = "Shopify CSV Import Not Working? Find the Row Blocking Upload | ProductCSVFixer";
 const pageDescription =
-  "Shopify CSV import not working? Check missing fields, invalid prices, duplicate SKUs, image URL problems, required columns, and blocked rows before upload.";
+  "Shopify CSV import not working? Find missing fields, duplicate SKUs, invalid prices, and row-level blockers before you reupload to Shopify.";
 
 const checkpoints = [
   {
@@ -59,7 +59,9 @@ export const Route = createFileRoute("/shopify-csv-import-not-working")({
   head: () => ({
     meta: [
       { name: "robots", content: "index, follow" },
-      { title: "Shopify CSV Import Not Working? Check Your File Before Upload | ProductCSVFixer" },
+      {
+        title: "Shopify CSV Import Not Working? Find the Row Blocking Upload | ProductCSVFixer",
+      },
       { name: "description", content: pageDescription },
       { property: "og:title", content: pageTitle },
       { property: "og:description", content: pageDescription },
@@ -122,7 +124,7 @@ function ShopifyCsvImportNotWorkingPage() {
             <Search className="h-6 w-6" />
           </div>
           <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Shopify CSV import not working? Check the file before upload
+            Shopify CSV import not working? Find the row blocking upload
           </h1>
           <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
             If your Shopify CSV import is not working, the problem is usually hidden in the
