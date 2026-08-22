@@ -98,6 +98,15 @@ function ShopifyCsvImportNotWorkingPage() {
     });
   };
 
+  const trackAsset = (assetName: string) => {
+    track("seo_cta_clicked", {
+      landing_path: "/shopify-csv-import-not-working",
+      source_page: "/shopify-csv-import-not-working",
+      cta_location: assetName,
+      cta_type: "traffic_asset_download",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <script
@@ -197,6 +206,42 @@ function ShopifyCsvImportNotWorkingPage() {
             ))}
           </div>
         </section>
+
+        <section className="rounded-xl border bg-card p-6 sm:p-8">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+            Free Shopify CSV checklist and starter template
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
+            If you are still preparing your product file, start with a practical checklist or a
+            clean Shopify product CSV starter template. Then run the finished file through
+            ProductCSVFixer before uploading to Shopify.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <a
+              href="/shopify-csv-import-checklist.csv"
+              download
+              onClick={() => trackAsset("shopify-csv-import-checklist")}
+              className="rounded-lg border bg-background p-4 text-sm transition-colors hover:bg-muted"
+            >
+              <span className="font-semibold text-foreground">Download import checklist</span>
+              <span className="mt-1 block text-muted-foreground">
+                Required columns, common blockers, and what to fix before upload.
+              </span>
+            </a>
+            <a
+              href="/shopify-product-csv-starter-template.csv"
+              download
+              onClick={() => trackAsset("shopify-product-csv-starter-template")}
+              className="rounded-lg border bg-background p-4 text-sm transition-colors hover:bg-muted"
+            >
+              <span className="font-semibold text-foreground">Download starter template</span>
+              <span className="mt-1 block text-muted-foreground">
+                A minimal Shopify product CSV structure you can copy before validating.
+              </span>
+            </a>
+          </div>
+        </section>
+
         <section className="rounded-xl border bg-primary/5 p-6 sm:p-8 text-center">
           <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
             Check your Shopify CSV before the next import attempt

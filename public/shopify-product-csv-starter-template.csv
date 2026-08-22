@@ -1,0 +1,2 @@
+Handle,Title,Body (HTML),Vendor,Product Category,Type,Tags,Published,Option1 Name,Option1 Value,Variant SKU,Variant Price,Variant Inventory Policy,Image Src,Status
+sample-product,Sample Product,<p>Replace this description.</p>,Your Vendor,,Sample Type,"sample, import-check",TRUE,Title,Default Title,SAMPLE-001,19.99,deny,https://example.com/sample-product.jpg,active

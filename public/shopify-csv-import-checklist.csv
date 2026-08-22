@@ -1,0 +1,11 @@
+Check Area,Why It Matters,What To Look For,Fix Before Upload
+Title,Shopify needs a readable product title for each product row,Blank product titles or supplier-only codes,Add a customer-facing product title
+Handle,Handles group product and variant rows together,Blank handles spaces special characters or duplicates that should be separate,Use lowercase hyphenated handles and keep variants grouped
+Variant SKU,SKUs help inventory and duplicate detection,Blank SKUs duplicate SKUs or supplier placeholders,Add unique SKUs where inventory tracking matters
+Variant Price,Shopify expects clean numeric prices,Blank prices currency symbols comma decimals or text,Use plain numbers such as 19.99
+Image Src,Shopify must fetch public image URLs,Private image links broken URLs or non-image pages,Use publicly accessible https image URLs
+Inventory Policy,Unsupported values can trigger import errors,Values outside Shopify accepted policy terms,Normalize policy values before import
+Variant Options,Variants must map consistently across option columns,Rows with missing option names or mismatched variant values,Fill option names and values consistently
+Blocked Rows,Blocked rows should not be imported until fixed,Rows with required field or format problems,Fix source CSV and rerun a pre-flight check
+Warning Rows,Warnings may import but need review,Image price duplicate or optional-field warnings,Review warnings before publishing products
+Exportable Rows,Only ready rows should be exported for upload,Rows with no blockers after validation,Download Shopify-ready export after validation
