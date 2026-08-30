@@ -1,0 +1,4 @@
+Handle,Title,Variant SKU,Variant Price,Variant Inventory Policy,Option1 Name,Option1 Value,Image Src
+classic-tee,Classic Tee,TEE-BLUE,24.95,continue,Color,Blue,https://cdn.example.com/tee-blue.jpg
+classic-tee,,TEE-RED,24.95,deny,Color,Red,https://cdn.example.com/tee-red.jpg
+classic-tee,,,,,,,https://cdn.example.com/tee-back.jpg

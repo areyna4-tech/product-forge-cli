@@ -5,6 +5,8 @@ import { z } from "zod";
 import {
   autoMapHeaders,
   defaultSettings,
+  firstBlockingCsvParseError,
+  REQUIRED_FIELDS,
   summarize,
   transformRows,
   validateProducts,
@@ -14,12 +16,14 @@ export default defineTool({
   name: "check_shopify_csv",
   title: "Check Shopify CSV",
   description:
-    "Run ProductCSVFixer's pre-flight checker on a product CSV. Returns Shopify import blocker counts (missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems) plus per-row issues. Runs on raw CSV text — no files uploaded, no data stored.",
+    "Run ProductCSVFixer's pre-flight checker on a product CSV. Returns Shopify import blockers and warnings, including missing titles, malformed prices, invalid variant data, blank or duplicate SKUs, and image URL issues. Runs on raw CSV text — no files uploaded, no data stored.",
   inputSchema: {
     csv: z
       .string()
       .min(1)
-      .describe("Raw CSV text (with a header row) to validate against Shopify's product import requirements."),
+      .describe(
+        "Raw CSV text (with a header row) to validate against Shopify's product import requirements.",
+      ),
     max_row_issues: z
       .number()
       .int()
@@ -32,12 +36,13 @@ export default defineTool({
   handler: ({ csv, max_row_issues }) => {
     const parsed = Papa.parse<Record<string, string>>(csv, {
       header: true,
-      skipEmptyLines: true,
+      skipEmptyLines: false,
     });
 
-    if (parsed.errors.length > 0 && !parsed.data.length) {
+    const parseError = firstBlockingCsvParseError(parsed.errors, parsed.data);
+    if (parseError) {
       return {
-        content: [{ type: "text", text: `CSV parse failed: ${parsed.errors[0].message}` }],
+        content: [{ type: "text", text: `CSV parse failed: ${parseError}` }],
         isError: true,
       };
     }
@@ -59,7 +64,7 @@ export default defineTool({
         issues: p.validationErrors,
       }));
 
-    const unmappedRequired = ["title", "sku", "price"].filter(
+    const unmappedRequired = REQUIRED_FIELDS.filter(
       (f) => !mappings.some((m) => m.destinationField === f),
     );
 

@@ -60,6 +60,7 @@ import {
   buildWooCommerceRows,
   defaultSettings,
   defaultTransformFor,
+  firstBlockingCsvParseError,
   summarize,
   transformRows,
   validateProducts,
@@ -146,6 +147,7 @@ const FIELD_LABELS: Record<string, string> = {
   compareAtPrice: "Compare At Price",
   cost: "Cost",
   quantity: "Quantity",
+  inventoryPolicy: "Inventory Policy",
   weight: "Weight",
   barcode: "Barcode",
   imageUrl: "Image URL",
@@ -217,7 +219,15 @@ const OPTIONAL_GROUPS: { title: string; fields: DestField[] }[] = [
   },
   {
     title: "Pricing & inventory",
-    fields: ["compareAtPrice", "cost", "quantity", "weight", "barcode", "isActive"],
+    fields: [
+      "compareAtPrice",
+      "cost",
+      "quantity",
+      "inventoryPolicy",
+      "weight",
+      "barcode",
+      "isActive",
+    ],
   },
   { title: "Images", fields: ["imageUrl", "additionalImageUrls"] },
   {
@@ -342,6 +352,15 @@ function describeIssue(
       problem: "Quantity is negative.",
       expected: "Zero or a positive whole number",
       fix: "Set quantity to 0 or higher.",
+    };
+  }
+  if (e.field === "inventoryPolicy") {
+    return {
+      ...base,
+      shortIssue: "Unsupported inventory policy",
+      problem: "Shopify does not accept this inventory policy value.",
+      expected: 'Use "deny" or "continue"',
+      fix: 'Replace the value with "deny" or "continue" before import.',
     };
   }
   if (e.field === "imageUrl") {
@@ -620,9 +639,10 @@ function Index() {
         });
       Papa.parse<Record<string, string>>(cleaned, {
         header: true,
-        skipEmptyLines: "greedy",
+        skipEmptyLines: false,
         transform: (v) => (v == null ? "" : String(v)),
         complete: (results) => {
+          const parsedRows = results.data || [];
           const hdrs = (results.meta.fields || []).filter(Boolean);
           if (!hdrs.length) {
             setError("CSV has no headers. Make sure the first row contains column names.");
@@ -632,7 +652,16 @@ function Index() {
             });
             return;
           }
-          const rows = (results.data || []).filter((r) =>
+          const parseError = firstBlockingCsvParseError(results.errors, parsedRows);
+          if (parseError) {
+            setError(`Failed to parse CSV: ${parseError}`);
+            track(sourceType === "user_upload" ? "csv_upload_failed" : "validation_failed", {
+              source_type: sourceType,
+              reason: "parse_error",
+            });
+            return;
+          }
+          const rows = parsedRows.filter((r) =>
             hdrs.some((h) => {
               const v = r?.[h];
               return v != null && String(v).trim() !== "";
@@ -650,7 +679,7 @@ function Index() {
           setFilename(name);
           setFileSourceType(sourceType);
           setHeaders(hdrs);
-          setSourceRows(rows);
+          setSourceRows(parsedRows);
           setMappings(autoMapHeaders(hdrs));
           const eventProperties = {
             ...getPageTrackingContext(),
@@ -855,7 +884,7 @@ function Index() {
       mappings.some((m) => m.destinationField === f),
     );
     if (!requiredMapped) {
-      toast.error("Map required fields (Title, SKU, Price) before exporting.");
+      toast.error("Map the required Title field before exporting.");
       return;
     }
     if (!exportRows.length) {
