@@ -73,8 +73,8 @@ const commonErrors = [
   },
   {
     icon: Tag,
-    title: "Missing or duplicate handles",
-    desc: "Shopify uses handles to group product data and create product URLs. Inconsistent handles can create messy imports.",
+    title: "Inconsistent product groups",
+    desc: "Shopify uses repeated handles to group variants and continuation rows. Inconsistent data within a product group can create messy imports.",
   },
   {
     icon: KeyRound,
@@ -214,9 +214,9 @@ function ShopifyCsvImportErrorsPage() {
             needs certain fields, clean formatting, and valid product data.
           </p>
           <p className="mt-3 text-sm text-muted-foreground max-w-3xl">
-            Common problems include missing product titles, duplicate handles, invalid prices,
-            broken image links, and variant rows that do not line up correctly. When one of these
-            issues is hidden inside a large product file, it can be hard to find manually.
+            Common problems include missing product titles, malformed prices, inconsistent product
+            groups, broken image links, and variant rows that do not line up correctly. When one of
+            these issues is hidden inside a large product file, it can be hard to find manually.
           </p>
         </section>
 

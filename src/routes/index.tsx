@@ -79,7 +79,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and unlock a Shopify-ready export.",
+          "Check Shopify product CSVs before upload. Find malformed prices, duplicate SKUs, image URL issues, missing titles, conditional SKU requirements, and unlock a Shopify-ready export.",
       },
       {
         property: "og:title",
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Check Shopify product CSVs before upload. Find missing SKUs, invalid prices, duplicate SKUs, image URL issues, required field problems, and unlock a Shopify-ready export.",
+          "Check Shopify product CSVs before upload. Find malformed prices, duplicate SKUs, image URL issues, missing titles, conditional SKU requirements, and unlock a Shopify-ready export.",
       },
       { property: "og:url", content: "https://productcsvfixer.com/" },
     ],
@@ -105,7 +105,7 @@ const homeJsonLd = {
   operatingSystem: "Web",
   url: "https://productcsvfixer.com/",
   description:
-    "Browser-based Shopify CSV import error checker for missing SKUs, invalid prices, duplicate SKUs, image URL issues, required fields, and Shopify-ready export checks.",
+    "Browser-based Shopify CSV import error checker for malformed prices, duplicate SKUs, image URL issues, missing titles, conditional SKU requirements, and Shopify-ready export checks.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -1245,9 +1245,10 @@ function Index() {
                 <CardContent className="text-sm text-muted-foreground">
                   <ul className="space-y-1.5 list-disc pl-4">
                     <li>Missing titles</li>
-                    <li>Missing SKUs</li>
-                    <li>Invalid prices</li>
-                    <li>Duplicate SKUs or handles</li>
+                    <li>Blank SKU warnings and conditional SKU requirements</li>
+                    <li>Blank prices receive a warning; malformed prices are blocked</li>
+                    <li>Duplicate SKUs</li>
+                    <li>Product-group and variant-row issues</li>
                     <li>Image URL format issues</li>
                     <li>Required Shopify fields</li>
                   </ul>
@@ -1848,9 +1849,10 @@ function Index() {
                       </p>
                       <ul className="grid gap-1 sm:grid-cols-2 text-xs text-muted-foreground list-disc pl-4">
                         <li>Missing titles</li>
-                        <li>Missing SKUs</li>
-                        <li>Invalid prices</li>
-                        <li>Duplicate SKUs or handles</li>
+                        <li>Blank SKU warnings and conditional SKU requirements</li>
+                        <li>Blank prices receive a warning; malformed prices are blocked</li>
+                        <li>Duplicate SKUs</li>
+                        <li>Product-group and variant-row issues</li>
                         <li>Image URL issues</li>
                         <li>Required import fields</li>
                       </ul>
@@ -2157,7 +2159,7 @@ function Index() {
               },
               {
                 q: "What does it check?",
-                a: "It checks required field mappings, missing titles, missing SKUs, invalid prices, duplicate SKUs or handles, image URL format issues, blocked rows, and target CSV structure.",
+                a: "It checks required field mappings, missing titles, blank SKU warnings and conditional SKU requirements, blank-price warnings, malformed prices, duplicate SKUs, product-group and variant-row issues, image URL format issues, blocked rows, and target CSV structure.",
               },
               {
                 q: "What happens to blocked rows?",

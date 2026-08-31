@@ -136,7 +136,7 @@ function SupplierCsvToShopifyPage() {
             {
               icon: FileSpreadsheet,
               title: "Field validation",
-              desc: "Checks for missing titles, SKUs, prices, handles, and image URLs so nothing breaks in Shopify.",
+              desc: "Checks for missing titles, malformed prices, conditional SKU requirements, product-group structure, and image URLs.",
             },
             {
               icon: Download,
@@ -170,7 +170,7 @@ function SupplierCsvToShopifyPage() {
             {[
               {
                 title: "Required fields",
-                desc: "Title, handle, price, and SKU are verified. Missing values are flagged as errors.",
+                desc: "Missing titles and malformed prices are errors. Blank SKUs and prices are warnings unless a fulfillment rule requires an SKU.",
               },
               {
                 title: "Data quality",

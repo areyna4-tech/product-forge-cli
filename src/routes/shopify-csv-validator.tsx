@@ -230,8 +230,8 @@ function ShopifyCsvValidatorPage() {
             {[
               {
                 icon: FileSpreadsheet,
-                title: "Missing required fields",
-                desc: "Find missing product titles, handles, prices, and other fields that need attention before import.",
+                title: "Required fields and warnings",
+                desc: "Find missing product titles, malformed prices, blank-price warnings, conditional SKU requirements, and other fields that need attention before import.",
               },
               {
                 icon: KeyRound,

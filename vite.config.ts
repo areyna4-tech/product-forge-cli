@@ -14,6 +14,9 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    plugins: [mcpPlugin()],
+    // mcp-js 0.20 compares Vite's slash-normalized root with Win32-resolved paths
+    // during local builds. Lovable builds keep the plugin; Windows verification can
+    // skip regeneration because the generated MCP routes are committed.
+    plugins: process.env.SKIP_MCP_PLUGIN === "1" ? [] : [mcpPlugin()],
   },
 });

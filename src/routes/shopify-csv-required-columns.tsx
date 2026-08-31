@@ -17,7 +17,7 @@ const checkpoints = [
   },
   {
     title: "Validate row-level values",
-    desc: "Find blank titles, missing prices, missing SKUs, and invalid data.",
+    desc: "Find blank titles, blank-price warnings, malformed prices, conditional SKU requirements, and invalid data.",
   },
   {
     title: "Prepare a Shopify-ready export",
@@ -177,8 +177,8 @@ function ShopifyCsvRequiredColumnsPage() {
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {[
               "Required product fields and Shopify-ready column structure",
-              "Missing titles, handles, SKUs, prices, and variant values",
-              "Invalid price formats, duplicate SKUs, duplicate handles, and broken image URLs",
+              "Missing titles, malformed prices, and conditional SKU requirements",
+              "Duplicate SKUs, inconsistent product groups or variant rows, and broken image URLs",
               "Rows that should be fixed before upload versus rows ready for export",
             ].map((item) => (
               <Card key={item}>
