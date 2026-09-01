@@ -1,5 +1,11 @@
 // Lightweight analytics with PostHog.
 import posthog from "posthog-js";
+import {
+  buildAnalyticsContext,
+  enrichWorkflowProperties,
+  safeBrowserStorage,
+  sanitizeAnalyticsCapture,
+} from "@/lib/analytics-context";
 
 export type AnalyticsEvent =
   | "landing_page_view"
@@ -58,19 +64,40 @@ export type AnalyticsEvent =
 const POSTHOG_KEY = "phc_pagfp2QZAiPwyjHkPDpEF54gPiqCTbUsChtVAcR4F8kY";
 const POSTHOG_HOST = "https://us.i.posthog.com";
 
+function browserAnalyticsState() {
+  const localStorage = safeBrowserStorage(() => window.localStorage);
+  const sessionStorage = safeBrowserStorage(() => window.sessionStorage);
+  return {
+    context: buildAnalyticsContext({
+      href: window.location.href,
+      referrer: document.referrer,
+      userAgent: window.navigator.userAgent,
+      webdriver: window.navigator.webdriver,
+      isDevelopment: import.meta.env.DEV,
+      localStorage,
+      sessionStorage,
+    }),
+    sessionStorage,
+  };
+}
+
 let initialized = false;
 function ensureInit() {
   if (initialized || typeof window === "undefined") return;
-  initialized = true;
   try {
+    const { context } = browserAnalyticsState();
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
-      capture_pageview: true,
+      capture_pageview: false,
       capture_pageleave: true,
       persistence: "localStorage+cookie",
       disable_session_recording: true,
       autocapture: false,
+      before_send: sanitizeAnalyticsCapture,
     });
+    initialized = true;
+    posthog.register(context);
+    posthog.capture("$pageview", context);
   } catch {
     // no-op
   }
@@ -121,10 +148,15 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
   ensureInit();
   const safe = scrub(properties);
   try {
-    posthog.capture(event, safe);
+    const { context, sessionStorage } = browserAnalyticsState();
+    const enriched = {
+      ...enrichWorkflowProperties(safe, sessionStorage),
+      ...context,
+    };
+    posthog.capture(event, enriched);
     window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ event, ...safe, ts: Date.now() });
-    if (import.meta.env.DEV) console.debug("[analytics]", event, safe);
+    window.dataLayer.push({ event, ...enriched, ts: Date.now() });
+    if (import.meta.env.DEV) console.debug("[analytics]", event, enriched);
   } catch {
     // no-op
   }
