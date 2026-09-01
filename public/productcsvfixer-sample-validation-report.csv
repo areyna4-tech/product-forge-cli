@@ -1,0 +1,7 @@
+Row,Column,Severity,Problem,Current Value,Expected Format,Recommended Action
+18,Variant Price,Blocked,Price is not a valid Shopify number,"$19,99",Decimal number such as 19.99,Change the value to 19.99
+42,Variant SKU,Warning,SKU is used by another variant,TEE-BLACK-M,Recommended unique SKU when inventory is tracked,Confirm the duplicate is intentional or assign a unique SKU
+57,Image Src,Warning,Image URL is not a complete web address,images/product-blue.jpg,Public URL beginning with https://,Replace it with the full public HTTPS image URL
+73,Variant Inventory Policy,Blocked,Inventory policy is not accepted,continue selling,deny or continue,Choose deny or continue based on the intended out-of-stock behavior
+104,Title,Blocked,Product title is blank,,Non-empty product title,Add the product title to the parent product row
+119,Option1 Value,Blocked,Variant option value is missing,,A value matching the Option1 Name,Add the missing option value or remove the incomplete option setup

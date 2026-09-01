@@ -1280,6 +1280,126 @@ function Index() {
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="overflow-hidden">
+              <CardHeader className="border-b bg-muted/30">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2
+                      id="sample-report-heading"
+                      className="text-xl font-semibold leading-none tracking-tight"
+                    >
+                      See what the $9 report includes
+                    </h2>
+                    <CardDescription className="mt-1 max-w-2xl">
+                      Illustrative demonstration — not customer data. This example shows how a mixed
+                      Shopify product file is summarized before you decide whether to unlock the
+                      complete result.
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="w-fit bg-background">
+                    Example result
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-5">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    ["327", "rows checked"],
+                    ["289", "ready for Shopify"],
+                    ["26", "warning rows"],
+                    ["12", "blocked rows"],
+                  ].map(([value, label]) => (
+                    <div key={label} className="rounded-md border bg-background p-3">
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">
+                        {value}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="overflow-x-auto rounded-md border">
+                  <table
+                    aria-labelledby="sample-report-heading"
+                    className="w-full min-w-[680px] text-left text-sm"
+                  >
+                    <caption className="sr-only">
+                      Illustrative ProductCSVFixer validation report excerpt
+                    </caption>
+                    <thead className="bg-muted/50 text-xs text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-2 font-medium">Row</th>
+                        <th className="px-3 py-2 font-medium">Column</th>
+                        <th className="px-3 py-2 font-medium">Problem</th>
+                        <th className="px-3 py-2 font-medium">Recommended action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {[
+                        [
+                          "18",
+                          "Variant Price",
+                          "Price is not a valid Shopify number",
+                          "Change $19,99 to 19.99",
+                        ],
+                        [
+                          "42",
+                          "Variant SKU",
+                          "SKU is used by another variant",
+                          "Confirm it or assign a unique SKU",
+                        ],
+                        [
+                          "57",
+                          "Image Src",
+                          "Image URL is incomplete",
+                          "Use the full public HTTPS image URL",
+                        ],
+                      ].map(([row, column, problem, action]) => (
+                        <tr key={row}>
+                          <td className="px-3 py-3 font-mono text-xs">{row}</td>
+                          <td className="px-3 py-3 font-medium">{column}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{problem}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{action}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    <p>
+                      <strong className="text-foreground">Free preview:</strong> status, row counts,
+                      issue categories, and the first issue examples.
+                    </p>
+                    <p>
+                      <strong className="text-foreground">
+                        Full report + Shopify-ready export:
+                      </strong>{" "}
+                      every issue with the exact row, column, current value, and recommended action,
+                      plus exportable rows with blockers excluded.
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" className="shrink-0">
+                    <a
+                      href="/productcsvfixer-sample-validation-report.csv"
+                      download
+                      onClick={() =>
+                        track("seo_cta_clicked", {
+                          ...getPageTrackingContext(),
+                          cta_location: "sample_validation_report",
+                          cta_type: "sample_report_download",
+                        })
+                      }
+                    >
+                      <Download className="h-4 w-4" />
+                      Download sample validation report
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </section>
         )}
 
